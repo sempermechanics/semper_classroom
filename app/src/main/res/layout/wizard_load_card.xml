@@ -5,26 +5,30 @@
      below the log are shown per test: cross-section for tensile, span /
      width / thickness and the tapped load point for bending.
      Inflated through a ViewStub so the host layout stays under lint's
-     TooManyViews cap. -->
+     TooManyViews cap; the stub carries the margin above the card.
+     The card's own content padding (Widget.Semper.Card, 16dp) is the inset,
+     as on the reference and deformed-frame cards above it. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/loadCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="12dp"
     app:cardBackgroundColor="@android:color/transparent"
     app:strokeColor="@color/viewer_glass_stroke">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="14dp">
+        android:orientation="vertical">
 
+        <!-- Pulled up and out by the info button's own padding, so the title
+             sits where the cards above put theirs and the glyph meets the edge. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="-10dp"
+            android:layout_marginEnd="-12dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 

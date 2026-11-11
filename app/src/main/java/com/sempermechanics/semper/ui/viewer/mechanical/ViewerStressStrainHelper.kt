@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.os.Trace
 import android.view.View
 import android.widget.TextView
+import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
@@ -161,13 +162,8 @@ class ViewerStressStrainHelper(
         drawn[views.plot] = views
         val plot = views.plot
         val result = views.result
-        // One button for both corrections: bending's deflection, or the tensile curve.
         val bending = curve.model.plotsLoadDeflection
-        views.adjust.isVisible = (bending || curve.model is StressStrain.Model.Axial) && !curve.isEmpty
-        views.adjust.setText(if (bending) R.string.deflection_adjust else R.string.curve_adjust)
-        views.adjust.setOnClickListener {
-            if (bending) ViewerDeflectionCorrection.show(host) else ViewerCurveCorrection.show(host)
-        }
+        bindAdjust(host, views.adjust, curve)
         if (curve.isEmpty || !curve.model.measuresStrain) {
             drawWithoutPlot(views, curve)
             return
@@ -350,5 +346,27 @@ class ViewerStressStrainHelper(
             StressStrain.Dimension.WIDTH -> R.string.settings_used_width
             StressStrain.Dimension.THICKNESS -> R.string.settings_used_thickness
         }
+    }
+}
+
+/**
+ * One button for both corrections: bending's deflection, or the tensile curve.
+ * It is an icon, so its name is read out and shown on a long press, and it is
+ * filled while a scale or bias is in force, so a corrected curve shows as one.
+ */
+private fun bindAdjust(host: ResultViewerActivity, adjust: View, curve: StressStrain.Curve) {
+    val bending = curve.model.plotsLoadDeflection
+    val axial = curve.model as? StressStrain.Model.Axial
+    adjust.isVisible = (bending || axial != null) && !curve.isEmpty
+    val label = host.getString(if (bending) R.string.deflection_adjust else R.string.curve_adjust)
+    adjust.contentDescription = label
+    TooltipCompat.setTooltipText(adjust, label)
+    adjust.isActivated = if (bending) {
+        !BeamDeflection.Correction.of(curve.model).isNone
+    } else {
+        axial?.correction?.isNone == false
+    }
+    adjust.setOnClickListener {
+        if (bending) ViewerDeflectionCorrection.show(host) else ViewerCurveCorrection.show(host)
     }
 }

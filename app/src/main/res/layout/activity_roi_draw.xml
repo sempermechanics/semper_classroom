@@ -28,8 +28,9 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="8dp"
+            android:paddingStart="8dp"
             android:paddingTop="8dp"
+            android:paddingEnd="16dp"
             android:paddingBottom="4dp">
 
             <com.google.android.material.button.MaterialButton

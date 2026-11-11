@@ -36,6 +36,22 @@ class LabCopyTest {
         }
     }
 
+    /** The line under a disabled Next is a sentence of its own, so it opens with a capital. */
+    @Test
+    fun `a Next reason starts with a capital`() {
+        val plurals = Regex("""<plurals name="(next_reason_[^"]+)">(.*?)</plurals>""", RegexOption.DOT_MATCHES_ALL)
+            .findAll(xml)
+            .flatMap { block ->
+                Regex("""<item[^>]*>(.*?)</item>""").findAll(block.groupValues[2])
+                    .map { block.groupValues[1] to it.groupValues[1] }
+            }
+        val reasons = strings.filterKeys { it.startsWith("next_reason_") }.toList() + plurals
+        assertTrue("found the reasons", reasons.size >= 8)
+        // A plural opens with its count ("1 photo has no load…"), which has no case.
+        val lowerCase = reasons.filter { (_, text) -> text.first { !it.isWhitespace() && it != '%' }.isLowerCase() }
+        assertEquals(emptyList<Pair<String, String>>(), lowerCase)
+    }
+
     @Test
     fun `no unexplained abbreviation`() {
         assertEquals(emptyList<String>(), offenders(Regex("""\bTAs?\b""")))

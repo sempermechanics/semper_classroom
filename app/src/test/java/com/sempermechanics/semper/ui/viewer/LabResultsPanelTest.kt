@@ -11,6 +11,7 @@ import com.sempermechanics.semper.databinding.LabResultsPanelBinding
 import com.sempermechanics.semper.databinding.SheetSettingsUsedBinding
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,6 +46,12 @@ class LabResultsPanelTest {
         assertFalse(panel.labResultsRangeClip.isVisible)
         assertFalse(panel.btnLabResultsAdjust.isVisible)
         assertFalse(panel.tvLabResultsText.isVisible)
+        // The title shares its row with both controls: Adjust is an icon with a spoken
+        // label, not a text button, and the title never breaks mid-word ("RES / ULTS").
+        assertEquals("", panel.btnLabResultsAdjust.text.toString())
+        assertNotNull(panel.btnLabResultsAdjust.icon)
+        assertFalse(panel.btnLabResultsAdjust.contentDescription.isNullOrBlank())
+        assertEquals(1, panel.tvLabResultsTitle.maxLines)
     }
 
     @Test

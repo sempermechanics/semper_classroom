@@ -9,6 +9,8 @@ import android.text.style.ImageSpan
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.sempermechanics.semper.R
 import com.sempermechanics.semper.data.integrity.RecordIntegrity
 import com.sempermechanics.semper.data.mechanical.TestType
@@ -123,8 +125,17 @@ object SettingsUsedSheet {
         // container Material inflates around the content, which the theme cannot reach.
         sheet.dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
             ?.setBackgroundColor(Color.TRANSPARENT)
+        // Pulled all the way up, the sheet ran under the status bar and its first
+        // heading sat behind the clock: it stops at the bar's lower edge instead.
+        val decor = host.window.decorView
+        val statusBar = ViewCompat.getRootWindowInsets(decor)
+            ?.getInsets(WindowInsetsCompat.Type.statusBars())?.top ?: 0
+        if (decor.height > statusBar) sheet.dialog.behavior.maxHeight = decor.height - statusBar
 
         view.tvSettingsUsedSpecimen.text = host.args.refName
+        // A lab test's Results page is a graph, not a map: it has no colour scale
+        // to quote, so the stats line goes rather than describe one.
+        view.tvSheetStats.visibility = if (host.resultsOnScreen) View.GONE else View.VISIBLE
         view.tvSheetStats.text = host.captions.detailStatsText()
         populateHistogram(host, view)
 

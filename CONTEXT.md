@@ -137,6 +137,10 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   **Which test?** offers 2D DIC (Semper's analysis: no load card, no test type recorded),
   Tensile and Bending; a fork change to a shared screen runs only for a lab test.
   semperdic-app accepted making this a product flavour of its repo on 2026-10-22 ([ADR-025](docs/adr/ADR-025-test-type-extension-points.md), mirrored).
+- **Seminar demo polish** (`claude/demo-ui-polish`, 2026-11-11; not merged): spacing and cut
+  titles seen on the S22 fixed; Results' Adjust is a sliders icon, filled while a correction
+  is set, and the Whole test / Elastic region toggle is smaller; about 40 on-screen texts and
+  ⓘ explanations shortened; TIFF frames show their picture in the frame strip.
 - **Synced with `semperdic-app`** (forked at `bfe00e5`; `git log --merges
   --grep=semperdic-app`; rules in its `docs/ops/FORK_SYNC.md`). Last: `5b9a9e9a`, 2026-10-31,
   on `sync/semperdic-5b9a9e9`: its #516–#519, ADR-033's deploy records and `pyasn1` 0.6.5 in

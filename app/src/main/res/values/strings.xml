@@ -41,7 +41,7 @@
     <string name="apply">Apply</string>
     <string name="curve_adjust">Adjust curve</string>
     <string name="curve_adjust_title">Match the machine\'s curve</string>
-    <string name="curve_adjust_body">Strain = scale × strain from the camera + bias. Stress = scale × (load ÷ area) + bias. Set for this analysis, to line the curve up with the machine\'s own stress–strain export. The graph, E, yield, peak, the report and the CSV all use it.\n\n1 and 0 leave a value as measured.</string>
+    <string name="curve_adjust_body">Strain = scale × camera strain + bias. Stress = scale × (load ÷ area) + bias. For this analysis only, to match the machine\'s own curve. The graph, results, report and CSV use it.\n\n1 and 0 change nothing.</string>
     <string name="curve_strain_scale_hint">Strain scale (×), 1 for none</string>
     <string name="curve_strain_bias_hint">Strain bias (mε), 0 for none</string>
     <string name="curve_stress_scale_hint">Stress scale (×), 1 for none</string>
@@ -429,7 +429,7 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="storage_auto_free">Auto-free space</string>
     <string name="storage_auto_free_off">Off</string>
     <string name="storage_auto_free_on_fmt">Over %1$d GB</string>
-    <string name="storage_auto_free_info">When off, analyses stay on this phone until you remove them. Set a size, and whenever this phone holds more than that, backed-up analyses are freed from this phone, oldest first, to get back under it. Only analyses that finished backing up are ever freed. They stay in the cloud and download again when opened. Analyses that are not backed up are never touched.</string>
+    <string name="storage_auto_free_info">Off: analyses stay on this phone until you remove them. With a size set, backed-up analyses are freed, oldest first, whenever the phone holds more than that. They stay in the cloud and download again when opened. Analyses that are not backed up are never touched.</string>
     <string name="action_undo">Undo</string>
     <string name="analysis_preferences">Analysis preferences</string>
     <string name="cloud_retry_backup">Retry backup</string>
@@ -473,7 +473,7 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="sync_status_up_to_date">Cloud backups up to date</string>
     <string name="home_empty_start">Start analysis</string>
     <string name="settings_max_frames">Max frames</string>
-    <string name="settings_max_frames_info">A ceiling, not a target: it can only reduce a run, never add frames. It caps imported frames and frames sampled from a video. More frames = longer analysis and more memory.</string>
+    <string name="settings_max_frames_info">A ceiling, not a target: it only reduces a run. It caps imported frames and frames sampled from a video. More frames mean a longer analysis and more memory.</string>
     <string name="info">Info</string>
     <!-- An "i" button's TalkBack name: the setting its dialog explains (Dialogs.bindInfo). -->
     <string name="info_about">About %1$s</string>
@@ -512,27 +512,27 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="analysis_mode">Analysis mode</string>
     <string name="mode_single">Single</string>
     <string name="mode_sweep">Sweep</string>
-    <string name="info_analysis_mode">Single: Runs every frame for the parameters chosen below. \n\n Sweep: Compares one frame across different subset and strain-window sizes at a chosen subset overlap.</string>
+    <string name="info_analysis_mode">Single: runs every frame with the settings below.\n\nSweep: compares one frame across subset and strain-window sizes at one overlap.</string>
 
     <string name="subset_min">Subset size (min)</string>
     <string name="subset_max">Subset size (max)</string>
     <string name="subset_range">Subset size range</string>
     <!-- The sweep settings page's label over the subset range. -->
     <string name="sweep_subset">Subset</string>
-    <string name="subset_samples">No. of subsets</string>
-    <string name="vsg_samples">No. of strain windows</string>
+    <string name="subset_samples">Subset sizes</string>
+    <string name="vsg_samples">Strain windows</string>
     <string name="step_depth">Step size</string>
-    <string name="info_step_depth">Step size given as subset ÷ N(Larger N means denser correlation). Capped between 2 and 6.</string>
+    <string name="info_step_depth">Step size as subset ÷ N, from 2 to 6. Larger N gives denser points.</string>
     <string name="step_depth_prefix">subset ÷ </string>
     <string name="subset_overlap">Subset overlap</string>
     <string name="overlap">Overlap</string>
     <string name="info_subset_overlap">How much neighbouring subsets cover each other. Typical values are 0.50–0.75.</string>
-    <string name="info_subset_samples">Total No. of analyses = No. of subsets × No. of strain windows.</string>
-    <string name="info_subset_range"> Min to Max (px) capped by the image/ROI(Odd subset sizes) and speckle pattern.</string>
+    <string name="info_subset_samples">Runs = subset sizes × strain windows.</string>
+    <string name="info_subset_range">Min to Max, in px (odd sizes). Capped by the image or ROI and by the speckle.</string>
     <string name="strain_win_min">Min</string>
     <string name="strain_win_max">Max</string>
     <string name="strain_win_range">Strain window range (points)</string>
-    <string name="info_strain_win_range">Min to Max, in data points (odd values). Each subset\'s step turns a window into a VSG of (window − 1) × step + 1 px, which is the sweep\'s y axis. Larger windows smooth strain more; smaller ones resolve finer gradients.</string>
+    <string name="info_strain_win_range">Min to Max, in data points (odd). A window gives a VSG of (window − 1) × step + 1 px, the sweep\'s y axis. Larger windows smooth more; smaller ones show finer gradients.</string>
 
     <string name="line_cut_axis">Line cut axis</string>
     <string name="info_line_cut_axis">Strains along the axis through the ROI centre are monitored.</string>
@@ -737,25 +737,25 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <!-- Speckle-size feedback, from the iDICs Good Practices Guide's 3-9 px
          band. Measured on the reference frame; see SpeckleScale. -->
     <string name="speckle_readout_fmt">Speckle measures about %1$.1f px across. Good practice asks for %2$d–%3$d px.</string>
-    <string name="speckle_under_resolved_fmt">Speckle measures about %1$.1f px across, below the %2$d px minimum. The pattern may be too fine for this frame to resolve, and points can fail to correlate. Shoot closer, or use a coarser pattern.</string>
-    <string name="speckle_over_resolved_fmt">Speckle measures about %1$.1f px across, above the %2$d px the method needs. It will correlate, but a finer pattern would give more measurement points across the same area.</string>
+    <string name="speckle_under_resolved_fmt">Speckle is about %1$.1f px, below the %2$d px minimum, so points may fail. Shoot closer or use a coarser pattern.</string>
+    <string name="speckle_over_resolved_fmt">Speckle is about %1$.1f px, above the %2$d px guide. It will work; a finer pattern gives more points.</string>
     <string name="speckle_subset_span_fmt">A %1$d px subset spans too few speckles on this pattern to be unambiguous. Good practice asks for at least %2$d px here.</string>
     <!-- The speckle chip beside the subset size while the speckle is measured (shown
          past 300 ms), then the speckle the measurement found. -->
     <string name="speckle_measuring">Measuring speckle…</string>
     <string name="speckle_chip_fmt">Speckle %1$.1f px</string>
-    <string name="next_reason_ref">add a reference image to continue</string>
-    <string name="next_reason_def">add at least one deformed frame to continue</string>
-    <string name="next_reason_load">import the machine load log to continue</string>
-    <string name="next_reason_load_typed">type the hanger load of each photo (kg) to continue</string>
+    <string name="next_reason_ref">Add a reference image to continue</string>
+    <string name="next_reason_def">Add at least one deformed frame to continue</string>
+    <string name="next_reason_load">Import the machine load log to continue</string>
+    <string name="next_reason_load_typed">Type the hanger load of each photo (kg) to continue</string>
     <plurals name="next_reason_load_typed_missing_fmt">
         <item quantity="one">%1$d photo has no load: type it (0 if no weight) to continue</item>
         <item quantity="other">%1$d photos have no load: type them (0 if no weight) to continue</item>
     </plurals>
-    <string name="next_reason_load_unmatched">no frame is within 100 ms of a log row: check when the log started</string>
-    <string name="next_reason_cross_section">enter the specimen cross-section to continue</string>
-    <string name="next_reason_dimensions">enter the specimen dimensions to continue</string>
-    <string name="next_reason_load_point">set the beam height on the reference photo to continue</string>
+    <string name="next_reason_load_unmatched">No frame is within 100 ms of a log row: check when the log started</string>
+    <string name="next_reason_cross_section">Enter the specimen cross-section to continue</string>
+    <string name="next_reason_dimensions">Enter the specimen dimensions to continue</string>
+    <string name="next_reason_load_point">Set the beam height on the reference photo to continue</string>
     <string name="run_analysis">Compute</string>
     <string name="new_analysis_title">New analysis</string>
 
@@ -780,7 +780,7 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="load_type_needs_frames">Add the deformed frames first</string>
     <string name="load_typed_title">Hanger load per photo</string>
     <string name="load_typed_done">Done</string>
-    <string name="load_typed_subtitle">The mass on the hanger when each photo was taken, in kg. W = m × 9.80665 N. Every photo needs a number: type 0 for a photo with no weight.</string>
+    <string name="load_typed_subtitle">Mass on the hanger for each photo, in kg (W = m × 9.80665 N). Every photo needs a number: 0 for no weight.</string>
     <string name="load_typed_ref">Reference photo: no weights, 0 kg</string>
     <string name="load_typed_photo_fmt">Photo %1$d</string>
     <string name="load_typed_frame_fmt">Frame %1$d</string>
@@ -795,7 +795,7 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="load_typed_entry_label">Loads typed as</string>
     <string name="load_typed_entry_absolute">Absolute (total on hanger)</string>
     <string name="load_typed_entry_incremental">Incremental (added per photo)</string>
-    <string name="load_typed_subtitle_incremental">The mass added to the hanger since the previous photo, in kg: negative for a weight taken off. For photo 1, what went on the empty hanger. W = m × 9.80665 N. Every photo needs a number: type 0 if nothing changed.</string>
+    <string name="load_typed_subtitle_incremental">Mass added since the previous photo, in kg; negative for a weight taken off. Photo 1: what went on the empty hanger. W = m × 9.80665 N. Every photo needs a number: 0 if nothing changed.</string>
     <string name="load_typed_hint_incremental">added</string>
     <string name="load_typed_invalid_incremental">Enter the change in kg, e.g. 0.5, or −0.5 for a weight taken off</string>
     <string name="load_typed_blank_incremental">Type the mass added in kg: 0 if nothing changed</string>
@@ -846,9 +846,9 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="beam_tap_title">Beam height</string>
     <string name="beam_tap_save">Save</string>
     <string name="beam_tap_canvas">Reference photo of the beam</string>
-    <string name="beam_tap_step_top">Tap the beam’s top edge, right under the load, so the crosshair’s horizontal line lies along the edge. Pinch or double-tap to zoom in first; drag to move around.</string>
-    <string name="beam_tap_step_bottom">Now tap the bottom edge, straight across the beam from the top mark. Near the vertical line it snaps onto it; on a beam tilted in the photo, tap square to the beam.</string>
-    <string name="beam_tap_step_done">Tap near a mark to move it: the top mark carries the bottom one sideways with it. Save when the lines across the tap line sit on both edges.</string>
+    <string name="beam_tap_step_top">Tap the beam’s top edge under the load. Zoom in first: pinch or double-tap.</string>
+    <string name="beam_tap_step_bottom">Now tap the bottom edge, straight across from the top mark. On a tilted beam, tap square to it.</string>
+    <string name="beam_tap_step_done">Tap near a mark to move it. Save when both lines sit on the edges.</string>
     <string name="beam_tap_readout_empty">Thickness %1$s mm — tap both edges</string>
     <string name="beam_tap_too_close">The marks are on top of each other — tap the other edge.</string>
     <!-- thickness mm, pixels, mm per pixel -->
@@ -859,15 +859,15 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="info_load_csv_heading">The machine’s CSV</string>
     <string name="info_load_csv_sample_tensile" translatable="false">Time (s),Load (kN)\n0.0,0.00\n0.5,1.25\n1.0,2.51\n1.5,3.74</string>
     <string name="info_load_csv_sample_bending" translatable="false">Time (s),Load (N)\n0,0\n10,4.9\n20,9.8\n30,14.7</string>
-    <string name="info_load_csv_body_tensile">The first line is the header. Name the load column <b>Load</b> or <b>Force</b> and put its unit in brackets: N, kN, kgf or lbf. A second line holding just the units also works; with no unit the loads are taken as N.\n\nAdd a <b>Time (s)</b> column when you filmed a video (ms and min work too): each frame takes the row logged within 100 ms of it. With photos, one row per photo in the same order is enough; a longer log is spread evenly over the photos. Loads keep their sign. Commas, semicolons or tabs all work as separators.</string>
-    <string name="info_load_csv_body_bending">Usually you type the loads: tap <b>Type loads (kg)</b> and enter the mass on the hanger for each photo. The app turns kg into newtons: W = m × 9.80665.\n\nA CSV is optional and is read in newtons. The first line is the header. Name the load column <b>Load</b> (or <b>Force</b>) and put its unit in brackets: N, kN or kgf; with no unit the loads are taken as N. For a video, add a <b>Time (s)</b> column, counted from when you started the log: each frame takes the row logged within 100 ms of it. With photos, one row per photo in the same order works; so does a timed log when the photos carry their capture time.</string>
+    <string name="info_load_csv_body_tensile">Line 1 is the header. Name the load column <b>Load</b> or <b>Force</b> with its unit in brackets: N, kN, kgf or lbf. A units line below also works; no unit means N.\n\nFor a video, add a <b>Time (s)</b> column (ms and min work too): each frame takes the row within 100 ms. For photos, one row per photo in order is enough; a longer log is spread evenly. Loads keep their sign. Commas, semicolons or tabs separate columns.</string>
+    <string name="info_load_csv_body_bending">Usually you type the loads: tap <b>Type loads (kg)</b> and enter the hanger mass for each photo. W = m × 9.80665 N.\n\nA CSV is optional and is read in newtons. Line 1 is the header. Name the load column <b>Load</b> or <b>Force</b> with its unit in brackets: N, kN or kgf; no unit means N. For a video, add a <b>Time (s)</b> column counted from the start of the log: each frame takes the row within 100 ms. For photos, use one row per photo in order, or a timed log if the photos carry their capture time.</string>
     <string name="info_load_diagram_heading_tensile">Cross-section and loading axis</string>
     <string name="info_load_diagram_heading_bending">What to measure</string>
-    <string name="info_load_diagram_body_tensile"><b>Cross-section area A</b> is the round face of the bar’s gauge length: A = π × d² ÷ 4, with d the diameter in mm. Measure d before the test and type A in mm².\n\nThe <b>loading axis</b> is the line the machine pulls along. For the <b>Strain axis</b>, pick <b>X</b> if the bar runs left to right in the photo, or <b>Y</b> if it runs top to bottom.</string>
-    <string name="info_load_diagram_body_bending"><b>L</b> is the support span, centre to centre of the supports. <b>b</b> is the beam’s width and <b>t</b> its thickness (its height as you look at the side). All in mm.\n\n<b>W</b> is the hanger load at mid-span and <b>δ</b> the deflection there. <b>Set beam height</b>: on the reference photo, tap the beam’s top and bottom edges right under the load (the two dots). t over those pixels is the photo’s scale, and δ is read at that spot.</string>
+    <string name="info_load_diagram_body_tensile"><b>Cross-section area A</b>: the bar’s round section in the gauge length, A = π × d² ÷ 4 with d in mm. Measure d before the test and type A in mm².\n\nThe <b>loading axis</b> is the line the machine pulls along. <b>Strain axis</b>: <b>X</b> if the bar runs left to right in the photo, <b>Y</b> if top to bottom.</string>
+    <string name="info_load_diagram_body_bending"><b>L</b>: support span, centre to centre. <b>b</b>: beam width. <b>t</b>: thickness (the height you see from the side). All in mm.\n\n<b>W</b>: hanger load at mid-span. <b>δ</b>: deflection there. <b>Set beam height</b>: on the reference photo, tap the beam’s top and bottom edges under the load (the two dots). t over those pixels gives the photo’s scale, and δ is read at that spot.</string>
     <string name="info_load_results_heading">From loads to results</string>
-    <string name="info_load_body">Stress = load ÷ A. Strain comes from the photos, so no extensometer is needed.\n\nYoung’s modulus E is the slope of the straight, early part of the curve, so take several photos before the bar starts to yield. E from a phone camera is approximate; compare it with the value your lab gives you.</string>
-    <string name="info_load_body_bending">Point the phone at the side of the beam, at the middle where the load hangs, on a tripod. Take the reference photo with no load on the hanger: that is the dial gauge’s zero. Frame the middle of the beam rather than the whole span, so the thickness covers plenty of pixels.\n\nBending stress σb = M·y ÷ I, with M = W·L ÷ 4, y = t ÷ 2 and I = b·t³ ÷ 12. E = W·L³ ÷ (48·δ·I) for each load, and also from the slope of the load–deflection graph. E from a phone camera is approximate.</string>
+    <string name="info_load_body">Stress = load ÷ A. Strain comes from the photos, so no extensometer is needed.\n\nYoung’s modulus E is the slope of the straight, early part of the curve, so take several photos before the bar yields. E from a phone camera is approximate; compare it with your lab’s value.</string>
+    <string name="info_load_body_bending">Put the phone on a tripod, facing the side of the beam at mid-span, where the load hangs. Take the reference photo with no load on the hanger: that is the dial gauge’s zero. Frame the middle of the beam, not the whole span, so the thickness covers plenty of pixels.\n\nBending stress σb = M·y ÷ I, with M = W·L ÷ 4, y = t ÷ 2 and I = b·t³ ÷ 12. E = W·L³ ÷ (48·δ·I) for each load, and from the slope of the load–deflection graph. E from a phone camera is approximate.</string>
     <string name="info_diagram_loading_axis">loading axis</string>
     <string name="info_diagram_cross_section">cross-section</string>
     <string name="info_diagram_photo">in the photo</string>
@@ -883,17 +883,17 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="load_warn_units_assumed">No unit found in the log — loads are taken as newtons.</string>
     <string name="load_warn_kg_as_kgf">The load column is in kg — read as kilograms-force: N = kg × 9.80665.</string>
     <string name="load_warn_column_guessed">No load column named in the log — the last numeric column is used.</string>
-    <string name="load_warn_time_aligned">Frames matched to the log by time: each takes the row logged within 100 ms of it. If the machine started logging after the reference (the video’s first frame, or when the reference photo was taken), enter the gap below.</string>
+    <string name="load_warn_time_aligned">Frames matched to the log by time (within 100 ms). If the log started after the reference, enter the gap below.</string>
     <plurals name="load_warn_unmatched_fmt">
         <item quantity="one">%1$d of %2$d frames has no log row within %3$d ms. It has no load and is left off the curve.</item>
         <item quantity="other">%1$d of %2$d frames have no log row within %3$d ms. They have no load and are left off the curve.</item>
     </plurals>
     <string name="load_sync_label">Log started after the reference</string>
     <string name="load_sync_hint">0</string>
-    <string name="load_sync_body">Seconds from the reference (the video’s first frame, or when the reference photo was taken) to the log’s first row. Negative if the log started first.</string>
+    <string name="load_sync_body">Seconds from the reference (the video’s first frame, or the reference photo’s time) to the log’s first row. Negative if the log started first.</string>
     <string name="load_warn_time_ignored">The log’s time column does not increase, so it was ignored.</string>
     <string name="load_warn_time_unit_assumed">The log’s time column names no unit (s, ms, min or h) — its times are taken as seconds.</string>
-    <string name="load_warn_time_coarse">Some capture times, the reference’s or a photo’s, were saved to the whole second (the camera writes no fraction, or the copy lost it), so each photo’s time is good only to about 1 s: frames take the row logged within 1 s of them, and a fast-changing load may be read up to a second early or late. Shoot video, or log one row per photo, for a closer match.</string>
+    <string name="load_warn_time_coarse">Some photo times were saved to the whole second, so loads are matched within 1 s and a fast-changing load may be read up to a second off. For a closer match, shoot video or log one row per photo.</string>
     <string name="load_warn_sign_tensile">All loads are negative for a tensile test — check the machine’s sign convention.</string>
     <string name="load_err_title">Couldn’t read the load log</string>
     <string name="load_err_empty">The file has no load rows.</string>
@@ -912,14 +912,14 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="stress_strain_caption_fmt">Frame %1$d · %2$s N · %3$s MPa · %4$s mε</string>
     <string name="stress_strain_frame_skipped">This frame has no accepted points, so it is not on the curve.</string>
     <string name="stress_strain_empty">No frame has accepted points, so there is no curve.</string>
-    <string name="stress_strain_no_strain">The beam’s edges were not tapped for this analysis, so there is no deflection or bending strain to plot the loads against. Set the beam height on the reference and run it again for δ, E and the outer-fibre strain.</string>
+    <string name="stress_strain_no_strain">The beam’s edges were not tapped, so there is no deflection to plot. Set the beam height and run again for δ and E.</string>
     <plurals name="results_summary_caption_fmt">
-        <item quantity="one">The whole test: %1$d of %2$d photo on the curve. Tap › to see its strain.</item>
-        <item quantity="other">The whole test: %1$d of %2$d photos on the curve. Tap › to see each photo’s strain.</item>
+        <item quantity="one">%1$d of %2$d photo on the curve. Tap › for its strain.</item>
+        <item quantity="other">%1$d of %2$d photos on the curve. Tap › for each photo.</item>
     </plurals>
     <plurals name="results_summary_caption_bending_fmt">
-        <item quantity="one">The whole test: %1$d of %2$d photo on the graph. Tap › to see its deflection.</item>
-        <item quantity="other">The whole test: %1$d of %2$d photos on the graph. Tap › to see each photo’s deflection.</item>
+        <item quantity="one">%1$d of %2$d photo on the graph. Tap › for its deflection.</item>
+        <item quantity="other">%1$d of %2$d photos on the graph. Tap › for each photo.</item>
     </plurals>
 
     <!-- Bending Results: load–deflection graph and the lab's Results lines -->
@@ -930,38 +930,38 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="bending_modulus_slope_fmt">E from the graph ≈ %1$s GPa (slope %2$s kg/mm, R² %3$s)</string>
     <string name="bending_modulus_slope_none">E from the graph: needs at least two photos with a deflection.</string>
     <plurals name="bending_modulus_mean_fmt">
-        <item quantity="one">Average E from the calculation ≈ %1$s GPa (%2$d load step)</item>
-        <item quantity="other">Average E from the calculations ≈ %1$s GPa (%2$d load steps)</item>
+        <item quantity="one">Average E ≈ %1$s GPa (%2$d load step)</item>
+        <item quantity="other">Average E ≈ %1$s GPa (%2$d load steps)</item>
     </plurals>
-    <string name="bending_scale_fmt">Scale from the thickness taps: %1$s mm/px</string>
+    <string name="bending_scale_fmt">Scale: %1$s mm/px (thickness taps)</string>
     <string name="bending_correction_fmt">Deflection corrected: δ = %1$s × δ measured %2$s %3$s mm</string>
     <!-- Bending Results: Adjust deflection (ViewerDeflectionCorrection) -->
     <string name="deflection_adjust">Adjust deflection</string>
     <string name="deflection_adjust_title">Deflection correction</string>
-    <string name="deflection_adjust_body">δ = scale × δ measured + bias, for this analysis, e.g. from your teaching assistant for your camera and tripod. The graph, table, both E values, the report and the CSV all use it.\n\nThe scale changes both E values. The bias changes each step\'s E but not E from the graph.</string>
+    <string name="deflection_adjust_body">δ = scale × δ measured + bias, for this analysis only. The graph, table, both E values, report and CSV use it.\n\nScale changes both E values; bias changes each step\'s E, not E from the graph.</string>
     <string name="deflection_scale_hint">Scale (×), 1 for none</string>
     <string name="deflection_bias_hint">Bias (mm), 0 for none</string>
     <string name="deflection_scale_invalid">Enter a number above 0, e.g. 1.05</string>
     <string name="deflection_bias_invalid">Enter a number in mm, e.g. -0.12</string>
     <string name="deflection_reset">Reset</string>
-    <string name="bending_caution">Approximate: the deflection comes from the camera, not a dial gauge, and includes any movement of the whole beam. The graph value ignores that movement; trust it more.</string>
+    <string name="bending_caution">Approximate: camera deflection includes any movement of the whole beam. E from the graph ignores it, so trust that one.</string>
     <string name="bending_no_deflection">No deflection was read at the load point. Check that the tapped point is inside the analysed region.</string>
     <!-- frame, load kg, deflection mm, bending stress MPa, E GPa -->
     <string name="bending_frame_caption_fmt">Frame %1$d · %2$s kg · δ %3$s mm · σb %4$s MPa · E %5$s GPa</string>
     <string name="results_peak_stress_fmt">Peak stress: %1$s MPa (frame %2$d)</string>
-    <string name="results_peak_stress_off_curve_fmt">Peak stress: %1$s MPa (frame %2$d, off the curve: no strain there)</string>
+    <string name="results_peak_stress_off_curve_fmt">Peak stress: %1$s MPa (frame %2$d, no strain reading)</string>
     <string name="modulus_fit_label">Elastic fit</string>
     <string name="results_yield_mark_fmt">Yield (0.2%% offset) %1$s MPa</string>
-    <string name="results_yield_fmt">Yield strength Rp0.2 ≈ %1$s MPa at %2$s mε: where the curve meets the E line moved 0.2%% along the strain axis, between frames %3$d and %4$d.</string>
+    <string name="results_yield_fmt">Yield strength Rp0.2 ≈ %1$s MPa at %2$s mε (0.2%% offset, between frames %3$d and %4$d).</string>
     <string name="results_yield_none">Yield strength Rp0.2: not found. The curve does not reach the E line moved 0.2%% along the strain axis before its peak.</string>
-    <string name="modulus_tensile_fmt">Young’s modulus E ≈ %1$s GPa, from the straight part of the curve (frames %2$d–%3$d, R² %4$s). Approximate: the strain comes from the camera, not an extensometer.</string>
+    <string name="modulus_tensile_fmt">Young’s modulus E ≈ %1$s GPa (frames %2$d–%3$d, R² %4$s). Approximate: camera strain, no extensometer.</string>
     <string name="modulus_tensile_none">Young’s modulus E: not found. It needs at least three photos on the straight, early part of the curve, before the peak.</string>
     <string name="modulus_sign_caution">E came out negative or zero. Check the strain axis matches the direction the specimen is loaded in.</string>
     <!-- Results plot range: the whole curve, or zoomed to the frames E is fitted to -->
     <string name="results_range_whole">Whole test</string>
     <string name="results_range_elastic">Elastic region</string>
     <string name="results_range_desc">Plot range</string>
-    <string name="results_elastic_caption_fmt">Zoomed to frames %1$d–%2$d, the straight part E is fitted to, and the curve just past them. The grey line is the fit.</string>
+    <string name="results_elastic_caption_fmt">Frames %1$d–%2$d, where E is fitted. Grey line: the fit.</string>
     <string name="step_of_fmt">Step %1$d of %2$d</string>
     <string name="wizard_title_sweep_setup">Sweep setup</string>
     <string name="param_section_correlation">Correlation</string>
@@ -978,7 +978,7 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     </plurals>
     <!-- A video's choices: every this many seconds of the clip, whatever frame rate it was sampled at. -->
     <string name="reference_every_n_seconds">Every %1$d s</string>
-    <string name="reference_hint">Moving the reference follows large stretch or rotation that the first image stops matching. Results stay relative to the first image. Each move adds a little error, the more so the less the specimen moved since the last, so keep the first image while it still matches. On a video the reference moves every so many seconds of the clip, whatever frame rate you sampled, and earlier when points start to drop.</string>
+    <string name="reference_hint">Moving the reference follows stretch or rotation the first image can no longer match. Results stay relative to the first image. Each move adds a little error, so keep the first image while it still matches. On video it moves by clip time, and sooner if points start to drop.</string>
     <!-- The collapsible section holding the overlap, the interpolation and the reference. -->
     <string name="param_advanced">Advanced</string>
     <string name="run_compute_eta_fmt">Compute · %1$s</string>
@@ -1092,7 +1092,7 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
          scale's ends (a percentile clamp, or the user's fixed scale), not the
          data's max/min, so they carry the scale bar's ≥ / ≤ (scale_max_fmt /
          scale_min_fmt). %1$s top end, %2$s bottom end, %3$s unit. -->
-    <string name="viewer_stats_sequence_fmt">colour scale ≥ %1$s · ≤ %2$s %3$s</string>
+    <string name="viewer_stats_sequence_fmt">Colour scale ≥ %1$s · ≤ %2$s %3$s</string>
     <string name="viewer_histogram_title_fmt">%1$s distribution</string>
     <plurals name="viewer_histogram_bin_fmt">
         <item quantity="one">%1$d point · %2$s–%3$s %4$s</item>
@@ -1316,10 +1316,10 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
         <item quantity="one">≈ %1$d frame: 1 reference + %2$d deformed%3$s</item>
         <item quantity="other">≈ %1$d frames: 1 reference + %2$d deformed%3$s</item>
     </plurals>
-    <string name="info_subset">Bigger means more robust on weak speckle, but smoothens sharp strain gradients. Once the speckle is measured, the shaded band on the slider marks the sizes that hold enough speckle.</string>
-    <string name="info_step">Spacing between tracked points, in pixels. Smaller means denser results but longer analysis time. Linked to subset overlap: overlap = 1 − step / subset.</string>
-    <string name="info_strain_window">How many data points across each strain value averages over. The virtual strain gauge (VSG) it gives, in pixels, is (window − 1) × step + 1, shown beside the value. Bigger means smoother strain but less local detail.</string>
-    <string name="info_strain_window_bending">Bending starts at 9 points: its deflection and E come from displacement, so here strain only draws the maps, and a wider window makes them much less noisy.</string>
+    <string name="info_subset">Bigger is more robust on weak speckle but smooths sharp strain gradients. After the speckle check, the shaded band on the slider marks the sizes that hold enough speckle.</string>
+    <string name="info_step">Pixels between tracked points. Smaller is denser but slower. Overlap = 1 − step / subset.</string>
+    <string name="info_strain_window">Data points each strain value averages over. Its virtual strain gauge (VSG) is (window − 1) × step + 1 px, shown beside the value. Bigger is smoother but less local.</string>
+    <string name="info_strain_window_bending">Bending starts at 9 points: deflection and E come from displacement, so strain only draws the maps, and a wider window makes them less noisy.</string>
 
     <!-- Auth: sign-in errors -->
     <string name="error_passwords_mismatch">Passwords do not match.</string>
@@ -1554,7 +1554,7 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="examples_title">Example data</string>
     <string name="examples_open_action">Example data</string>
     <string name="examples_try_from_sheet">No photos yet? Try an example with published data</string>
-    <string name="examples_intro">Real tests published by their authors, with the answers they measured. Try one in a new analysis, or save it to your phone and run it like your own photos. Each set keeps its own licence; the credit is on its page.</string>
+    <string name="examples_intro">Published tests with the answers their authors measured. Try one, or save it to your phone. Each set keeps its own licence.</string>
     <string name="examples_meta_fmt">%1$d photos</string>
     <string name="examples_licence_line_fmt">%1$s · %2$s</string>
     <plurals name="examples_setup_fmt">

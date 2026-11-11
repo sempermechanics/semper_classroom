@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.sempermechanics.semper.field.DicResult
 import com.sempermechanics.semper.field.ValueRange
-import com.sempermechanics.semper.report.ReportBuilder
+import com.sempermechanics.semper.ui.viewer.ScaleEndLabel
 import com.sempermechanics.semper.ui.viewer.summary.SummaryCaption
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,7 +16,8 @@ import org.robolectric.annotation.Config
 /**
  * The summary caption quotes the colour bar's ends. It used to call them
  * "max" / "min" while the bar itself says "≥" / "≤" — and with a custom scale
- * they are the user's numbers, not the data's extremes at all.
+ * they are the user's numbers, not the data's extremes at all. The ends carry
+ * the bar's own three significant figures, not five decimals.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class)
@@ -28,9 +29,9 @@ class SummaryCaptionTest {
     fun `the caption quotes the scale ends with the scale bar's signs`() {
         val text = SummaryCaption.text(res, ValueRange(-0.002f, 0.003f), DicResult.IDX_EXX, "mε")
 
-        val top = ReportBuilder.formatMetric(0.003f * DicResult.strainMultiplier(DicResult.IDX_EXX))
-        val bottom = ReportBuilder.formatMetric(-0.002f * DicResult.strainMultiplier(DicResult.IDX_EXX))
-        assertEquals("colour scale ≥ $top · ≤ $bottom mε", text)
+        val top = ScaleEndLabel.format(0.003f * DicResult.strainMultiplier(DicResult.IDX_EXX))
+        val bottom = ScaleEndLabel.format(-0.002f * DicResult.strainMultiplier(DicResult.IDX_EXX))
+        assertEquals("Colour scale ≥ $top · ≤ $bottom mε", text)
         assertFalse(text.contains("max") || text.contains("min"))
     }
 
@@ -39,13 +40,13 @@ class SummaryCaptionTest {
         val text = SummaryCaption.text(res, ValueRange(-1.5f, 2.5f), DicResult.IDX_U, "px")
 
         assertEquals(
-            "colour scale ≥ ${ReportBuilder.formatMetric(2.5f)} · ≤ ${ReportBuilder.formatMetric(-1.5f)} px",
+            "Colour scale ≥ ${ScaleEndLabel.format(2.5f)} · ≤ ${ScaleEndLabel.format(-1.5f)} px",
             text,
         )
     }
 
     @Test
     fun `unknown bounds show the placeholder at both ends`() {
-        assertEquals("colour scale ≥ -- · ≤ -- px", SummaryCaption.text(res, null, DicResult.IDX_U, "px"))
+        assertEquals("Colour scale ≥ -- · ≤ -- px", SummaryCaption.text(res, null, DicResult.IDX_U, "px"))
     }
 }

@@ -84,7 +84,7 @@ retake them on the next pass.
 | `step1-tensile.png` | Reference, 40 frames, `steel_loads.csv` (kN), 12.5 mm², axis X, speckle chip | Manual §12, lab workflow, README |
 | `step1-bending.png` | Timed log, time-match chip, **Log started after the reference** = 2 (renamed from *…after the first frame*; recapture), L / b / t, load point 170 px | Manual §12, lab workflow, README |
 | `beam-taps.png` | The tap editor zoomed, both marks and the probe circle, 0.0375 mm/px | Manual §12, lab workflow, README |
-| `results-tensile.png` | Results: stress–strain curve, E ≈ 148.9 GPa (frames 1–26), yield Rp0.2 ≈ 305.6 MPa marked on the curve, peak 435.50 MPa (frame 38, off the curve: no strain there) | Manual §12, lab workflow, README |
+| `results-tensile.png` | Results: stress–strain curve, E ≈ 148.9 GPa (frames 1–26), yield Rp0.2 ≈ 305.6 MPa marked on the curve, peak 435.50 MPa (frame 38, no strain reading) | Manual §12, lab workflow, README |
 | `results-bending.png` | Results: load–deflection graph, E 142.0 GPa (slope), 173.7 GPa (average), 0.0375 mm/px | Manual §12, lab workflow, README |
 | `lab-report-tensile.png` | All four PDF pages, side by side | Manual §12, lab workflow, README |
 | `lab-report-bending.png` | All three PDF pages, side by side | Manual §12, lab workflow, README |

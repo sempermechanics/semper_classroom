@@ -494,8 +494,8 @@ Step 2 (**Sweep setup**) picks what is swept and shows the plan:
   most deformation, since the sweep solves only that one. With a single
   deformed frame there is nothing to pick and the row is hidden.
 - **Planned lattice** — one node per analysis, subset across and VSG up, with
-  the count beside the heading ("9 runs"). The gear on its heading shows **No.
-  of subsets** and **No. of strain windows**, the samples per range.
+  the count beside the heading ("9 runs"). The gear on its heading shows **Subset
+  sizes** and **Strain windows**, how many values each range is sampled at.
 
 Step 3 (**Sweep settings**) sets the ranges. The lattice on step 2 follows any
 change, so **Back** shows the new plan:
@@ -755,7 +755,7 @@ strain axis, its beam-edge taps (and the deflection scale and bias set in
 Results), and bending's typed hanger masses. A machine's load log is not kept
 with the analysis, so a test that read one opens on step 1 and asks for the
 log again; import the same file and continue. A tensile analysis's own scale
-and bias (**Adjust curve**) are set again in Results after the run.
+and bias (the adjust icon beside the Results title, **Adjust curve**) are set again in Results after the run.
 
 An analysis made before Re-run kept its reference, or restored from the cloud
 (the backup does not carry Re-run's copy), asks you to **Pick its reference

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ink of the Results panel's Adjust icon, matched to results_adjust_bg's fill. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/text_on_primary" android:state_activated="true" />
+    <item android:color="@color/sky_primary" />
+</selector>

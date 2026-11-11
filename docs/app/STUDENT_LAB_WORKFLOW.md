@@ -143,7 +143,7 @@ It's offered once the thickness is tapped.
 4. Get at least three photos in the elastic part before yield. More is better.
 5. Loads: one CSV row per photo in order (no time column), or the machine's timed log for a video or for photos straight off the phone.
 6. Bending: frame the **middle** of the beam, not the whole span. Aim for 100+ px across the thickness.
-7. Bending: if your TA gives a deflection scale and bias for your camera, lighting and tripod, open **Results** after the run and tap **Adjust deflection**. The app uses δ = scale × δ measured + bias for the graph, table, both E values, the lab report and the CSV, prints the correction in the report, and saves it with the analysis. **Reset** goes back to the camera's δ. No re-run is needed.
+7. Bending: if your TA gives a deflection scale and bias for your camera, lighting and tripod, open **Results** after the run and tap the adjust icon (sliders) beside the title; it opens **Adjust deflection**. The app uses δ = scale × δ measured + bias for the graph, table, both E values, the lab report and the CSV, prints the correction in the report, and saves it with the analysis. **Reset** goes back to the camera's δ. No re-run is needed.
 
 ## Worked numbers
 
