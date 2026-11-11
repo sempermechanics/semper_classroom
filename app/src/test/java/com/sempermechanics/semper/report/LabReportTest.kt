@@ -111,7 +111,8 @@ class LabReportTest {
         val calc = document().blocks.filterIsInstance<LabReport.Block.Calculation>().single()
 
         assertEquals("Stress = L / A = 8.900 × 10³ N / (123.51 × 10⁻⁶ m²) = 72.06 MPa", calc.lines[0])
-        assertTrue(calc.lines[1], calc.lines[1].endsWith("= 8.00×10⁻⁵"))
+        // No gauge on a curve made from points alone, so the strain is quoted, not worked.
+        assertEquals("Strain = ΔL / L₀, read by DIC for row 1 = 8.00×10⁻⁵", calc.lines[1])
     }
 
     @Test

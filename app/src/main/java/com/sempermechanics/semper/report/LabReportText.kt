@@ -61,7 +61,7 @@ object LabReportText {
         const val STRAIN_BY = "Strain measured by"
         fun strainBy(strainName: String) =
             "2D DIC virtual extensometer, $strainName between the ends of the analysed region"
-        fun dicGauge(axis: String) = "DIC gauge length along $axis (px)"
+        fun dicGauge(axis: String) = "DIC gauge length L₀ along $axis (px)"
         fun dicGaugeValue(lengthPx: String) = "$lengthPx — between the ends of the analysed region"
         const val FINAL_DIAMETER = "Final diameter (mm)"
         const val FINAL_GAUGE_LENGTH = "Final gauge length (mm)"
@@ -75,7 +75,17 @@ object LabReportText {
         fun stressLine(loadKn: String, areaMm2: String, stressMPa: String) =
             "Stress = L / A = $loadKn × 10³ N / ($areaMm2 × 10⁻⁶ m²) = $stressMPa MPa"
 
-        fun strainLine(strain: String) = "Strain = ΔL / L, read by DIC for row 1 = $strain"
+        /** Row 1's strain when the curve has no gauge to work it from. */
+        fun strainLine(strain: String) = "Strain = ΔL / L₀, read by DIC for row 1 = $strain"
+
+        /**
+         * Row 1's strain worked from its extension and the DIC gauge, both in
+         * pixels, so nobody divides the extension by the specimen's gauge
+         * length in mm, which the app never reads.
+         */
+        fun strainLine(extensionPx: String, gaugePx: String, strain: String) =
+            "Strain = ΔL / L₀ = $extensionPx px / $gaugePx px = $strain for row 1 " +
+                "(both lengths are in pixels of the photo, so the strain has no unit)"
         const val CORRECTION = "Curve matched to the machine by"
         fun correction(c: CurveCorrection): String {
             fun n(value: Float) = LabReportFormat.num(value, 4)
@@ -84,9 +94,6 @@ object LabReportText {
         }
         fun correctedLine(stressMPa: String, strain: String) =
             "With the match above, row 1 reads stress = $stressMPa MPa and strain = $strain"
-
-        fun extensionLine(extensionPx: String, gaugePx: String) =
-            "Extension ΔL for row 1 = $extensionPx px over a DIC gauge of $gaugePx px"
 
         const val GRAPH_ELASTIC = "Stress vs strain — elastic region"
         const val GRAPH_FULL = "Stress–strain curve"

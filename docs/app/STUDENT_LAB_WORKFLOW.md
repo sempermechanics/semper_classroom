@@ -62,7 +62,8 @@ Typed loads and a CSV are never combined; ✕ on one brings back the choice. Ten
 - **The virtual extensometer** (`Extensometer`) gives both ε and the report table's **Extension (px)**:
   - Two end bands, each a tenth of the region, are fixed on the first solved photo.
   - ΔL is the mean displacement of the far band minus that of the near band.
-  - The distance between the bands is L₀, the **DIC gauge length** (px), printed under Observations. Pixels cancel in ΔL / L₀, so no mm scale is needed.
+  - The distance between the bands is L₀, the **DIC gauge length L₀** (px), printed under Observations. Pixels cancel in ΔL / L₀, so no mm scale is needed.
+  - The report's Calculation works row 1 as px over px ("Strain = ΔL / L₀ = 0.165 px / 1648 px = …"), and the table's Extension has three decimals so any row's Extension ÷ L₀ gives its Strain (before a curve correction). The blank **Gauge length of specimen (mm)** line is the student's own; the app never divides by it.
   - Before ADR-012 the curve plotted the region's mean strain; on the steel case ΔL / L₀ reads 0.8 % above it over the elastic frames 13–28 (1.95×10⁻³ against 1.94×10⁻³ at 263 MPa; re-run 2026-09-29).
   - A photo where an end band has no points (it left the view, usually well past yield) has no strain and is left off the curve.
 

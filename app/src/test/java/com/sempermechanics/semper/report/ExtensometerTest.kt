@@ -80,11 +80,16 @@ class ExtensometerTest {
 
         val doc = LabReport.of(curve, null)!!
         val table = doc.blocks.filterIsInstance<LabReport.Block.Table>().single()
-        assertEquals(listOf("0.09", "0.18"), table.rows.map { it[3] })
+        assertEquals(listOf("0.090", "0.180"), table.rows.map { it[3] })
         val fields = doc.blocks.filterIsInstance<LabReport.Block.Field>().associate { it.label to it.value }
-        assertEquals("90 — between the ends of the analysed region", fields["DIC gauge length along x (px)"])
+        assertEquals("90 — between the ends of the analysed region", fields["DIC gauge length L₀ along x (px)"])
+        // The strain is worked as px over px, never over the specimen's gauge length in mm.
         val calc = doc.blocks.filterIsInstance<LabReport.Block.Calculation>().single()
-        assertEquals("Extension ΔL for row 1 = 0.09 px over a DIC gauge of 90 px", calc.lines.last())
+        assertEquals(
+            "Strain = ΔL / L₀ = 0.090 px / 90 px = 1.00×10⁻³ for row 1 " +
+                "(both lengths are in pixels of the photo, so the strain has no unit)",
+            calc.lines.last(),
+        )
     }
 
     @Test

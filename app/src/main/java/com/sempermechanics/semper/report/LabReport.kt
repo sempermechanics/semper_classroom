@@ -139,8 +139,8 @@ object LabReport {
                                 num(model.areaMm2, 2),
                                 num(model.correction.removeStress(first.stressMPa), 2),
                             ),
-                            t.strainLine(sci(model.correction.removeStrain(first.strainMilli) / MILLI)),
-                        ) + extensionLine(curve, first) + correctedLine(model.correction, first),
+                            strainLine(curve, model, first),
+                        ) + correctedLine(model.correction, first),
                     ),
                 )
                 addAll(tensileGraphs(curve, results))
@@ -168,13 +168,23 @@ object LabReport {
 
     private fun axisName(model: StressStrain.Model.Axial): String = if (model.axisX) "x" else "y"
 
-    private fun extensionLine(curve: StressStrain.Curve, first: StressStrain.Point): List<String> {
+    /**
+     * Row 1's strain as the camera read it, worked as ΔL / L₀ with both in
+     * pixels; the value alone for a curve without a gauge.
+     */
+    private fun strainLine(
+        curve: StressStrain.Curve,
+        model: StressStrain.Model.Axial,
+        first: StressStrain.Point,
+    ): String {
+        val t = LabReportText.Tensile
+        val strain = sci(model.correction.removeStrain(first.strainMilli) / MILLI)
         val gauge = curve.gauge
         val extension = first.extensionPx
         return if (gauge == null || extension == null) {
-            emptyList()
+            t.strainLine(strain)
         } else {
-            listOf(LabReportText.Tensile.extensionLine(num(extension, EXTENSION_DECIMALS), num(gauge.lengthPx, 0)))
+            t.strainLine(num(extension, EXTENSION_DECIMALS), num(gauge.lengthPx, 0), strain)
         }
     }
 
@@ -259,6 +269,9 @@ object LabReport {
     private const val MILLI = 1000f
     private const val CONCLUSION_LINES = 6
     private const val LOAD_DECIMALS = 3
-    private const val EXTENSION_DECIMALS = 2
+
+    // Three, so a row's Extension ÷ the DIC gauge gives its Strain to the digits printed:
+    // an elastic row on steel extends by a few tenths of a pixel.
+    private const val EXTENSION_DECIMALS = 3
     const val BLANK_CELL = "—"
 }
