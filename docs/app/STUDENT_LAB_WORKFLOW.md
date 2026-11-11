@@ -50,22 +50,19 @@ Typed loads and a CSV are never combined; ✕ on one brings back the choice. Ten
 <img src="../images/results-tensile.png" width="240" alt="Tensile Results">
 </p>
 
-- **σ = P/A** for each photo. **ε** is ΔL / L₀ along the load axis from the virtual extensometer below, as a clip-on extensometer reads it ([ADR-012](../adr/ADR-012-tensile-strain-virtual-extensometer.md)).
+- **σ = P/A** for each photo. **ε** is the DIC field's own mean: the mean of the strain along the load axis (Exx or Eyy) over the accepted points of the analysed region ([ADR-035](../adr/ADR-035-tensile-strain-dic-mean.md), which replaced ADR-012's ΔL / L₀). It is the "mean" a photo's ⓘ sheet shows for that field, so a point on the curve can be matched to its photo's DIC result. An **Adjust curve** correction, when set, is applied on top.
 - **E** is the slope of the straight early part.
   - The fit takes the longest leading run up to the peak whose line keeps R² ≥ 0.995, with a free intercept.
   - Every run length is tried, so noisy first photos don't stop it.
-  - On a metal that yields gradually that run reaches into the knee and reads low (185 GPa on a 200 GPa Ramberg–Osgood curve). So, as in ISO 6892-1 Annex G, the line is fitted again over the photos between 10 % and 40 % of the Rp0.2 the first line gives (199.5 GPa there). The refit is kept only with at least 3 photos and R² ≥ 0.995 in that window; otherwise, or with no Rp0.2, the first line stands (Exp. 2's twelve rows never yield, so they keep 194.0 GPa; the steel case's window reads R² 0.978, so it keeps 148.9).
+  - On a metal that yields gradually that run reaches into the knee and reads low (185 GPa on a 200 GPa Ramberg–Osgood curve). So, as in ISO 6892-1 Annex G, the line is fitted again over the photos between 10 % and 40 % of the Rp0.2 the first line gives (199.5 GPa there). The refit is kept only with at least 3 photos and R² ≥ 0.995 in that window; otherwise, or with no Rp0.2, the first line stands (Exp. 2's twelve rows never yield, so they keep 194.0 GPa; the steel case's window reads R² 0.978, so it keeps 149.6).
   - MPa ÷ mε = GPa.
 - **The reference is not forced onto the line.** Labs zero the gauge under a preload. Through the origin, Exp. 2 would read 218 GPa, not 194.
 - **Yield strength Rp0.2** (0.2 % offset): where the curve meets the E line moved 0.2 % (2 mε) along the strain axis, read between the two photos either side (`YieldStrength`). It is marked with a diamond, with its value in the legend, on the viewer's curve and the report's full curve graph. Without E, or when the curve peaks before it reaches the offset line, there is none, and the viewer and the report say so. Photos far apart around yield make it coarse.
-- **Peak stress,** the highest over every photo with a load. A photo with a load but no strain still counts; the viewer and the report then say it is off the curve (TD-148).
-- **The virtual extensometer** (`Extensometer`) gives both ε and the report table's **Extension (px)**:
-  - Two end bands, each a tenth of the region, are fixed on the first solved photo.
-  - ΔL is the mean displacement of the far band minus that of the near band.
-  - The distance between the bands is L₀, the **DIC gauge length L₀** (px), printed under Observations. Pixels cancel in ΔL / L₀, so no mm scale is needed.
-  - The report's Calculation works row 1 as px over px ("Strain = ΔL / L₀ = 0.165 px / 1648 px = …"), and the table's Extension has three decimals so any row's Extension ÷ L₀ gives its Strain (before a curve correction). The blank **Gauge length of specimen (mm)** line is the student's own; the app never divides by it.
-  - Before ADR-012 the curve plotted the region's mean strain; on the steel case ΔL / L₀ reads 0.8 % above it over the elastic frames 13–28 (1.95×10⁻³ against 1.94×10⁻³ at 263 MPa; re-run 2026-09-29).
-  - A photo where an end band has no points (it left the view, usually well past yield) has no strain and is left off the curve.
+- **Peak stress,** the highest over every photo with a load. A photo with a load but no accepted point has no strain and is not on the curve. It still counts here, and the viewer and the report then say the peak is off the curve (TD-148).
+- **No virtual extensometer.** Until 2026-11-11 the curve plotted ΔL / L₀ between two end bands of the region (ADR-012), and the report had an **Extension (px)** column and a **DIC gauge length** line for it. Both are gone (ADR-035): the strain is the DIC mean, and nothing in the report is a change in length.
+  - The report's Calculation gives row 1's strain as "Strain = mean Exx over the analysed region, read by DIC for row 1 = …". The blank **Gauge length of specimen (mm)** line is the student's own; the app never divides by it.
+  - On the steel case ΔL / L₀ read 0.8 % above the mean over the elastic frames 13–28 (1.95×10⁻³ against 1.94×10⁻³ at 263 MPa; Galaxy S22+, 2026-11-11).
+  - A photo where an end of the region has left the view (usually well past yield) keeps its strain and its point on the curve, read over the points still in view.
 
 ## Bending (Exp. 5)
 
@@ -99,7 +96,7 @@ Typed loads and a CSV are never combined; ✕ on one brings back the choice. Ten
   - the yield strength Rp0.2, also marked on the curve;
   - peak stress, or the bending summary.
 
-  The same block closes the ⓘ sheet. The heatmap loop is under **Share → Animations**.
+  Tapping a point on the curve opens its photo; dragging along it reads values off. On a photo, the ⓘ sheet closes with the graph, that photo's point marked, and one line under it: the photo's load, stress and strain. E, the yield strength and the peak stress are on the Results page only. Opened from Results itself the sheet leaves the graph out, since it is on the page behind. The heatmap loop is under **Share → Animations**.
 - **Share → Lab report (PDF):** the report's own layout, filled in. Anything the app can't know (lengths, final diameter, name, date) stays as a blank line.
 
 <img src="../images/lab-report-tensile.png" width="720" alt="Tensile lab report pages">
@@ -109,8 +106,8 @@ Typed loads and a CSV are never combined; ✕ on one brings back the choice. Ten
   2. Materials;
   3. Theory;
   4. figure (the reference with the region);
-  5. Observations (area, DIC gauge);
-  6. table: S.No, Frame, Load, Extension (px), Stress, Strain, with Elastic / Plastic / Break point bracketed;
+  5. Observations (area, how the strain was measured);
+  6. table: S.No, Frame, Load, Stress, Strain, across the full width (no Elastic / Plastic / Break point margin brackets since 2026-11-11);
   7. Calculation for row 1;
   8. graphs: the elastic region with its line, and the full curve with E and the yield point;
   9. Results (E, yield strength Rp0.2, peak stress);
@@ -163,9 +160,9 @@ It's offered once the thickness is tapped.
 ## Accuracy
 
 - **Camera strain is noisier than an extensometer's,** so E is approximate. Steel's elastic range is below 1 mε, which is where the noise matters most. More pixels and a still camera help most.
-- **Strain is ΔL / L₀ over a gauge the ROI sets,** so after necking it is the average over that gauge, as with a clip-on extensometer, and a longer ROI reads a smaller elongation. A band that leaves the picture ends the curve there, so frame the specimen with room in the picture past both ends of the ROI.
+- **Strain is the mean over the region the ROI sets.** Once a neck forms it depends on how much of the region the neck covers, so a longer ROI reads a smaller elongation, and it is not what a clip-on extensometer would read. When the stretching specimen carries an end of the region out of the picture the curve goes on, over the points still in view; frame the specimen with room past both ends of the ROI to keep them. At large strain the engine's strain may not be engineering strain: its tensor is not stated in the engine contract ([ADR-035](../adr/ADR-035-tensile-strain-dic-mean.md)). E is fitted on the early, even part, which none of this touches.
 - **A seating start** that never straightens can still give no E, and the report says so.
-- **On published steel data,** ΔL / L₀ reads about 8% above the dataset's 3D gauge points in the elastic range and E (148.9 GPa) about 5.5% below theirs (157.5 GPa); Rp0.2 (305.6 MPa) is 0.7% below theirs (307.8 MPa), the same on the emulator and a Pixel 6. Peak stress matches the logged 435.5 MPa (frame 38), but the curve ends at frame 35 of 40, before it, when the stretching strip carries the far band out of the picture ([REAL_WORLD_VALIDATION.md](REAL_WORLD_VALIDATION.md)).
+- **On published steel data** (Galaxy S22+, 2026-11-11), the mean strain reads about 7% above the dataset's 3D gauge points in the elastic range and E (149.6 GPa) about 5% below theirs (157.5 GPa); Rp0.2 (305.7 MPa) is 0.7% below theirs (307.8 MPa). All 40 photos are on the curve, and peak stress matches the logged 435.5 MPa (frame 38). From frame 36 the stretching strip carries its far end out of the picture, and the mean over what is left reads 4–12% above the gauge points ([REAL_WORLD_VALIDATION.md](REAL_WORLD_VALIDATION.md)).
 - **On a published PMMA 3-point bend,** the deflection at the load point is within 0.0074 mm RMS of the authors' own DIC, 0.5% of the peak. Both E values are within 1%. Displacement agrees to 0.013 px, and strain to about 400 µε at the 45 px window. The thickness taps matter most: a 49 px slip on 572 px put E 9% low (same page, case 2).
 
 ## Deferred

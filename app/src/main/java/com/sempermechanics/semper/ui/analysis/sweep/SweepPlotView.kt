@@ -196,6 +196,10 @@ class SweepPlotView @JvmOverloads constructor(
      */
     var onScrubMove: ((fraction: Float) -> Unit)? = null
 
+    /** A tap (not a drag) on a marker of the first coloured curve: that point, in data units. */
+    var onPointTap: ((x: Float, y: Float) -> Unit)? = null
+    private val tap = PlotTap(context)
+
     private var multiTouchActive = false
     private var lastPanFocusX = 0f
     private var lastPanFocusY = 0f
@@ -395,6 +399,7 @@ class SweepPlotView @JvmOverloads constructor(
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val full = dataBounds() ?: return super.onTouchEvent(event)
+        val tapped = tap.onTouchEvent(event)
         if (zoomEnabled) {
             scaleDetector.onTouchEvent(event)
             gestureDetector.onTouchEvent(event)
@@ -415,6 +420,7 @@ class SweepPlotView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 onLift()
+                if (tapped) reportPointTap(event.x, event.y, full)
                 // A lift is a click, so accessibility services can drive the scrub.
                 if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
                 true

@@ -59,33 +59,21 @@ object LabReportText {
         const val DIAMETER = "Diameter of specimen (mm)"
         const val AREA = "Cross-sectional area A (mm²)"
         const val STRAIN_BY = "Strain measured by"
-        fun strainBy(strainName: String) =
-            "2D DIC virtual extensometer, $strainName between the ends of the analysed region"
-        fun dicGauge(axis: String) = "DIC gauge length L₀ along $axis (px)"
-        fun dicGaugeValue(lengthPx: String) = "$lengthPx — between the ends of the analysed region"
+        fun strainBy(strainName: String) = "2D DIC, $strainName over the analysed region"
         const val FINAL_DIAMETER = "Final diameter (mm)"
         const val FINAL_GAUGE_LENGTH = "Final gauge length (mm)"
 
-        val TABLE_HEADERS = listOf("S.No", "Frame", "Load (kN)", "Extension (px)", "Stress (MPa)", "Strain")
-        val TABLE_WEIGHTS = listOf(0.08f, 0.10f, 0.18f, 0.20f, 0.20f, 0.24f)
-        const val ELASTIC = "Elastic"
-        const val PLASTIC = "Plastic"
-        const val BREAK = "Break point"
+        // No Extension column: the strain is read off the DIC field, not worked
+        // from a change in length (ADR-035).
+        val TABLE_HEADERS = listOf("S.No", "Frame", "Load (kN)", "Stress (MPa)", "Strain")
+        val TABLE_WEIGHTS = listOf(0.10f, 0.14f, 0.24f, 0.24f, 0.28f)
 
         fun stressLine(loadKn: String, areaMm2: String, stressMPa: String) =
             "Stress = L / A = $loadKn × 10³ N / ($areaMm2 × 10⁻⁶ m²) = $stressMPa MPa"
 
-        /** Row 1's strain when the curve has no gauge to work it from. */
-        fun strainLine(strain: String) = "Strain = ΔL / L₀, read by DIC for row 1 = $strain"
-
-        /**
-         * Row 1's strain worked from its extension and the DIC gauge, both in
-         * pixels, so nobody divides the extension by the specimen's gauge
-         * length in mm, which the app never reads.
-         */
-        fun strainLine(extensionPx: String, gaugePx: String, strain: String) =
-            "Strain = ΔL / L₀ = $extensionPx px / $gaugePx px = $strain for row 1 " +
-                "(both lengths are in pixels of the photo, so the strain has no unit)"
+        /** Row 1's strain: the DIC field's mean along the load axis ([strainName], ADR-035). */
+        fun strainLine(strainName: String, strain: String) =
+            "Strain = $strainName over the analysed region, read by DIC for row 1 = $strain"
         const val CORRECTION = "Curve matched to the machine by"
         fun correction(c: CurveCorrection): String {
             fun n(value: Float) = LabReportFormat.num(value, 4)

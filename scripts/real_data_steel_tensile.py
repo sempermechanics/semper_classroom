@@ -11,11 +11,13 @@ Two steps sit around one manual app run (docs/app/REAL_WORLD_VALIDATION.md):
            written, so the app pairs loads with photos by time (see below).
   compare  read the app's .dat files and print its strain against the
            gauge points, and E by the app's rule next to fixed-window fits.
+           The app's strain is the mean Exx over the accepted points
+           (ADR-035). The virtual extensometer's ΔL / L0, which the app
+           plotted under ADR-012 and no longer computes, is printed
+           beside it for comparison.
   truth    write the ground truth the app's bundled example ships with
            (truth_gauge_strain.csv): the gauge points' strain and the force
            at every deformed frame. Needs only GAUGE_FILE, not the image zip.
-           The app's strain is the virtual extensometer's ΔL / L0 (ADR-012);
-           the region-mean Exx it plotted before is printed beside it.
 
 Needs numpy; `prep` also needs Pillow. Run by hand, never in CI.
 
@@ -48,7 +50,8 @@ STEPS = [0] + list(range(3, 31)) + [35, 40, 45, 55, 80, 130, 205, 305, 405, 509,
 CROP = (0, 780, 2000, 1215)
 # Mirrors DicResult: 8 float32 per point, accepted when 0 <= ZNSSD <= 0.15.
 STRIDE, IDX_X, IDX_U, IDX_EXX, IDX_ZNSSD, MAX_ZNSSD = 8, 0, 2, 4, 7, 0.15
-# Mirrors Extensometer: each end band is this share of the accepted length along x.
+# The virtual extensometer the app had under ADR-012 (removed with ADR-035):
+# each end band is this share of the accepted length along x.
 BAND_FRACTION = 0.1
 # Mirrors ElasticModulus.
 MIN_R2, MIN_POINTS = 0.995, 3
@@ -147,11 +150,12 @@ def app_rule(strain: np.ndarray, stress: np.ndarray) -> tuple[int, float, float]
 
 
 def extensometer(frames: list[np.ndarray]) -> np.ndarray:
-    """ΔL / L0 in mε per frame, as Extensometer and StressStrain.Model.Axial read it.
+    """ΔL / L0 in mε per frame, as the app's Extensometer read it under ADR-012.
 
-    The gauge is fixed on the first frame with accepted points: a band at each
-    end of their x extent, in reference positions. ΔL is the far band's mean u
-    minus the near band's; a frame where a band has no accepted point is NaN.
+    Not the app's strain since ADR-035; printed for comparison. The gauge is
+    fixed on the first frame with accepted points: a band at each end of their
+    x extent, in reference positions. ΔL is the far band's mean u minus the
+    near band's; a frame where a band has no accepted point is NaN.
     """
     gauge = None
     out = []
@@ -181,47 +185,63 @@ def extensometer(frames: list[np.ndarray]) -> np.ndarray:
     return np.array(out)
 
 
+def region_mean(frames: list[np.ndarray]) -> np.ndarray:
+    """Mean Exx over the accepted points in mε per frame, as StressStrain.Model.Axial reads it.
+
+    A frame with no accepted point is NaN: it has no strain and is off the curve.
+    """
+    out = []
+    for d in frames:
+        z = d[:, IDX_ZNSSD]
+        ok = (z >= 0) & (z <= MAX_ZNSSD)
+        out.append(d[ok, IDX_EXX].mean() * 1e3 if ok.any() else np.nan)
+    return np.array(out)
+
+
+def report(label: str, strain: np.ndarray, stress: np.ndarray, gauge: np.ndarray) -> None:
+    """One strain against the gauge points: the ratio, E by the app's rule, fixed-window fits."""
+    # A frame with no strain is left out of every fit below.
+    on = ~np.isnan(strain)
+    frame = np.arange(len(strain))
+    elastic = on & (frame < 28)
+    mid = on & (frame >= 12) & (frame < 28)
+    diff = (strain - gauge)[elastic] * 1e3
+    print(f"{label}, frames 13-28: strain / gauge = {strain[mid].sum() / gauge[mid].sum():.4f}; "
+          f"frames 1-28: RMSE {np.sqrt((diff ** 2).mean()):.0f} µε, bias {diff.mean():+.0f} µε; "
+          f"frames without it: {[int(k) + 1 for k in np.flatnonzero(~on)]}")
+
+    run = app_rule(strain[on], stress[on])
+    if run is None:
+        print(f"{label}, app rule: no run")
+    else:
+        n, slope, r2 = run
+        g_slope, g_r2 = fit(gauge[on][:n], stress[on][:n])
+        print(f"{label}, app rule: frames 1-{n}, E {slope:.1f} GPa, R2 {r2:.4f}; "
+              f"gauge points, same frames: E {g_slope:.1f} GPa, R2 {g_r2:.4f}")
+    for lo, hi in ((20, 100), (30, 150), (50, 200)):
+        s = on & (stress >= lo) & (stress <= hi)
+        a_e, a_r2 = fit(strain[s], stress[s])
+        g_e, g_r2 = fit(gauge[s], stress[s])
+        print(f"{label}, {lo}-{hi} MPa (n={s.sum()}): E {a_e:.1f} (R2 {a_r2:.4f}), "
+              f"gauge E {g_e:.1f} (R2 {g_r2:.4f})")
+
+
 def compare(data: Path, dat: Path) -> None:
     ref = gauge_points(data)
     steps = STEPS[1:]
     stress = np.array([ref[s][0] / AREA_MM2 for s in steps])
     gauge = np.array([ref[s][1] for s in steps])
-    frames, mean = [], []
-    for k in range(len(steps)):
-        d = np.fromfile(dat / f"frame_{k:04d}.dat", "<f4").reshape(-1, STRIDE)
-        z = d[:, IDX_ZNSSD]
-        frames.append(d)
-        mean.append(d[(z >= 0) & (z <= MAX_ZNSSD), IDX_EXX].mean() * 1e3)
-    mean = np.array(mean)
+    frames = [np.fromfile(dat / f"frame_{k:04d}.dat", "<f4").reshape(-1, STRIDE) for k in range(len(steps))]
+    mean = region_mean(frames)
     ext = extensometer(frames)
 
-    print("frame  step  stress MPa  app dL/L0 1e-3  region mean 1e-3  gauge 1e-3")
+    print("frame  step  stress MPa  app mean Exx 1e-3  dL/L0 1e-3  gauge 1e-3")
     for k, s in enumerate(steps):
-        print(f"{k + 1:5d} {s:5d} {stress[k]:11.1f} {ext[k]:15.4f} {mean[k]:17.4f} {gauge[k]:11.4f}")
+        print(f"{k + 1:5d} {s:5d} {stress[k]:11.1f} {mean[k]:18.4f} {ext[k]:11.4f} {gauge[k]:11.4f}")
 
-    # The curve leaves out frames with no strain; so does every fit below.
-    on = ~np.isnan(ext)
-    elastic = on & (np.arange(len(steps)) < 28)
-    mid = on & (np.arange(len(steps)) >= 12) & (np.arange(len(steps)) < 28)
-    diff = (ext - gauge)[elastic] * 1e3
-    print(f"frames 13-28: app / gauge = {ext[mid].sum() / gauge[mid].sum():.4f}; "
-          f"frames 1-28: RMSE {np.sqrt((diff ** 2).mean()):.0f} µε, bias {diff.mean():+.0f} µε; "
-          f"frames off the curve: {[k + 1 for k in np.flatnonzero(~on)]}")
-
-    run = app_rule(ext[on], stress[on])
-    if run is None:
-        print("app rule: no run")
-    else:
-        n, slope, r2 = run
-        g_slope, g_r2 = fit(gauge[on][:n], stress[on][:n])
-        print(f"app rule: frames 1-{n}, E {slope:.1f} GPa, R2 {r2:.4f}; "
-              f"gauge points, same frames: E {g_slope:.1f} GPa, R2 {g_r2:.4f}")
-    for lo, hi in ((20, 100), (30, 150), (50, 200)):
-        s = on & (stress >= lo) & (stress <= hi)
-        a_e, a_r2 = fit(ext[s], stress[s])
-        g_e, g_r2 = fit(gauge[s], stress[s])
-        print(f"{lo}-{hi} MPa (n={s.sum()}): app E {a_e:.1f} (R2 {a_r2:.4f}), "
-              f"gauge E {g_e:.1f} (R2 {g_r2:.4f})")
+    # The app's curve is the mean (ADR-035); ΔL / L0 is the comparison.
+    report("app (mean Exx)", mean, stress, gauge)
+    report("dL/L0", ext, stress, gauge)
 
 
 def main() -> None:

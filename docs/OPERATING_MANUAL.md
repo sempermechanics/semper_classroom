@@ -946,7 +946,7 @@ Formulas, accuracy and worked numbers: [app/STUDENT_LAB_WORKFLOW.md](app/STUDENT
 - **E** from the straight part (the frames used and R²);
 - the peak stress.
 
-The strain is **ΔL / L₀** from a virtual extensometer between the two ends of the analysed region, so draw the ROI over the gauge length you want. The lab report's table adds that **Extension (px)**. A photo where one end has left the view has no strain and is not on the curve.
+The strain is the **mean strain along the pulling direction (Exx or Eyy) over the analysed region**, so draw the ROI over the gauge section. It is the "mean" the ⓘ sheet shows for that field on each photo, so a point on the curve can be matched to its photo. Tap a point to open its photo; ⓘ there shows the curve with that point marked and the photo's load, stress and strain under it. A photo where one end of the region has left the view stays on the curve, read over the points still in view.
 
 ### Bending: load–deflection and E
 

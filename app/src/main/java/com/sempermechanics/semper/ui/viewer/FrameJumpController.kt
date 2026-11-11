@@ -154,35 +154,45 @@ internal class FrameJumpController(
 
     // ── Typed frame jump ─────────────────────────────────────────────────
 
+    /**
+     * The frame field applies what is typed in it on Go and when it loses
+     * focus. Anything unparseable or outside the batch restores the current
+     * number rather than jumping somewhere the user did not ask for.
+     */
     fun wireFrameJump() {
         val field = binding.etFrameNumber
-        field.commitOnDone(EditorInfo.IME_ACTION_GO) { commitFrameJump() }
+        val commit = {
+            chrome.bumpChrome()
+            val typed = field.text?.toString()?.trim()?.toIntOrNull()
+            if (typed == null || !jumpTo(typed - 1)) syncFrameNumber()
+            field.clearFocus()
+            field.hideKeyboard()
+        }
+        field.commitOnDone(EditorInfo.IME_ACTION_GO) { commit() }
         field.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) commitFrameJump()
+            if (!hasFocus) commit()
         }
     }
 
     /**
-     * Applies what is typed in the frame field. Anything unparseable or outside
-     * the batch restores the current number rather than jumping somewhere the
-     * user did not ask for.
+     * Goes straight to the frame at [position], leaving the summary if it is
+     * up: a typed number, or a point tapped on the Results curve. False, and
+     * nothing moves, when there is no such frame or it is the one on screen.
      */
-    private fun commitFrameJump() {
-        chrome.bumpChrome()
-        val field = binding.etFrameNumber
-        val typed = field.text?.toString()?.trim()?.toIntOrNull()
-        val target = typed?.minus(1)?.takeIf { it in host.batchFiles.indices }
-        if (target == null) {
-            syncFrameNumber()
-        } else if (target != host.viewModel.currentFrameIndex || showingSummary) {
-            if (showingSummary) leaveSummary()
-            host.viewModel.currentFrameIndex = target
+    fun jumpTo(position: Int): Boolean {
+        val moves = position in host.batchFiles.indices &&
+            (position != host.viewModel.currentFrameIndex || showingSummary)
+        if (!moves) return false
+        host.viewModel.currentFrameIndex = position
+        if (showingSummary) {
+            // Leaving the summary loads the frame that is now current.
+            leaveSummary()
+        } else {
             updateNavButtons()
-            // A typed number is a settled destination, unlike a Next/Prev burst.
+            // A settled destination, unlike a Next/Prev burst.
             requestFrameLoad(debounced = false)
         }
-        field.clearFocus()
-        field.hideKeyboard()
+        return true
     }
 
     fun syncFrameNumber() {

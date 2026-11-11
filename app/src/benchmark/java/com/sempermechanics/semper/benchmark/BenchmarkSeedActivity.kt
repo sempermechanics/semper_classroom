@@ -142,7 +142,7 @@ class BenchmarkSeedActivity : Activity() {
 
     /**
      * [moderate]: u = 0.02·x, v = 0.01·y px plus a small per-frame shift, for the photo
-     * session. [exxOffset] stretches x by that much, which the tensile curve's ΔL / L₀ reads.
+     * session. [exxOffset] adds that much Exx, and stretches x to match: the tensile curve reads the mean.
      */
     private fun fillFrame(floats: FloatArray, seed: Int, moderate: Boolean, exxOffset: Float) {
         var p = 0

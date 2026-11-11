@@ -10,9 +10,11 @@ import kotlin.math.abs
  * Stress–strain from a machine load per frame and the DIC field. Which
  * stress a load becomes, and which strain component pairs with it, is the
  * test's [Model]: load over cross-section for tensile, three-point flexural
- * stress for bending. Tensile strain is the virtual extensometer's ΔL / L₀
- * ([Extensometer], ADR-012); bending's is the outer fibre's, from the strain
- * gradient through the thickness under the tapped load point
+ * stress for bending. Tensile strain is the DIC field's own: the mean of the
+ * load-axis component over the accepted points, the number a frame's field
+ * statistics show (ADR-035, which retired ADR-012's virtual extensometer).
+ * Bending's is the outer fibre's, from the strain gradient through the
+ * thickness under the tapped load point
  * ([BeamDeflection.Probe.outerFibreStrainMilli]), and none without the taps. Both in
  * millistrain. Pure — the viewer, the CSV and the PDF all read one [Curve].
  *
@@ -52,10 +54,9 @@ object StressStrain {
          * The frame's strain in millistrain, or null when it has none and is
          * left off the curve. NaN keeps the frame on the curve (its stress and
          * deflection stand) without a strain: bending without its edge taps,
-         * or a section too sparse to read. [gauge] is the curve's
-         * [Extensometer] gauge; only [Axial] reads it.
+         * or a section too sparse to read.
          */
-        abstract fun strainMilli(data: FloatArray, gauge: Extensometer.Gauge?): Float?
+        abstract fun strainMilli(data: FloatArray): Float?
 
         /**
          * Whether this model reads a strain at all. False for bending without
@@ -86,9 +87,10 @@ object StressStrain {
         open fun deflectionMm(data: FloatArray): Float? = null
 
         /**
-         * Tensile: σ = P / A, and engineering strain ΔL / L₀ along the load
-         * axis from the virtual extensometer, as a clip-on extensometer reads
-         * it (ADR-012). No gauge, or a band with no point, is no strain.
+         * Tensile: σ = P / A, and the mean of the DIC strain along the load
+         * axis (Exx or Eyy) over the accepted points, so a frame's point on
+         * the curve is that frame's mean strain in its own field statistics
+         * (ADR-035). A frame with no accepted point has no strain.
          * [correction] is the session's hand-entered scale and bias, applied
          * to both here so every reader of the curve sees them.
          */
@@ -99,16 +101,13 @@ object StressStrain {
         ) : Model(
             wireName = "axial",
             stressName = "Engineering stress",
-            strainName = "ΔL/L₀ along ${if (axisX) "x" else "y"}",
+            strainName = "mean ${if (axisX) "Exx" else "Eyy"}",
         ) {
             override val isComplete: Boolean get() = areaMm2 > 0f
             override fun stressMPa(loadN: Float): Float =
                 if (isComplete) correction.stress(loadN / areaMm2) else Float.NaN
-            override fun strainMilli(data: FloatArray, gauge: Extensometer.Gauge?): Float? {
-                val extension = gauge?.extensionPx(data) ?: return null
-                return correction.strain(extension / gauge.lengthPx * DicResult.STRAIN_TO_MILLISTRAIN)
-            }
-            override val strainBasis: String get() = "between the end bands of the analysed region"
+            override fun strainMilli(data: FloatArray): Float? =
+                axisStrainMilli(data, axisX)?.let { correction.strain(it) }
             override val dimensions get() = listOf(Dimension.CROSS_SECTION to areaMm2)
         }
 
@@ -138,7 +137,7 @@ object StressStrain {
 
             // A frame with no accepted point is left off, as before; one with
             // points keeps its stress and δ even when its strain cannot be read.
-            override fun strainMilli(data: FloatArray, gauge: Extensometer.Gauge?): Float? = when {
+            override fun strainMilli(data: FloatArray): Float? = when {
                 axisStrainMilli(data, axisX) == null -> null
                 probe == null -> Float.NaN
                 else -> probe.outerFibreStrainMilli(data) ?: Float.NaN
@@ -192,8 +191,7 @@ object StressStrain {
     /**
      * One solved frame on the curve. [frame] is the 0-based deformed index.
      * [deflectionMm] is set only when the model reads one and the probe
-     * found points; [extensionPx] only for tensile, when both [Extensometer]
-     * bands still have points.
+     * found points.
      */
     data class Point(
         val frame: Int,
@@ -201,7 +199,6 @@ object StressStrain {
         val stressMPa: Float,
         val strainMilli: Float,
         val deflectionMm: Float? = null,
-        val extensionPx: Float? = null,
     )
 
     /**
@@ -219,7 +216,6 @@ object StressStrain {
         val model: Model,
         val frameCount: Int,
         val points: List<Point>,
-        val gauge: Extensometer.Gauge? = null,
         val loadPeak: Peak? = null,
     ) {
         val isEmpty: Boolean get() = points.isEmpty()
@@ -234,9 +230,9 @@ object StressStrain {
 
         /**
          * The peak (ultimate) stress to report: the highest over every frame
-         * with a load, including one left off the curve because a band had
-         * left the picture (TD-148). A curve made from points alone falls
-         * back to [peak].
+         * with a load, including one left off the curve because its field
+         * had no accepted point (TD-148). A curve made from points alone
+         * falls back to [peak].
          */
         val peakStress: Peak?
             get() = loadPeak ?: peak?.let { Peak(it.frame, it.loadN, it.stressMPa, onCurve = true) }
@@ -271,26 +267,22 @@ object StressStrain {
 
     /**
      * Collects a curve's points one frame at a time, in frame order, for
-     * [build] and the streaming CSV writer alike. A tensile curve fixes its
-     * [Extensometer] gauge on the first frame that can set one, and a frame
-     * with no strain is left off. Every frame counts towards the [Peak].
+     * [build] and the streaming CSV writer alike. A frame with no strain is
+     * left off. Every frame counts towards the [Peak].
      */
     class Collector(private val model: Model) {
         private val points = ArrayList<Point>()
-        private var gauge: Extensometer.Gauge? = null
         private var peak: Peak? = null
 
         fun add(frame: Int, loadN: Float, data: FloatArray) {
-            if (gauge == null && model is Model.Axial) gauge = Extensometer.gauge(data, model.axisX)
             val stress = model.stressMPa(loadN)
-            val strain = model.strainMilli(data, gauge)
+            val strain = model.strainMilli(data)
             val best = peak
             if (stress.isFinite() && (best == null || abs(stress) > abs(best.stressMPa))) {
                 peak = Peak(frame, loadN, stress, onCurve = strain != null)
             }
             if (strain == null) return
-            val extension = if (model is Model.Axial) gauge?.extensionPx(data) else null
-            points += Point(frame, loadN, stress, strain, model.deflectionMm(data), extension)
+            points += Point(frame, loadN, stress, strain, model.deflectionMm(data))
         }
 
         val isEmpty: Boolean get() = points.isEmpty()
@@ -301,7 +293,7 @@ object StressStrain {
          */
         fun curve(frameCount: Int): Curve {
             val signed = BeamDeflection.Correction.of(model).applyTo(BeamDeflection.alongLoad(points))
-            return Curve(model, frameCount, signed, gauge, peak)
+            return Curve(model, frameCount, signed, peak)
         }
     }
 

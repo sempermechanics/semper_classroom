@@ -43,15 +43,11 @@ object LabReport {
         /** The reference photo, where the original has its setup sketch. */
         data class Figure(val caption: String) : Block()
 
-        /**
-         * The observation table. [brackets] label runs of rows in the right
-         * margin (Elastic, Plastic, Break point), as the handwritten table does.
-         */
+        /** The observation table; [weights] share the line's width between the columns. */
         data class Table(
             val headers: List<String>,
             val rows: List<List<String>>,
             val weights: List<Float>,
-            val brackets: List<Bracket> = emptyList(),
         ) : Block()
 
         /** A worked calculation, one line per step. */
@@ -72,9 +68,6 @@ object LabReport {
         /** Ruled blank lines, e.g. for the student's own conclusion. */
         data class RuledLines(val count: Int) : Block()
     }
-
-    /** Rows [first]..[last] (0-based, inclusive) share the margin label [label]. */
-    data class Bracket(val first: Int, val last: Int, val label: String)
 
     data class Series(val points: List<Pair<Float, Float>>, val isFit: Boolean)
 
@@ -126,10 +119,9 @@ object LabReport {
                 add(Block.Field(t.AREA, num(model.areaMm2, 2)))
                 add(Block.Field(t.STRAIN_BY, t.strainBy(model.strainName)))
                 model.correction.takeUnless { it.isNone }?.let { add(Block.Field(t.CORRECTION, t.correction(it))) }
-                curve.gauge?.let { add(Block.Field(t.dicGauge(axisName(model)), t.dicGaugeValue(num(it.lengthPx, 0)))) }
                 add(Block.Field(t.FINAL_DIAMETER, null))
                 add(Block.Field(t.FINAL_GAUGE_LENGTH, null))
-                add(tensileTable(curve, modulus))
+                add(tensileTable(curve))
                 add(Block.Heading(LabReportText.CALCULATION))
                 add(
                     Block.Calculation(
@@ -139,7 +131,10 @@ object LabReport {
                                 num(model.areaMm2, 2),
                                 num(model.correction.removeStress(first.stressMPa), 2),
                             ),
-                            strainLine(curve, model, first),
+                            t.strainLine(
+                                model.strainName,
+                                sci(model.correction.removeStrain(first.strainMilli) / MILLI),
+                            ),
                         ) + correctedLine(model.correction, first),
                     ),
                 )
@@ -166,63 +161,18 @@ object LabReport {
             listOf(LabReportText.Tensile.correctedLine(num(first.stressMPa, 2), sci(first.strainMilli / MILLI)))
         }
 
-    private fun axisName(model: StressStrain.Model.Axial): String = if (model.axisX) "x" else "y"
-
-    /**
-     * Row 1's strain as the camera read it, worked as ΔL / L₀ with both in
-     * pixels; the value alone for a curve without a gauge.
-     */
-    private fun strainLine(
-        curve: StressStrain.Curve,
-        model: StressStrain.Model.Axial,
-        first: StressStrain.Point,
-    ): String {
-        val t = LabReportText.Tensile
-        val strain = sci(model.correction.removeStrain(first.strainMilli) / MILLI)
-        val gauge = curve.gauge
-        val extension = first.extensionPx
-        return if (gauge == null || extension == null) {
-            t.strainLine(strain)
-        } else {
-            t.strainLine(num(extension, EXTENSION_DECIMALS), num(gauge.lengthPx, 0), strain)
-        }
-    }
-
-    private fun tensileTable(curve: StressStrain.Curve, modulus: ElasticModulus.Fit?): Block.Table {
+    private fun tensileTable(curve: StressStrain.Curve): Block.Table {
         val t = LabReportText.Tensile
         val rows = curve.points.mapIndexed { i, p ->
             listOf(
                 "${i + 1}",
                 frameCell(p.frame),
                 num(p.loadN / NEWTONS_PER_KN, LOAD_DECIMALS),
-                p.extensionPx?.let { num(it, EXTENSION_DECIMALS) } ?: BLANK_CELL,
                 num(p.stressMPa, 2),
                 sci(p.strainMilli / MILLI),
             )
         }
-        return Block.Table(
-            headers = t.TABLE_HEADERS,
-            rows = rows,
-            weights = t.TABLE_WEIGHTS,
-            brackets = tensileBrackets(curve, modulus),
-        )
-    }
-
-    /**
-     * Elastic for the fitted run, Plastic from there to the peak, Break point
-     * after it — the regions the handwritten table marks in its margin. A
-     * peak off the curve (TD-148) ends Plastic at the last row before it.
-     */
-    internal fun tensileBrackets(curve: StressStrain.Curve, modulus: ElasticModulus.Fit?): List<Bracket> {
-        val points = curve.points
-        val peakRow = curve.peakStress?.let { peak -> points.indexOfLast { it.frame <= peak.frame } } ?: -1
-        if (peakRow < 0) return emptyList()
-        val elasticEnd = modulus?.let { fit -> points.indexOfLast { fit.covers(it.frame) } } ?: -1
-        return buildList {
-            if (elasticEnd >= 0) add(Bracket(0, elasticEnd, LabReportText.Tensile.ELASTIC))
-            if (peakRow > elasticEnd) add(Bracket(elasticEnd + 1, peakRow, LabReportText.Tensile.PLASTIC))
-            if (peakRow < points.lastIndex) add(Bracket(peakRow + 1, points.lastIndex, LabReportText.Tensile.BREAK))
-        }
+        return Block.Table(headers = t.TABLE_HEADERS, rows = rows, weights = t.TABLE_WEIGHTS)
     }
 
     private fun tensileGraphs(curve: StressStrain.Curve, results: TensileResults): List<Block> {
@@ -269,9 +219,5 @@ object LabReport {
     private const val MILLI = 1000f
     private const val CONCLUSION_LINES = 6
     private const val LOAD_DECIMALS = 3
-
-    // Three, so a row's Extension ÷ the DIC gauge gives its Strain to the digits printed:
-    // an elastic row on steel extends by a few tenths of a pixel.
-    private const val EXTENSION_DECIMALS = 3
     const val BLANK_CELL = "—"
 }

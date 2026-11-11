@@ -76,9 +76,9 @@
     },
     {
       "label": "E, frames 1–26",
-      "value": "148.9 GPa",
+      "value": "149.6 GPa",
       "source": "app",
-      "note": "Engine 0.6.1, one camera; 35 of 40 photos on the curve"
+      "note": "Engine 0.6.1, one camera, strain as mean Exx; 40 of 40 photos on the curve"
     },
     {
       "label": "Peak stress",

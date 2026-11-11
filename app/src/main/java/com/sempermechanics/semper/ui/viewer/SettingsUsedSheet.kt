@@ -148,7 +148,9 @@ object SettingsUsedSheet {
             host.getString(R.string.url_faq_record_integrity),
         )
         if (host.isSweep) populateLineCut(host, view)
-        host.stressStrain.populate(view)
+        // A point tapped on the curve opens its frame; the sheet, which describes
+        // the frame it was opened on, closes over it.
+        host.stressStrain.populate(view) { sheet.dialog.dismiss() }
 
         sheet.show()
     }

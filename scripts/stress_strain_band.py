@@ -6,10 +6,11 @@ frame's accepted points, and shades around it mean +/- K standard deviations
 of that axial strain over the same points (K = 3 by default). The band runs
 left-right, along the strain axis, at each frame's stress.
 
-The centre line is the app's tensile curve from before ADR-012. The app now
-plots the virtual extensometer's ΔL / L₀ between two end bands
-(report/Extensometer.kt), which on the steel set reads about 0.8 % above
-this mean in the elastic range, so the two curves are close but not the same.
+The centre line is the app's tensile curve (ADR-035): the mean of the
+load-axis strain over the accepted points. Under ADR-012 the app plotted the
+virtual extensometer's ΔL / L₀ between two end bands instead. The app no
+longer computes that ratio; on the steel set it read about 0.8 % above this
+mean in the elastic range.
 
 The SD is the spread of strain across the specimen, not the uncertainty of
 the mean (that is SD / sqrt(n), with thousands of points, far narrower). It
@@ -129,7 +130,7 @@ def draw_band(ax, rows: list[FrameStrain], k: float, legend: bool) -> None:
         color=BAND,
         ms=3,
         lw=1.4,
-        label="mean strain (pre-ADR-012 app curve)",
+        label="mean strain (the app's curve)",
     )
     ax.set_xlabel("Strain (mε)")
     ax.set_ylabel("Stress (MPa)")

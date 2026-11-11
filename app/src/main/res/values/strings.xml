@@ -914,12 +914,12 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="stress_strain_empty">No frame has accepted points, so there is no curve.</string>
     <string name="stress_strain_no_strain">The beam’s edges were not tapped, so there is no deflection to plot. Set the beam height and run again for δ and E.</string>
     <plurals name="results_summary_caption_fmt">
-        <item quantity="one">%1$d of %2$d photo on the curve. Tap › for its strain.</item>
-        <item quantity="other">%1$d of %2$d photos on the curve. Tap › for each photo.</item>
+        <item quantity="one">%1$d of %2$d photo on the curve. Tap its point or › for its strain.</item>
+        <item quantity="other">%1$d of %2$d photos on the curve. Tap a point or › for its photo.</item>
     </plurals>
     <plurals name="results_summary_caption_bending_fmt">
-        <item quantity="one">%1$d of %2$d photo on the graph. Tap › for its deflection.</item>
-        <item quantity="other">%1$d of %2$d photos on the graph. Tap › for each photo.</item>
+        <item quantity="one">%1$d of %2$d photo on the graph. Tap its point or › for its deflection.</item>
+        <item quantity="other">%1$d of %2$d photos on the graph. Tap a point or › for its photo.</item>
     </plurals>
 
     <!-- Bending Results: load–deflection graph and the lab's Results lines -->
