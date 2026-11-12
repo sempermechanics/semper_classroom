@@ -39,8 +39,16 @@ ADR-035's mean tensile strain (#164).
   at frame 38, matching the debug build. Tapping the peak opened `steel_38`. Share is
   locked: the QC account has no licence, so Home shows no Activate card. No crash in the
   crash buffer. Not run: `EnginePipelineSmokeTest` (the Gradle connected task uninstalls the
-  app on a phone), Activate and Share with a licence, the PMMA, CFRP and shift examples on
-  the signed build.
+  app on a phone), Activate and Share with a licence.
+- **The other examples, same phone and build, same day.** All match the debug build, and the
+  crash buffer stayed empty:
+  - CFRP plate with a hole, about 1 s: U −0.207 to −0.039 px, V −0.871 to −0.415 px (DICe's
+    solution: V −0.92 to −0.39 px).
+  - Sub-pixel shift, about 1 s: U 0.335 to 0.476 px, V 0.330 to 0.481 px, inside 0.4 ± 0.1 px.
+  - PMMA bending, 57 s (the estimate said 31 s): beam taps 571 px, 0.0543 mm/px; 33 of 33
+    photos on the graph; E from the graph 2.00 GPa (R² 0.9993), average E 2.10 GPa (the
+    authors: 1.98 / 2.09). A tap mid-graph opened `pmma_17`.
+  - Record integrity read Verified on CFRP and the shift.
 
 ## 2026-10-30 — semperdic-app's backend and consoles: licence per app (ADR-033) and the split
 
