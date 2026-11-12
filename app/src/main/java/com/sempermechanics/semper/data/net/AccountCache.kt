@@ -28,15 +28,25 @@ object AccountCache {
     /** Survives sign-out so a per-account beta ack is not re-prompted on every login. */
     private fun onboardingPrefs(context: Context) = privatePrefs(context, Onboarding.NAME)
 
-    /** Cache the signed-in identity (from the Firebase user) for offline UI. */
+    /**
+     * Cache the signed-in identity (from the Firebase user) for offline UI.
+     * The uid is also kept as [lastSignedInUid], which [clear] leaves.
+     */
     fun saveIdentity(context: Context, uid: String?, email: String?) {
         prefs(context).edit {
             put(Session.UID, uid)
             put(Session.EMAIL, email)
         }
+        if (uid != null) onboardingPrefs(context).edit { put(Onboarding.LAST_SIGNED_IN_UID, uid) }
     }
 
     fun cachedUid(context: Context): String? = prefs(context)[Session.UID]
+
+    /**
+     * The account that signed in last, signed in now or not: whose analyses
+     * the phone shows while nobody is (`SessionOwner`). Survives [clear].
+     */
+    fun lastSignedInUid(context: Context): String? = onboardingPrefs(context)[Onboarding.LAST_SIGNED_IN_UID]
     fun cachedEmail(context: Context): String? = prefs(context)[Session.EMAIL]
 
     fun cachedStatus(context: Context): String? = prefs(context)[Session.STATUS]
@@ -200,8 +210,14 @@ object AccountCache {
         prefs(context).edit { put(Session.IMPROVEMENT_CONSENT, granted.toString()) }
     }
 
-    /** Wipe the local session cache (sign-out). Keystore device key is left intact. */
+    /**
+     * Wipe the local session cache (sign-out). Keystore device key is left intact.
+     * The cached uid becomes [lastSignedInUid] first: an account signed in
+     * before that was kept (an update from an older build) stays the owner of
+     * the analyses the phone shows, and of a run that finishes, once it signs out.
+     */
     fun clear(context: Context) {
+        cachedUid(context)?.let { uid -> onboardingPrefs(context).edit { put(Onboarding.LAST_SIGNED_IN_UID, uid) } }
         prefs(context).edit { clear() }
         AppRemoteConfig.clear(context)
     }
