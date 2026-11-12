@@ -210,8 +210,14 @@ object AccountCache {
         prefs(context).edit { put(Session.IMPROVEMENT_CONSENT, granted.toString()) }
     }
 
-    /** Wipe the local session cache (sign-out). Keystore device key is left intact. */
+    /**
+     * Wipe the local session cache (sign-out). Keystore device key is left intact.
+     * The cached uid becomes [lastSignedInUid] first: an account signed in
+     * before that was kept (an update from an older build) stays the owner of
+     * the analyses the phone shows, and of a run that finishes, once it signs out.
+     */
     fun clear(context: Context) {
+        cachedUid(context)?.let { uid -> onboardingPrefs(context).edit { put(Onboarding.LAST_SIGNED_IN_UID, uid) } }
         prefs(context).edit { clear() }
         AppRemoteConfig.clear(context)
     }

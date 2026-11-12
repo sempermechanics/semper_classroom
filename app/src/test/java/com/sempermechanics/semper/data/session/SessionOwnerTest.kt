@@ -10,6 +10,7 @@ import com.sempermechanics.semper.data.cloud.CloudReconcile
 import com.sempermechanics.semper.data.cloud.CloudSync
 import com.sempermechanics.semper.data.cloud.SessionMetadataSync
 import com.sempermechanics.semper.data.net.AccountCache
+import com.sempermechanics.semper.data.prefs.PrefFiles
 import com.sempermechanics.semper.data.session.SessionRecord.SyncState
 import com.sempermechanics.semper.fixtures.CleanAppState
 import com.sempermechanics.semper.fixtures.sessionRecord
@@ -152,6 +153,25 @@ class SessionOwnerTest {
         // A run that finishes after the sign-out still lands with A.
         save("a2")
 
+        assertEquals(listOf("a1", "a2"), ids())
+        signIn(UID_B)
+        assertEquals(emptyList<String>(), ids())
+    }
+
+    @Test
+    fun `an account signed in before the update keeps its analyses after signing out`() {
+        // Signed in under a build that did not record the last account: the
+        // uid is cached, the last-signed-in key is not (seen on the S22, 2026-11-12).
+        AccountCache.saveIdentity(context, UID_A, "a@example.com")
+        context.getSharedPreferences(PrefFiles.Onboarding.NAME, Context.MODE_PRIVATE)
+            .edit().remove(PrefFiles.Onboarding.LAST_SIGNED_IN_UID.name).commit()
+        save("a1")
+
+        AccountSwitch.clearLocalState(context)
+        // A run that finishes after the sign-out still lands with A, not with nobody.
+        save("a2")
+
+        assertEquals(UID_A, SessionOwner.current(context))
         assertEquals(listOf("a1", "a2"), ids())
         signIn(UID_B)
         assertEquals(emptyList<String>(), ids())
