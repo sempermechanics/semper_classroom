@@ -145,8 +145,8 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   supersedes ADR-012): a point on the curve is that frame's mean Exx / Eyy; steel reads 40 of
   40 photos on the curve, E 149.6 GPa. A tap on a Results point opens its frame; ⓘ shows the
   graph and one caption line on a frame, and no Results block when opened from Results.
-- **2D DIC example is a 12-image series** (`claude/examples-cfrp-series`, PR open, not
-  merged): `dice_oht_series`, all of DICe's `dic_challenge_12` (open-hole CFRP, reference +
+- **2D DIC example is a 12-image series** (#169, merged 2026-11-12, not released;
+  [CHANGELOG](docs/ops/CHANGELOG.md)): `dice_oht_series`, all of DICe's `dic_challenge_12` (open-hole CFRP, reference +
   11 load steps, BSD-3) with DICe's solution per step, replaces the 2-image `dice_oht_cfrp`
   and `dice_translation` pairs; three example sets, about 79 MB.
 - **Synced with `semperdic-app`** (forked at `bfe00e5`; `git log --merges
