@@ -44,6 +44,12 @@ enum class AuthMode(
     /** The sign-in / create-account switch. */
     val showsToggle: Boolean get() = this == SIGN_IN || this == REGISTER
 
+    /**
+     * Continue as guest ([com.sempermechanics.semper.data.account.GuestMode]):
+     * not when proving or resetting an account.
+     */
+    val offersGuest: Boolean get() = this == SIGN_IN || this == REGISTER
+
     /** Google sign-in, where configured. */
     val offersGoogle: Boolean get() = this != RESET_PASSWORD
 }

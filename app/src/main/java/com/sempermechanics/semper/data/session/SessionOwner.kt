@@ -1,6 +1,7 @@
 package com.sempermechanics.semper.data.session
 
 import android.content.Context
+import com.sempermechanics.semper.data.account.GuestMode
 import com.sempermechanics.semper.data.net.AccountCache
 import timber.log.Timber
 
@@ -39,11 +40,13 @@ object SessionOwner {
 
     /**
      * [rows] with every blank owner set to [owner], or null when there is
-     * nothing to adopt: no row is blank, or [owner] is blank itself.
+     * nothing to adopt: no row is blank, or [owner] is blank itself or the
+     * guest ([GuestMode.GUEST_UID]): rows from before owners were an account's,
+     * and wait for the first account to sign in.
      */
     internal fun adopted(rows: List<SessionRecord>, owner: String): List<SessionRecord>? {
         val legacy = rows.count { it.ownerUid.isEmpty() }
-        if (owner.isEmpty() || legacy == 0) return null
+        if (owner.isEmpty() || owner == GuestMode.GUEST_UID || legacy == 0) return null
         Timber.i("The current account adopts %d analyses saved before rows had owners", legacy)
         return rows.map { if (it.ownerUid.isEmpty()) it.copy(ownerUid = owner) else it }
     }

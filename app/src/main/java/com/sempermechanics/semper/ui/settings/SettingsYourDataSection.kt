@@ -3,6 +3,7 @@
 package com.sempermechanics.semper.ui.settings
 
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -11,6 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sempermechanics.semper.R
 import com.sempermechanics.semper.data.account.DevAuth
+import com.sempermechanics.semper.data.account.GuestMode
 import com.sempermechanics.semper.data.net.AccountCache
 import com.sempermechanics.semper.data.net.SemperApi
 import com.sempermechanics.semper.data.prefs.AppSettings
@@ -40,6 +42,10 @@ class SettingsYourDataSection(
         views.btnExportData.setOnClickListener { exportMyData() }
         views.btnExportCloudData.setOnClickListener { exportCloudAccountData() }
         views.btnDeleteAccount.setOnClickListener { confirmDeleteAccount() }
+        // A guest has no account and nothing in the cloud; its analyses are deleted from the list.
+        val guest = GuestMode.active(activity)
+        views.btnExportCloudData.isVisible = !guest
+        views.btnDeleteAccount.isVisible = !guest
 
         val switchDiagnostics = views.switchDiagnostics
         switchDiagnostics.isChecked = AppSettings.diagnosticsEnabled(activity)

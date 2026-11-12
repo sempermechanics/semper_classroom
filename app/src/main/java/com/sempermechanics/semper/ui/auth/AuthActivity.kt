@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sempermechanics.semper.R
 import com.sempermechanics.semper.data.account.AuthRepository
+import com.sempermechanics.semper.data.account.GuestMode
 import com.sempermechanics.semper.data.account.isTrustedAuthLink
 import com.sempermechanics.semper.data.account.userMessageOr
 import com.sempermechanics.semper.data.net.AccountCache
@@ -29,9 +30,12 @@ import com.sempermechanics.semper.ui.common.auth.AuthRoute
 import com.sempermechanics.semper.ui.common.auth.SignOutRun
 import com.sempermechanics.semper.ui.common.dialog.CrispToast
 import com.sempermechanics.semper.ui.common.setBusy
+import com.sempermechanics.semper.ui.home.HomeActivity
 import com.sempermechanics.semper.util.suspendRunCatching
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -91,6 +95,7 @@ class AuthActivity : AppCompatActivity() {
         binding.tvForgotPassword.setOnClickListener { passwordReset.sendResetMail() }
         binding.tvEmailLink.setOnClickListener { onSendEmailLink() }
         binding.btnGoogleSignIn.setOnClickListener { onGoogleSignIn() }
+        binding.tvContinueAsGuest.setOnClickListener { onContinueAsGuest() }
         render()
 
         // Pad the scroll container (not the inner column) so the keyboard inset
@@ -163,6 +168,7 @@ class AuthActivity : AppCompatActivity() {
         binding.tvRegisterTermsHint.isVisible = mode == AuthMode.REGISTER
         binding.btnGeneratePassword.isVisible = mode.choosesPassword
         binding.tvToggleMode.isVisible = mode.showsToggle
+        binding.tvContinueAsGuest.isVisible = mode.offersGuest
         val google = GoogleSignInHelper.isConfigured(this) && mode.offersGoogle
         binding.btnGoogleSignIn.isVisible = google
         binding.googleOrDivider.isVisible = google
@@ -221,6 +227,19 @@ class AuthActivity : AppCompatActivity() {
         val email = binding.etEmail.text.toString().trim()
         if (!isValidEmail(email)) return
         viewModel.sendSignInLink(email)
+    }
+
+    /**
+     * No account: Demo's limits on this phone, the cloud off ([GuestMode]).
+     * Through the router like a sign-in, so the Terms gate runs first.
+     */
+    private fun onContinueAsGuest() {
+        viewModel.setBusy(true)
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) { GuestMode.start(applicationContext) }
+            startActivity(AccessRouter.intentFor(this@AuthActivity, HomeActivity::class.java))
+            finish()
+        }
     }
 
     /** Google's account picker is hosted by this screen; the token then goes to [AuthViewModel]. */
@@ -346,6 +365,7 @@ class AuthActivity : AppCompatActivity() {
             binding.btnGoogleSignIn,
             binding.tvForgotPassword,
             binding.tvEmailLink,
+            binding.tvContinueAsGuest,
             idleVisibility = View.GONE,
         )
     }
