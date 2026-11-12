@@ -50,6 +50,12 @@ production-readiness fixes, `sync/semperdic-6d2bde6`, 2026-10-26), `25334af1`
 `ccr-603fe346-1bw2fa`, 2026-10-21).
 `git log --merges --grep=semperdic-app` on the fork lists them all.
 
+**Ported ahead of a sync:** semperdic-app `3fba79721` (its #530: analysis owners,
+`SessionOwner` and `AccountSwitch`), applied on `claude/port-account-switch` on 2026-11-12
+after the S22+ showed another account's analyses uploaded into the next account's backup.
+Its TD-387 and TD-388 are TD-280 and TD-281 here. The next sync meets the same lines on
+both sides; keep upstream's where they differ only by later work.
+
 1. `git fetch semperdic main` and branch `sync/semperdic-<short sha>` from its `main`.
 2. `git merge semperdic/main`. Keep its `applicationId`, `rootProject.name` and
    `google-services.json`. The benchmark module and CI read the package from
