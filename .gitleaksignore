@@ -24,3 +24,8 @@ c748630e2c3f2fb7899b19d11b2e221cb6c0feef:app/src/test/java/com/sempermechanics/s
 # commit replaced with the low-entropy "SEMP-SHOWN-ONCE". Only that commit
 # carries it. Listed by fingerprint, as above.
 0d546e3006ae74977c3667dedea3e373aa721e14:firebase-hosting/tests/operator-mint.test.mjs:generic-api-key:232
+# A made-up malformed ID token in the backend test that proves a refused token
+# is never logged (readiness TE5-105): a header of {"alg":"RS256"} and a body
+# of "secret-payload", no signature, not a credential. It failed every scheduled
+# full-history scan from 2026-11-02. Only that commit adds the line.
+e5d6224e678ea1ea71e083f2239dac2a55c6b441:backend/tests/test_auth_log_redaction.py:generic-api-key:14
