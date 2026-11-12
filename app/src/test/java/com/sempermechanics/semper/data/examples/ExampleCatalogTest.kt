@@ -34,9 +34,9 @@ class ExampleCatalogTest {
     private val sets = ExampleCatalog.load(assets)
 
     @Test
-    fun `the four sets load in order`() {
+    fun `the three sets load in order`() {
         assertEquals(
-            listOf("steel_tensile", "pmma_bending", "dice_oht_cfrp", "dice_translation"),
+            listOf("steel_tensile", "pmma_bending", "dice_oht_series"),
             sets.map { it.id },
         )
     }
@@ -126,22 +126,32 @@ class ExampleCatalogTest {
 
     @Test
     fun `the DICe files are the engine's own, byte for byte (text up to line endings)`() {
-        val samples = File("../engine/examples/samples")
-        assumeTrue("engine submodule not checked out", samples.isDirectory)
-        val copies = mapOf(
-            "dice_oht_cfrp/oht_cfrp_ref.tiff" to "oht_cfrp/ref.tiff",
-            "dice_oht_cfrp/oht_cfrp_def.tiff" to "oht_cfrp/def.tiff",
-            "dice_oht_cfrp/DICe_solution_01.txt" to "oht_cfrp/DICe_solution_01.txt",
-            "dice_oht_cfrp/LICENSE.DICe" to "LICENSE.DICe",
-            "dice_translation/translation_ref.tif" to "translation/ref.tif",
-            "dice_translation/translation_def.tif" to "translation/def.tif",
-            "dice_translation/LICENSE.DICe" to "LICENSE.DICe",
-        )
-        copies.forEach { (asset, engine) ->
+        val engine = File("../engine")
+        assumeTrue("engine submodule not checked out", File(engine, "tests/fixtures/dice").isDirectory)
+        // The engine's DICe agreement tests hold five of the twelve frames and their solutions
+        // (engine/tests/dice/test_field_agreement.cpp); the other seven are DICe's, unchanged too.
+        val fixtures = listOf("00", "01", "03", "06", "11").map { "oht_cfrp_$it.tiff" } +
+            listOf("01", "03", "06", "11").map { "DICe_solution_$it.txt" }
+        val copies = fixtures.associate { "dice_oht_series/$it" to "tests/fixtures/dice/$it" } +
+            ("dice_oht_series/LICENSE.DICe" to "examples/samples/LICENSE.DICe")
+        copies.forEach { (asset, source) ->
             val bundled = assets.open("${ExampleCatalog.ROOT}/$asset").use { it.readBytes() }
             // Both repos store text as LF; a Windows checkout of the engine may show CRLF.
-            val lf = { bytes: ByteArray -> if (asset.endsWith("tif") || asset.endsWith("tiff")) bytes else lf(bytes) }
-            assertArrayEquals(asset, lf(File(samples, engine).readBytes()), lf(bundled))
+            val lf = { bytes: ByteArray -> if (asset.endsWith("tiff")) bytes else lf(bytes) }
+            assertArrayEquals(asset, lf(File(engine, source).readBytes()), lf(bundled))
+        }
+    }
+
+    @Test
+    fun `the series ships DICe's solution for every frame, each against the first image`() {
+        val set = requireNotNull(ExampleCatalog.find(assets, "dice_oht_series"))
+        assertTrue(set.deformed.size.toString(), set.deformed.size >= 4)
+        set.deformed.forEachIndexed { i, frame ->
+            val solution = "DICe_solution_%02d.txt".format(i + 1)
+            assertTrue(solution, solution in set.files)
+            val header = assets.open(ExampleCatalog.path(set.id, solution)).use { it.readBytes().decodeToString() }
+            assertTrue(solution, "Reference image: ./images/${set.reference}" in header)
+            assertTrue(solution, "Deformed image: ./images/$frame" in header)
         }
     }
 

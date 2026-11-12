@@ -6,6 +6,12 @@
 **Amended:** 2026-10-31: `concrete_bending` removed. It could not be tracked
 (the app stopped at frame 2), so it showed nothing a student could use; the app
 now ships only sets that run. Four sets, about 73 MB.
+2026-11-12: the two DICe pairs (`dice_oht_cfrp`, 2 images, and
+`dice_translation`, 2 images) replaced by one 2D DIC series, `dice_oht_series`:
+all 12 images of DICe's `dic_challenge_12` (the same open-hole CFRP plate,
+reference and 11 load steps) with DICe's solution for every step, so the 2D DIC
+example shows a real image series. Same source and licence (BSD-3-Clause).
+Three sets, about 79 MB.
 **Relates to:** [ADR-015](ADR-015-package-layout.md) (packages),
 [ADR-016](ADR-016-work-that-outlives-the-activity.md) (Save to phone runs on the view model),
 [ADR-018](ADR-018-error-convention.md) (its outcome),
@@ -27,7 +33,7 @@ The owner asked to ship them with the app, checked against each licence:
 | `steel_tensile` | Koirala 2026, Zenodo, doi:10.5281/zenodo.18311953 | CC BY 4.0 |
 | `pmma_bending` | Delorme, Tabiai, Diehl, Laberge Lebel, Lévesque 2018, Zenodo, doi:10.5281/zenodo.1172068 | CC BY 4.0 |
 | `concrete_bending` | Sjölander, Belloni, Peterson, Ledin 2023, Mendeley Data, doi:10.17632/z3yc9z84tk.3 | CC BY 4.0 |
-| `dice_oht_cfrp`, `dice_translation` | DICe, github.com/dicengine/dice, © 2015 NTESS | BSD-3-Clause |
+| `dice_oht_series` (until 2026-11-12 `dice_oht_cfrp` and `dice_translation`) | DICe, github.com/dicengine/dice, `tests/regression/dic_challenge_12`, © 2015 NTESS | BSD-3-Clause |
 
 The licences were read from the live records on 2026-10-26. Both allow
 commercial redistribution, which is what selling the app with them inside
@@ -51,11 +57,12 @@ documentation and/or other materials".
    - `example.json` (schema 1, `data/examples/ExampleManifest`);
    - `README.md`, `CREDIT.txt`;
    - the ground truth (`truth_gauge_strain.csv`, `truth_deflection.csv`,
-     `DICe_solution_01.txt`);
+     `DICe_solution_01.txt` to `_11.txt`);
    - `LICENSE.DICe` for the BSD sets.
 
-   The DICe files are byte-for-byte copies of `engine/examples/samples`
-   (`ExampleCatalogTest`). The steel and PMMA truth comes from the `truth`
+   The DICe files are DICe's own, unchanged; the five frames and four
+   solutions the engine's agreement tests hold are checked byte for byte
+   against `engine/tests/fixtures/dice` (`ExampleCatalogTest`). The steel and PMMA truth comes from the `truth`
    steps of `scripts/real_data_*.py`, run on the authors' own files.
 2. **Every set credits itself in three places:**
    - its sheet on the Examples screen;

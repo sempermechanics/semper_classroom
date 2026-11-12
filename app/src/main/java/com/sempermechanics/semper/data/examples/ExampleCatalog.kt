@@ -8,7 +8,7 @@ import java.io.IOException
 
 /**
  * The example sets bundled under `assets/examples/` (ADR-031), read from each
- * folder's `example.json`. Reading is quick (five small files) but touches
+ * folder's `example.json`. Reading is quick (three small files) but touches
  * the asset manager, so callers run [load] off the main thread.
  */
 object ExampleCatalog {

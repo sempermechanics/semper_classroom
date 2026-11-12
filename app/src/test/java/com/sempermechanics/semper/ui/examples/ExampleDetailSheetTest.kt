@@ -21,8 +21,8 @@ class ExampleDetailSheetTest {
 
     @Test
     fun `the frame count agrees with its noun`() {
-        val pair = setup("dice_oht_cfrp")
-        assertTrue(pair, "1 deformed frame," in pair)
+        val series = setup("dice_oht_series")
+        assertTrue(series, "11 deformed frames," in series)
         val pmma = setup("pmma_bending")
         assertTrue(pmma, "33 deformed frames," in pmma)
     }

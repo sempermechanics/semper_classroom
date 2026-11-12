@@ -58,9 +58,9 @@ class ExampleHandOffTest {
 
     @Test
     fun `2D DIC carries the photos and the ROI, and no lab test`() {
-        val intent = ExampleHandOff.intent(app, set("dice_oht_cfrp"))
+        val intent = ExampleHandOff.intent(app, set("dice_oht_series"))
         assertEquals("dic2d", intent.getStringExtra(IntentKeys.TEST_TYPE))
-        assertEquals(1, intent.getStringArrayListExtra(IntentKeys.PICKED_DEF_URIS)!!.size)
+        assertEquals(11, intent.getStringArrayListExtra(IntentKeys.PICKED_DEF_URIS)!!.size)
         assertNull(LabRerun.from(intent))
         assertNull(intent.getStringExtra(IntentKeys.PICKED_LOAD_CSV_URI))
         assertFalse(intent.hasExtra(IntentKeys.CROSS_SECTION_MM2))

@@ -145,6 +145,10 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   supersedes ADR-012): a point on the curve is that frame's mean Exx / Eyy; steel reads 40 of
   40 photos on the curve, E 149.6 GPa. A tap on a Results point opens its frame; ⓘ shows the
   graph and one caption line on a frame, and no Results block when opened from Results.
+- **2D DIC example is a 12-image series** (`claude/examples-cfrp-series`, PR open, not
+  merged): `dice_oht_series`, all of DICe's `dic_challenge_12` (open-hole CFRP, reference +
+  11 load steps, BSD-3) with DICe's solution per step, replaces the 2-image `dice_oht_cfrp`
+  and `dice_translation` pairs; three example sets, about 79 MB.
 - **Synced with `semperdic-app`** (forked at `bfe00e5`; `git log --merges
   --grep=semperdic-app`; rules in its `docs/ops/FORK_SYNC.md`). Last: `5b9a9e9a`, 2026-10-31,
   on `sync/semperdic-5b9a9e9`: its #516–#519, ADR-033's deploy records and `pyasn1` 0.6.5 in
@@ -220,7 +224,7 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   references (TD-6). Owner decision: Terms §1.2 and §1.3 against a student audience.
 - **Example data in the app ([ADR-031](docs/adr/ADR-031-bundled-example-data.md)), merged
   2026-10-26 (#149, `8b11ed8f`), not released:** steel, PMMA (CC BY 4.0) and two DICe
-  pairs (BSD-3) in `app/src/main/assets/examples/` (~73 MB; the concrete set that could not be
+  pairs (BSD-3; one 12-image DICe series since the 2026-11-12 PR above) in `app/src/main/assets/examples/` (~73 MB; the concrete set that could not be
   tracked left on 2026-10-31), with ground truth and credits;
   Try it / Save to phone / Credits & licences. Terms §4.6 merged upstream (semperdic-app #487)
   and synced here (#153); its Hosting deploy is owed, from semperdic-app. The website's Examples

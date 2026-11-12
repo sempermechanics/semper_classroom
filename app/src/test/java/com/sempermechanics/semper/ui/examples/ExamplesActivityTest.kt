@@ -57,7 +57,7 @@ class ExamplesActivityTest {
     fun `a card per set, in order, with its photo count and licence`() {
         val activity = screen()
         val list = activity.findViewById<android.view.ViewGroup>(R.id.examplesList)
-        assertEquals(2 + 4, list.childCount)
+        assertEquals(2 + 3, list.childCount)
         val steel = card(activity, 0)
         assertEquals("Steel strip in tension", steel.findViewById<TextView>(R.id.tvExampleTitle).text.toString())
         assertEquals("41 photos", steel.findViewById<TextView>(R.id.tvExampleMeta).text.toString())
@@ -122,15 +122,15 @@ class ExamplesActivityTest {
         val viewModel = androidx.lifecycle.ViewModelProvider(activity)[ExamplesViewModel::class.java]
         val sink = RecordingSink()
         viewModel.downloads = { ExampleDownloads(app.assets, sink) }
-        card(activity, 3).performClick()
+        card(activity, 2).performClick()
         (ShadowDialog.getLatestDialog() as BottomSheetDialog).findViewById<View>(R.id.btnDetailSave)!!.performClick()
         idleUntil("the save reports") {
             (ShadowDialog.getLatestDialog() as? AlertDialog)?.isShowing == true
         }
-        val set = requireNotNull(ExampleCatalog.find(app.assets, "dice_translation"))
+        val set = requireNotNull(ExampleCatalog.find(app.assets, "dice_oht_series"))
         assertEquals(set.files, sink.names)
         val body = (ShadowDialog.getLatestDialog() as AlertDialog).findViewById<TextView>(android.R.id.message)!!.text
-        assertTrue(body.toString(), "Download/semper examples/DICe translation/" in body)
+        assertTrue(body.toString(), "Download/semper examples/DICe open-hole CFRP series/" in body)
     }
 
     /** Records the names written; everything succeeds. */

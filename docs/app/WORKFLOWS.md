@@ -275,7 +275,7 @@ session is saved with no test type, like one made before test types existed.
 
 ### 3c. Example data — `ExamplesActivity`
 
-The four sets bundled in the APK ([ADR-031](../adr/ADR-031-bundled-example-data.md)),
+The three sets bundled in the APK ([ADR-031](../adr/ADR-031-bundled-example-data.md)),
 from the **+** sheet (§3b.11) or Settings → Help (§4.26c). Each card: title,
 photo count, summary, licence and authors.
 A tap opens its sheet: the setup Try it will fill in, what to expect (the
@@ -284,14 +284,14 @@ data**, **Licence**, **Try it** and **Save to phone**.
 
 | # | Action | Expected |
 |---|---|---|
-| [ ] 3c.1 | Open **Example data** | Four cards in order: Steel strip in tension, PMMA beam in 3-point bending, Carbon-fibre plate with a hole, Sub-pixel shift |
+| [ ] 3c.1 | Open **Example data** | Three cards in order: Steel strip in tension, PMMA beam in 3-point bending, Carbon-fibre plate with a hole (12 photos) |
 | [ ] 3c.2 | Tap **PMMA beam** | Its sheet: Bending, 33 deformed frames, 2380 × 1228 px; span 75, width 12, depth 31 mm; load log `pmma_loads.csv` in N; tap hint x ≈ 1170, y ≈ 39 / 611; E from the graph ≈ 1.98 GPa; credit with doi:10.5281/zenodo.1172068, CC BY 4.0, what was changed, "No endorsement…" |
 | [ ] 3c.3 | Tap **Original data**, then **Licence** | doi.org opens the Zenodo record; the CC BY 4.0 deed opens |
 | [ ] 3c.4 | Tap **Try it** | The wizard opens as Bending with the reference, 33 frames, the load log paired (33 rows, N), L/b/t filled and the ROI drawn; the beam's edges are still to tap |
 | [ ] 3c.5 | Tap the edges at the hinted spots, Compute | E from the graph near 2.0 GPa; the run counts toward the analysis limit like any other |
 | [ ] 3c.6 | **Steel** → Try it → Compute | Tensile, area 12.5 mm², axis x, 40 frames, kN log paired; E near 150 GPa (149.6 on a Galaxy S22+, 2026-11-11), 40 of 40 photos on the curve |
 | — 3c.7 | Retired 2026-10-31: the concrete set, which could not be tracked, left the app | — |
-| [ ] 3c.8 | **Carbon-fibre plate** → Try it → Compute | 2D DIC, no load card, ROI drawn; V around −0.6 px |
+| [ ] 3c.8 | **Carbon-fibre plate** → Try it → Compute | 2D DIC, no load card, 11 deformed frames, ROI drawn; median V about −0.6 px on frame 1, growing to about −8.7 px on frame 11 (DICe −0.63 and −8.64) |
 | [ ] 3c.9 | With the frame limit at 10 (§4.25), Try it on Steel | "Too many frames for this account"; the wizard does not open |
 | [ ] 3c.10 | **Save to phone** on any set | A progress dialog, then "Saved to your phone" naming `Download/semper examples/<set>/`; Files shows the photos, the log, README.md, CREDIT.txt (and LICENSE.DICe for the DICe sets) |
 | [ ] 3c.11 | Save the same set again | It finishes at once; nothing is duplicated |
