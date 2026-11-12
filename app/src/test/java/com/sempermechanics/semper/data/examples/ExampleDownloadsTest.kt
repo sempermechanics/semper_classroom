@@ -22,7 +22,7 @@ import java.io.InputStream
 class ExampleDownloadsTest {
 
     private val app = ApplicationProvider.getApplicationContext<Application>()
-    private val set = requireNotNull(ExampleCatalog.find(app.assets, "dice_translation"))
+    private val set = requireNotNull(ExampleCatalog.find(app.assets, "dice_oht_series"))
 
     /** Files by "path/name"; pending until published. */
     private class FakeSink(
@@ -65,7 +65,7 @@ class ExampleDownloadsTest {
         }
     }
 
-    private val folder = "Download/semper examples/DICe translation/"
+    private val folder = "Download/semper examples/DICe open-hole CFRP series/"
 
     @Test
     fun `every file of the set is saved, notes and licence first`() = runTest {
@@ -77,8 +77,8 @@ class ExampleDownloadsTest {
         assertEquals(listOf("README.md", "CREDIT.txt", "LICENSE.DICe"), set.files.take(3))
         assertEquals((1..set.files.size).toList(), done)
         assertTrue(sink.pending.isEmpty())
-        val ref = app.assets.open("examples/dice_translation/translation_ref.tif").use { it.readBytes() }
-        assertEquals(ref.toList(), sink.files.getValue(folder + "translation_ref.tif").toList())
+        val ref = app.assets.open("examples/dice_oht_series/oht_cfrp_00.tiff").use { it.readBytes() }
+        assertEquals(ref.toList(), sink.files.getValue(folder + "oht_cfrp_00.tiff").toList())
     }
 
     @Test
@@ -91,20 +91,20 @@ class ExampleDownloadsTest {
 
     @Test
     fun `a failed write is reported and its pending file removed`() = runTest {
-        val sink = FakeSink(failOn = "translation_def.tif")
+        val sink = FakeSink(failOn = "oht_cfrp_07.tiff")
         val outcome = ExampleDownloads(app.assets, sink).save(set)
         assertEquals(ExampleDownloads.Outcome.Failed("disk full"), outcome)
-        assertEquals(listOf(folder + "translation_def.tif"), sink.discarded)
+        assertEquals(listOf(folder + "oht_cfrp_07.tiff"), sink.discarded)
         assertTrue(sink.pending.isEmpty())
     }
 
     @Test
     fun `a cancel removes the pending file and goes on`() {
-        val sink = FakeSink(cancelOn = "translation_def.tif")
+        val sink = FakeSink(cancelOn = "oht_cfrp_07.tiff")
         assertThrows(CancellationException::class.java) {
             runBlocking { ExampleDownloads(app.assets, sink).save(set) }
         }
-        assertEquals(listOf(folder + "translation_def.tif"), sink.discarded)
+        assertEquals(listOf(folder + "oht_cfrp_07.tiff"), sink.discarded)
     }
 
     @Test

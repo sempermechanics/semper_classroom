@@ -97,13 +97,13 @@ class WizardExampleHandOffTest {
 
     @Test
     fun `the example extras are taken once`() {
-        val viewModel = wizardOn("dice_oht_cfrp")
+        val viewModel = wizardOn("dice_oht_series")
         val activity = built.single().get()
         assertEquals(TestType.DIC_2D, viewModel.lab.testType)
         assertEquals(Roi(40, 40, 320, 950), viewModel.inputs.value.roi)
         assertFalse(activity.intent.hasExtra(IntentKeys.EXAMPLE_ROI))
         assertFalse(activity.intent.hasExtra(IntentKeys.EXAMPLE_IMAGE_SIZE))
         // The set stays named on the Intent, as the test type does.
-        assertEquals("dice_oht_cfrp", activity.intent.getStringExtra(IntentKeys.EXAMPLE_ID))
+        assertEquals("dice_oht_series", activity.intent.getStringExtra(IntentKeys.EXAMPLE_ID))
     }
 }
