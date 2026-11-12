@@ -1,5 +1,9 @@
 package com.sempermechanics.semper.data.session
 
+import com.sempermechanics.semper.data.cloud.SessionMetadataDoc
+import timber.log.Timber
+import java.io.File
+
 /**
  * Names that come from a backup: the name a restore gives its row, the labels
  * a list of backups reads, and the repair of rows an earlier build named.
@@ -103,5 +107,19 @@ object CloudNaming {
             }
         }
         return rows.mapIndexed { i, row -> newNames[i]?.let { row.copy(name = it) } ?: row }
+    }
+
+    /** The name [row]'s restored `metadata.json` gives ([CloudNaming.restoredName]); null without a readable one. */
+    @Suppress("TooGenericExceptionCaught") // a broken metadata.json falls back to the reference's name
+    internal fun restoredMetadataName(row: SessionRecord): String? {
+        val file = SessionLayout(File(row.sessionDir)).metadataJson
+        if (!file.isFile) return null
+        return try {
+            val doc = SessionMetadataDoc.decode(file.readText())
+            CloudNaming.restoredName(doc.name, doc.specimen)
+        } catch (e: Exception) {
+            Timber.w(e, "Unreadable metadata.json; naming the row from its reference")
+            null
+        }
     }
 }

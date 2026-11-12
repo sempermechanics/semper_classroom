@@ -8,7 +8,6 @@ package com.sempermechanics.semper.data.session
 import android.content.Context
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
-import com.sempermechanics.semper.data.cloud.SessionMetadataDoc
 import com.sempermechanics.semper.data.cloud.SessionMetadataSync
 import com.sempermechanics.semper.data.net.AccountCache
 import com.sempermechanics.semper.util.AtomicFiles
@@ -73,8 +72,26 @@ object SessionStore {
 
     private fun indexTmpFile(context: Context): File = File(root(context), SessionPaths.INDEX_JSON + ".tmp")
 
-    /** Directory holding a session's .dat frames and reference copy. */
-    fun dirFor(context: Context, id: String): File = File(root(context), id).apply { mkdirs() }
+    /**
+     * Directory holding a session's .dat frames and reference copy, created if absent.
+     * Throws [IllegalArgumentException] unless [id] is a session id
+     * ([SessionPaths.isSafeId]) naming a directory directly under the sessions root:
+     * `..`, `.`, `a/../b` or `index.json` never become a session dir, which a delete
+     * or a failed restore would wipe (L5-1).
+     */
+    fun dirFor(context: Context, id: String): File {
+        val dir = childDir(root(context), id)
+        requireNotNull(dir) { "Session id does not name a directory under the sessions root" }
+        return dir.apply { mkdirs() }
+    }
+
+    /** `root/id` when [id] is a session id and that is a direct child of [root] named exactly [id]; else null. */
+    private fun childDir(root: File, id: String): File? {
+        if (!SessionPaths.isSafeId(id)) return null
+        val dir = File(root, id)
+        val canonical = dir.canonicalFile
+        return dir.takeIf { canonical.parentFile == root.canonicalFile && canonical.name == id }
+    }
 
     /** Subfolder under [sessionDir] for persisted raw deformed originals. */
     fun rawDeformedDir(sessionDir: File): File =
@@ -85,7 +102,7 @@ object SessionStore {
 
     /** Bytes one session occupies on disk, 0 once its artifacts have been dropped. */
     @WorkerThread
-    fun sizeOf(context: Context, id: String): Long = CacheJanitor.sizeOf(File(root(context), id))
+    fun sizeOf(context: Context, id: String): Long = childDir(root(context), id)?.let(CacheJanitor::sizeOf) ?: 0L
 
     /** Bytes every local analysis occupies, including the index itself. */
     @WorkerThread
@@ -137,6 +154,7 @@ object SessionStore {
         record: SessionRecord,
         allowOverLimit: Boolean = false,
     ): UpsertOutcome = synchronized(lock) {
+        require(SessionPaths.isSafeId(record.id)) { "Session id does not name a directory under the sessions root" }
         val existing = readRows(context)
         if (existing == null) {
             Timber.e("Refusing upsert: session index is corrupt")
@@ -150,23 +168,10 @@ object SessionStore {
             return@synchronized UpsertOutcome.QUOTA_FULL
         }
         val others = existing.filterNot { it.id == record.id }
-        val next = others + withFreeName(SessionOwner.stamped(record, previous, owner), previous, others)
+        val next = others + SessionNaming.withFreeName(SessionOwner.stamped(record, previous, owner), previous, others)
         if (!write(context, next)) return@synchronized UpsertOutcome.INDEX_UNAVAILABLE
         UpsertOutcome.SAVED
     }
-
-    /**
-     * [record] under a name no row in [others] has. The check and the write share
-     * [save]'s lock, so two runs or restores saving at once cannot both take one
-     * name: the later one gets the next ` (n)` ([SessionNaming.uniqueName]). A row
-     * that keeps the name it had ([previous]'s) keeps it as it is.
-     */
-    private fun withFreeName(record: SessionRecord, previous: SessionRecord?, others: List<SessionRecord>) =
-        if (record.name.isBlank() || record.name == previous?.name) {
-            record
-        } else {
-            record.copy(name = SessionNaming.uniqueName(record.name, others.mapTo(HashSet()) { it.name }))
-        }
 
     /**
      * [save], as a yes or no.
@@ -267,7 +272,8 @@ object SessionStore {
     /** Removes the index row AND the local files. Cloud copies are untouched. */
     @WorkerThread
     fun delete(context: Context, id: String): Unit = synchronized(lock) {
-        if (removeRow(context, id)) dirFor(context, id).deleteRecursively()
+        // A row whose id names no session dir (L5-1) loses its row, never a directory.
+        if (removeRow(context, id)) childDir(root(context), id)?.deleteRecursively()
     }
 
     /**
@@ -286,10 +292,8 @@ object SessionStore {
      */
     @WorkerThread
     fun deleteUnsavedDir(context: Context, id: String): Boolean = synchronized(lock) {
-        val root = root(context)
-        val dir = File(root, id)
-        // Never the sessions root itself, or anything outside it.
-        if (id in setOf("", ".", "..") || dir.parentFile != root || dir.name != id) return@synchronized false
+        // Never the sessions root itself, or anything outside it (L5-1).
+        val dir = childDir(root(context), id) ?: return@synchronized false
         val rows = readRows(context) ?: return@synchronized false
         if (rows.any { it.id == id }) return@synchronized false
         dir.deleteRecursively()
@@ -364,7 +368,7 @@ object SessionStore {
         val kept = rows?.filterNot { it.ownerUid == owner }.orEmpty()
         if (rows != null && kept.isNotEmpty()) {
             val root = root(context)
-            rows.filter { it.ownerUid == owner }.forEach { File(root, it.id).deleteRecursively() }
+            rows.filter { it.ownerUid == owner }.forEach { childDir(root, it.id)?.deleteRecursively() }
             write(context, kept)
         } else {
             root(context).deleteRecursively()
@@ -429,23 +433,10 @@ object SessionStore {
      * every read, and finds nothing once done.
      */
     private fun repairNames(context: Context, rows: List<SessionRecord>): List<SessionRecord> {
-        val fixed = CloudNaming.repaired(rows, ::restoredMetadataName) ?: return rows
+        val fixed = CloudNaming.repaired(rows, CloudNaming::restoredMetadataName) ?: return rows
         val changed = fixed.indices.count { fixed[it].name != rows[it].name }
         Timber.i("Renamed %d analyses whose names clashed or kept a file extension", changed)
         return if (write(context, fixed)) fixed else rows
-    }
-
-    /** The name [row]'s restored `metadata.json` gives ([CloudNaming.restoredName]); null without a readable one. */
-    private fun restoredMetadataName(row: SessionRecord): String? {
-        val file = SessionLayout(File(row.sessionDir)).metadataJson
-        if (!file.isFile) return null
-        return try {
-            val doc = SessionMetadataDoc.decode(file.readText())
-            CloudNaming.restoredName(doc.name, doc.specimen)
-        } catch (e: Exception) {
-            Timber.w(e, "Unreadable metadata.json; naming the row from its reference")
-            null
-        }
     }
 
     /** @return false if the index was corrupt and the mutation was refused. */

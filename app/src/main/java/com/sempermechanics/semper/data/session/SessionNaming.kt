@@ -108,6 +108,19 @@ object SessionNaming {
 
     /** The name of session [id]'s archive inside a master export, without its `.zip`. */
     fun exportEntryName(name: String, id: String): String = fileSafe(name, "session") + "_" + id.take(ID_CHARS)
+
+    /**
+     * [record] under a name no row in [others] has. The check and the write share
+     * [SessionStore.save]'s lock, so two runs or restores saving at once cannot both take one
+     * name: the later one gets the next ` (n)` ([uniqueName]). A row
+     * that keeps the name it had ([previous]'s) keeps it as it is.
+     */
+    internal fun withFreeName(record: SessionRecord, previous: SessionRecord?, others: List<SessionRecord>) =
+        if (record.name.isBlank() || record.name == previous?.name) {
+            record
+        } else {
+            record.copy(name = uniqueName(record.name, others.mapTo(HashSet()) { it.name }))
+        }
 }
 
 /**
