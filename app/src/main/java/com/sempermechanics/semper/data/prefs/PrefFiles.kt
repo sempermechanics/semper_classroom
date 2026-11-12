@@ -106,6 +106,14 @@ object PrefFiles {
          */
         val LAST_SIGNED_IN_UID = PrefKey.string("last_signed_in_uid")
 
+        /**
+         * The guest's Terms version and improvement answer (`GuestMode`), kept
+         * while an account uses the phone, so a guest who comes back is not
+         * asked again for a version it already accepted.
+         */
+        val GUEST_TERMS_ACCEPTED = PrefKey.string("guest_terms_accepted")
+        val GUEST_IMPROVEMENT_CONSENT = PrefKey.string("guest_improvement_consent")
+
         /** The beta-notice ack of account [uid], or the phone's own when signed out. */
         fun betaAcked(uid: String?): PrefKey<Boolean> =
             if (uid == null) BETA_ACKED_SIGNED_OUT else PrefKey.boolean(BETA_ACKED_PREFIX + uid)

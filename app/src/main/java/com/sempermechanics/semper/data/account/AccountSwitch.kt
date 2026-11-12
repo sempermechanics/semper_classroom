@@ -32,6 +32,8 @@ internal object AccountSwitch {
      * shown until another signs in ([AccountCache.lastSignedInUid]).
      */
     fun clearLocalState(context: Context) {
+        // The guest's Terms acceptance outlives the cache it is in.
+        GuestMode.keepAnswers(context)
         LicenseConfigWorker.cancel(context)
         PhoneSyncWorker.cancel(context)
         AccountCache.clear(context)

@@ -5,6 +5,7 @@ import androidx.annotation.VisibleForTesting
 import com.sempermechanics.semper.BuildConfig
 import com.sempermechanics.semper.data.account.DevAuth
 import com.sempermechanics.semper.data.account.DeviceKeys
+import com.sempermechanics.semper.data.account.GuestMode
 import com.sempermechanics.semper.data.net.drive.DriveTransfer
 import com.sempermechanics.semper.data.net.drive.DriveUpload
 import com.sempermechanics.semper.data.net.drive.DriveUploader
@@ -62,10 +63,12 @@ class SemperApi @VisibleForTesting internal constructor(
 
     /**
      * Cloud calls are possible: a base URL is configured and we are not running
-     * under the debug emulator sign-in bypass (which has no Firebase user, so
-     * every authenticated call would fail — see [DevAuth]).
+     * under the debug emulator sign-in bypass or as the guest (neither has a
+     * Firebase user, so every authenticated call would fail — see [DevAuth],
+     * [GuestMode]).
      */
-    override val enabled: Boolean get() = base.isNotBlank() && !DevAuth.active
+    override val enabled: Boolean
+        get() = base.isNotBlank() && !DevAuth.active && !GuestMode.active(appContext)
 
     /** The backend URL for [path]; see [SemperApiHttp.endpoint]. */
     private fun endpoint(path: String): String = SemperApiHttp.endpoint(base, path)

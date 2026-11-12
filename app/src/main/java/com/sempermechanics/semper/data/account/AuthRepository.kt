@@ -365,6 +365,8 @@ class AuthRepository(
         method: SignInMethod,
         signIn: suspend () -> Any?,
     ): Result<String> = withContext(Dispatchers.IO) {
+        // A guest signing in stops being the guest first, which turns the cloud on.
+        GuestMode.leave(appContext)
         if (!api.enabled) {
             // SEMPER_API_BASE_URL is unset in this build.
             return@withContext signInFailed(

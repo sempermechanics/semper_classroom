@@ -12,6 +12,8 @@ on-device.
 ```
 SplashActivity
     ├─ (no session / error) → AuthActivity
+    │                           └─ Continue as guest → (Terms) → HomeActivity (Demo, cloud off; ADR-036)
+    ├─ guest last time      → HomeActivity (through the Terms gate)
     ├─ PENDING              → PendingApprovalActivity
     └─ APPROVED / offline   → HomeActivity
                                 ├─ + → TestTypeSheet → MediaPickerSheet

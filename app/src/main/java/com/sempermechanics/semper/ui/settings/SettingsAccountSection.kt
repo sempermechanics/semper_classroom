@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sempermechanics.semper.R
 import com.sempermechanics.semper.data.account.DeviceKeys
+import com.sempermechanics.semper.data.account.GuestMode
 import com.sempermechanics.semper.data.account.LicenseEntitlements
 import com.sempermechanics.semper.data.net.AccountCache
 import com.sempermechanics.semper.data.net.ActivationDto
@@ -32,7 +33,9 @@ class SettingsAccountSection(
     private val views: ViewSettingsScrollContentBinding,
 ) {
     fun wire() {
-        views.tvAccountEmail.text = AccountCache.cachedEmail(activity).orEmpty()
+        val guest = GuestMode.active(activity)
+        views.tvAccountEmail.text =
+            if (guest) activity.getString(R.string.account_guest) else AccountCache.cachedEmail(activity).orEmpty()
         val deviceId = DeviceKeys.deviceId(activity)
         views.tvAccountDevice.text = activity.getString(R.string.account_device_id_fmt, deviceId)
 
@@ -55,6 +58,8 @@ class SettingsAccountSection(
         }
 
         wirePhones()
+        // A guest has no licence to ask about; the footer's Sign in is its way to one.
+        views.btnRefreshLicense.isVisible = !guest
         views.btnRefreshLicense.setOnClickListener { refreshLicense() }
 
         views.btnAdmin.apply {

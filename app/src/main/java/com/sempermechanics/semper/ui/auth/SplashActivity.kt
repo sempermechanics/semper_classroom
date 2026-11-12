@@ -15,6 +15,7 @@ import com.sempermechanics.semper.R
 import com.sempermechanics.semper.data.account.AccessStatus
 import com.sempermechanics.semper.data.account.AuthRepository
 import com.sempermechanics.semper.data.account.DevAuth
+import com.sempermechanics.semper.data.account.GuestMode
 import com.sempermechanics.semper.data.account.userMessageOr
 import com.sempermechanics.semper.databinding.ActivitySplashBinding
 import com.sempermechanics.semper.ui.common.auth.AuthRoute
@@ -23,7 +24,9 @@ import com.sempermechanics.semper.ui.common.dialog.Feedback
 import com.sempermechanics.semper.ui.home.HomeActivity
 import com.sempermechanics.semper.ui.settings.AccountDeletionRun
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -91,9 +94,11 @@ class SplashActivity : AppCompatActivity() {
         AccountDeletionRun.awaitResumed()
         AccountDeletionRun.consume()?.let { Feedback.toast(this, it.message, long = true) }
 
-        // Dev shortcuts: emulator bypass, or no backend configured at all.
-        // Then the two answers that need no server round-trip.
-        if (routeDevShortcut() || routeWithoutWaiting()) return
+        // The guest (before the no-backend shortcut, which a guest's
+        // switched-off cloud would otherwise take); dev shortcuts: emulator
+        // bypass, or no backend configured at all. Then the two answers that
+        // need no server round-trip.
+        if (routeGuest() || routeDevShortcut() || routeWithoutWaiting()) return
 
         // 3. Otherwise ask the backend for the current authorization status
         //    (with an offline bypass when previously approved).
@@ -150,6 +155,18 @@ class SplashActivity : AppCompatActivity() {
             true
         }
         else -> false
+    }
+
+    /**
+     * The phone continued as guest last time ([GuestMode]): Home, with Demo's
+     * limits put back, and nothing to ask the backend. Through the Terms gate.
+     */
+    private suspend fun routeGuest(): Boolean {
+        // The emulator bypass replaces the guest with its dev account.
+        if (DevAuth.active || !GuestMode.active(this)) return false
+        withContext(Dispatchers.IO) { GuestMode.start(applicationContext) }
+        navigateTo(HomeActivity::class.java)
+        return true
     }
 
     private fun routeDevShortcut(): Boolean {

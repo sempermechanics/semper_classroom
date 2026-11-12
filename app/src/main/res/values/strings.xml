@@ -126,6 +126,8 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <string name="auth_sign_in">Sign in</string>
     <string name="auth_create_account">Create account</string>
     <string name="auth_toggle_to_register">Need an account? Create one</string>
+    <string name="auth_continue_as_guest">Continue as guest</string>
+    <string name="account_guest">Guest (not signed in)</string>
     <string name="auth_toggle_to_login">Have an account? Sign in</string>
     <string name="auth_email_link">Email me a sign-in link (no password)</string>
     <string name="auth_link_sent_fmt">Sign-in link sent to %1$s. Open it on this phone to finish.</string>
@@ -489,10 +491,10 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
     <!-- Clickwrap gate (TermsActivity) and the separate improvement consent -->
     <string name="terms_title">Before you continue</string>
     <string name="terms_version_fmt">Terms version %1$s</string>
-    <string name="terms_summary">semper Classroom is a professional tool for digital image correlation. To use an account you need to agree to the Terms of Service and the Privacy Policy. In short: the app and engine stay our property and must not be reverse-engineered or shared; you are responsible for validating your own results; the service is provided as is; and Indian law applies, with disputes resolved in Chennai.</string>
+    <string name="terms_summary">semper Classroom is a professional tool for digital image correlation. In short: the app and engine stay our property and must not be reverse-engineered or shared; you are responsible for validating your own results; the service is provided as is; and Indian law applies, with disputes resolved in Chennai.</string>
     <string name="terms_read_full_terms">Read the Terms</string>
     <string name="terms_read_privacy">Privacy Policy</string>
-    <string name="terms_checkbox_agree">I have read and agree to the Terms of Service and the Privacy Policy</string>
+    <string name="terms_checkbox_agree">I have read and agree to the Terms of Service and Privacy Policy</string>
     <string name="terms_checkbox_improve">Use data to improve semper</string>
     <string name="terms_checkbox_improve_hint">Optional. Lets us use images, results and reports you back up to test and tune the engine. Untick to opt out; you can change this any time in Settings \u2192 Your data.</string>
     <string name="terms_action_agree">Agree and continue</string>

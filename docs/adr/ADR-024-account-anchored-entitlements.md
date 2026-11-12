@@ -4,6 +4,7 @@
 **Date:** 2026-10-18
 **Deciders:** product owner
 **Supersedes in part:** [ADR-007](ADR-007-licence-lifecycle.md) (its grant point "a key typed in the app"), TD-206's in-app key screen
+**Superseded in part (material_testing only):** decision 1's "every user signs in", by [ADR-036](ADR-036-continue-as-guest.md) (continue as guest, Demo's limits with no account)
 **Framework items:** 4.1, 4.4, 5.6, 6.4; Part B "First activation", "Resilience controls"; Part C "Provisioning", "EMM" ([READINESS_FRAMEWORK_2026-10.md](../ops/READINESS_FRAMEWORK_2026-10.md))
 
 Paths are from `app/src/main/java/com/sempermechanics/semper/` unless they start

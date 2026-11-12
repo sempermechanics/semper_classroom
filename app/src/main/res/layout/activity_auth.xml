@@ -312,5 +312,21 @@
             android:padding="16dp"
             android:clickable="true"
             android:focusable="true" />
+
+        <!-- No account: Demo's limits on this phone, cloud off (GuestMode, ADR-036). -->
+        <TextView
+            android:id="@+id/tvContinueAsGuest"
+            style="@style/Widget.Semper.TextLink"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingStart="16dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"
+            android:text="@string/auth_continue_as_guest"
+            android:textAlignment="center"
+            android:textSize="15sp" />
     </LinearLayout>
 </ScrollView>
