@@ -41,7 +41,7 @@
       "label": "Median v, last frame",
       "value": "−8.69 px",
       "source": "app",
-      "note": "Engine 0.6.1 built on a PC, the app's defaults (subset 41, step 5, 5-point strain, fixed reference); −12.16 to −4.94 px. Frame 1: −0.62 px (DICe −0.63)"
+      "note": "Engine 0.6.1 with the settings Try it proposes on a Galaxy S22+ (speckle 5 px: subset 17, step 5, 5-point strain); −12.16 to −4.93 px. Frame 1: −0.62 px (DICe −0.63). Another phone may propose another subset"
     },
     {
       "label": "Median eyy, last frame",
@@ -51,9 +51,9 @@
     },
     {
       "label": "Median eyy, last frame",
-      "value": "+6.74 × 10⁻³",
+      "value": "+6.68 × 10⁻³",
       "source": "app",
-      "note": "Engine 0.6.1, as above"
+      "note": "Engine 0.6.1, subset 17 as above; strain depends on the subset and window"
     },
     {
       "label": "Median u, last frame",

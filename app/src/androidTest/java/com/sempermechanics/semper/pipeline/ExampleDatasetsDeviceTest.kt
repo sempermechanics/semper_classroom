@@ -94,9 +94,9 @@ class ExampleDatasetsDeviceTest {
     @Test
     fun openHoleSeriesMatchesDicesSolution() {
         val set = set("dice_oht_series")
-        // The app's defaults. DICe's medians over its 230 points: frame 1 (DICe_solution_01.txt)
+        // The settings Try it proposes (speckle 5 px). DICe's medians over its 230 points: frame 1 (DICe_solution_01.txt)
         // u −0.096, v −0.627 px; frame 11 (DICe_solution_11.txt) u −0.748, v −8.636 px.
-        // Engine 0.6.1 on x86_64 gave −0.108 / −0.623 and −0.722 / −8.694 (README.md of the set).
+        // Engine 0.6.1 on x86_64 gave −0.108 / −0.620 and −0.721 / −8.689 (README.md of the set).
         listOf(
             Triple(set.deformed.first(), OHT_FIRST_U_PX, OHT_FIRST_V_PX),
             Triple(set.deformed.last(), OHT_LAST_U_PX, OHT_LAST_V_PX),
@@ -115,7 +115,7 @@ class ExampleDatasetsDeviceTest {
         const val STRAIN_POINTS = 5
         const val MIN_ACCEPTED = 0.5f
         const val STEP = 5
-        const val SUBSET = 41
+        const val SUBSET = 17
         const val OHT_FIRST_U_PX = -0.096f
         const val OHT_FIRST_V_PX = -0.627f
         const val OHT_LAST_U_PX = -0.748f
