@@ -34,6 +34,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
@@ -222,18 +223,7 @@
             android:orientation="horizontal"
             android:layout_marginTop="10dp">
 
-            <ImageButton
-                android:id="@+id/btnStepDepthInfo"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="0dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/info"
-                android:padding="15dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_info_min"
-                app:tint="@color/viewer_chrome_muted" />
-
+            <!-- Field first, its info button after it, as on the overlap row below. -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilStepDepth"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
@@ -256,6 +246,18 @@
                     android:textColor="@color/viewer_chrome_text"
                     tools:text="3" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <ImageButton
+                android:id="@+id/btnStepDepthInfo"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="0dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/info"
+                android:padding="15dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_info_min"
+                app:tint="@color/viewer_chrome_muted" />
         </LinearLayout>
 
         <!-- Advanced: the overlap the step gives, closed until opened.

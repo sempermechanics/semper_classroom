@@ -333,12 +333,15 @@
                     </com.google.android.material.card.MaterialCardView>
                 </FrameLayout>
 
-                <!-- Machine load card (tensile / compression only): inflated by
-                     the Activity when the test takes a load per frame. -->
+                <!-- Machine load card (tensile and bending): inflated by the Activity
+                     when the test takes a load per frame. The gap to the card above
+                     is set here: a ViewStub gives the inflated root its own layout
+                     params, so a margin on the card's root is dropped. -->
                 <ViewStub
                     android:id="@+id/stubLoadCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
                     android:inflatedId="@+id/loadCard"
                     android:layout="@layout/wizard_load_card" />
 

@@ -521,8 +521,9 @@ starts no faster than `None` ([perf/startup.md](../perf/startup.md), which has t
 The unit tests type lab tables in by hand. The whole chain — images, solve,
 load CSV, curve, E — is checked against two published tests with their own
 measurements in [REAL_WORLD_VALIDATION.md](REAL_WORLD_VALIDATION.md): a steel
-tensile test and a PMMA bend. They are manual runs (emulator, and a Pixel 6 on
-2026-09-26) plus `scripts/real_data_steel_tensile.py` and
+tensile test and a PMMA bend. They are manual runs (emulator, a Pixel 6 on
+2026-09-26, a Galaxy S22+ on 2026-10-27 and 2026-11-11) plus
+`scripts/real_data_steel_tensile.py` and
 `scripts/real_data_pmma_bending.py`, not part of CI; the app's resulting curves
 are pinned in `report/RealSteelModulusTest` and `report/RealPmmaBendingTest`.
 Re-run them after a change to the solve, the strain window, `ElasticModulus` or

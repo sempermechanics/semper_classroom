@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Results panel's Adjust icon: filled once a scale or bias is set (activated),
+     clear while the analysis is as measured. Pairs with results_adjust_icon. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/sky_primary" android:state_activated="true" />
+    <item android:color="@android:color/transparent" />
+</selector>

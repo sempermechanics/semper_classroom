@@ -94,7 +94,7 @@ class ResultViewerActivity :
     internal val frames = ViewerFrameLoader(this, this, images, captions)
     internal val scale = ViewerScaleController(this, this, images, captions, summary)
     internal val inspect = ViewerInspectController(this, this, chrome, images)
-    private val frameJump = FrameJumpController(this, chrome, frames, summary, inspect, captions)
+    internal val frameJump = FrameJumpController(this, chrome, frames, summary, inspect, captions)
     internal val share = ViewerShareController(this, this, images, summary) { shareExports }
     private val fieldPopup = FieldPopup(this, this, chrome, scale, summary, inspect)
 

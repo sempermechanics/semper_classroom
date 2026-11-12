@@ -1,8 +1,14 @@
 # ADR-012: Tensile strain is the virtual extensometer's ΔL / L₀
 
-**Status:** Accepted, built
+**Status:** Superseded by [ADR-035](ADR-035-tensile-strain-dic-mean.md) (2026-11-11); was accepted and built
 **Date:** 2026-09-28
 **Deciders:** app owner
+
+*Amended 2026-11-11:* superseded by [ADR-035](ADR-035-tensile-strain-dic-mean.md). The
+tensile strain is again the mean of Exx / Eyy over the accepted points, so a
+point on the graph is that frame's own DIC mean. The virtual extensometer below
+is removed from the app, with the lab report's Extension column.
+The rest of this record is history, left as written.
 
 ## Context
 

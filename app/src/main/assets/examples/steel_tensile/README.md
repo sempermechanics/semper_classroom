@@ -26,16 +26,26 @@ steps, in kN, one row per deformed frame.
 4. Area **12.5 mm²**. Load axis **x**.
 5. ROI: the whole specimen band. Accept the suggested subset (19 px). Step
    5 px, strain window 5 points (the default).
-6. Compute (about 25 s on an emulator). Then open ⓘ → Results and Share → Lab
-   report (PDF).
+6. Compute (about 25 s on an emulator). The viewer opens on **Results**: the
+   curve, E, the yield strength and the peak stress. Tap a point on the curve
+   to open its photo. Then Share → Lab report (PDF).
 
 ## Expected
 
 | | App (engine 0.6.1) | The dataset's own measurement |
 |---|---:|---:|
-| E, frames 1–26 (6.5–238.8 MPa) | **148.9 GPa**, R² 0.9952 | 157.5 GPa (two gauge points, 60 mm apart) |
-| Peak stress | 435.5 MPa, frame 38 (off the curve: no strain there) | 435.5 MPa, step 509 |
-| Frames on the curve | 35 of 40 | |
+| E, frames 1–26 (6.5–238.8 MPa) | **149.6 GPa**, R² 0.9955 | 157.5 GPa (two gauge points, 60 mm apart) |
+| Yield strength Rp0.2 | 305.7 MPa at 4.02 mε, between frames 29 and 30 | 307.8 MPa (gauge points, all 751 steps) |
+| Peak stress | 435.5 MPa, frame 38 | 435.5 MPa, step 509 |
+| Frames on the curve | 40 of 40 | |
+
+The strain on the curve is the mean Exx over the analysed region: the "mean"
+that ⓘ shows for Exx on each photo. So a point on the curve can be checked
+against its own photo.
+
+From frame 36 the stretching strip carries its far end out of the picture.
+Those photos stay on the curve, but their mean covers only the points still in
+view and reads 4–12% above the gauge points.
 
 Both E values sit well below the handbook value for this steel (about
 220 GPa), including the authors' own 3D measurement. That is typical of camera

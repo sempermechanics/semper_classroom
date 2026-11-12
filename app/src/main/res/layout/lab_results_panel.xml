@@ -20,7 +20,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:ellipsize="end"
             android:letterSpacing="0.08"
+            android:maxLines="1"
             android:text="@string/results_title"
             android:textAllCaps="true"
             android:textColor="@color/viewer_chrome_muted"
@@ -28,24 +30,30 @@
             android:textStyle="bold" />
 
         <!-- The session's correction (ViewerStressStrainHelper.draw): bending's
-             deflection scale and bias, or the tensile curve's. Label set in code.
-             In the header row: the summary page does not scroll. -->
+             deflection scale and bias, or the tensile curve's. An icon, so the title
+             and the range toggle fit beside it on a phone; its name is its
+             accessibility label and tooltip, set in code, and it shows filled once
+             a correction is in force. In the header row: the summary page does not scroll. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLabResultsAdjust"
-            style="@style/Widget.Semper.Button.Outlined.Compact"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/deflection_adjust"
-            android:visibility="gone" />
+            style="@style/Widget.Semper.Button.Outlined.IconToggle"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/deflection_adjust"
+            android:visibility="gone"
+            app:icon="@drawable/ic_tune" />
 
         <!-- Whole curve or the elastic region E is fitted to; shown only with a fit.
-             Pill clip set in code, as activity_vsg_lattice.xml's togglePlotModeClip. -->
+             Pill clip set in code, as activity_vsg_lattice.xml's togglePlotModeClip;
+             the compact mask draws it 32dp tall inside the buttons' 48dp. An inset
+             drawable also counts as padding, which would grow this frame to 64dp:
+             hence the explicit 0. -->
         <FrameLayout
             android:id="@+id/labResultsRangeClip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_pill_clip_mask"
+            android:background="@drawable/bg_pill_clip_mask_compact"
+            android:padding="0dp"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButtonToggleGroup

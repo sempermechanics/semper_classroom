@@ -71,10 +71,13 @@ class LabReportTest {
     fun `observation table rows carry load in kN, stress and a journal-style strain`() {
         val table = document().blocks.filterIsInstance<LabReport.Block.Table>().single()
 
-        assertEquals(listOf("S.No", "Frame", "Load (kN)", "Extension (px)", "Stress (MPa)", "Strain"), table.headers)
+        // No Extension column and no DIC gauge: the strain is the field's mean (ADR-035).
+        assertEquals(listOf("S.No", "Frame", "Load (kN)", "Stress (MPa)", "Strain"), table.headers)
+        assertEquals(table.headers.size, table.weights.size)
+        assertEquals(1f, table.weights.sum(), 1e-4f)
         assertEquals(15, table.rows.size)
-        assertEquals(listOf("1", "1", "8.900", "—", "72.06", "8.00×10⁻⁵"), table.rows[0])
-        assertEquals("9.60×10⁻⁴", table.rows[11][5])
+        assertEquals(listOf("1", "1", "8.900", "72.06", "8.00×10⁻⁵"), table.rows[0])
+        assertEquals("9.60×10⁻⁴", table.rows[11][4])
     }
 
     @Test
@@ -93,25 +96,12 @@ class LabReportTest {
     }
 
     @Test
-    fun `margin brackets mark elastic, plastic and break point rows`() {
-        val table = document().blocks.filterIsInstance<LabReport.Block.Table>().single()
-
-        assertEquals(
-            listOf(
-                LabReport.Bracket(0, 11, "Elastic"),
-                LabReport.Bracket(12, 12, "Plastic"),
-                LabReport.Bracket(13, 14, "Break point"),
-            ),
-            table.brackets,
-        )
-    }
-
-    @Test
     fun `row one is worked through as in the report`() {
         val calc = document().blocks.filterIsInstance<LabReport.Block.Calculation>().single()
 
         assertEquals("Stress = L / A = 8.900 × 10³ N / (123.51 × 10⁻⁶ m²) = 72.06 MPa", calc.lines[0])
-        assertTrue(calc.lines[1], calc.lines[1].endsWith("= 8.00×10⁻⁵"))
+        assertEquals("Strain = mean Exx over the analysed region, read by DIC for row 1 = 8.00×10⁻⁵", calc.lines[1])
+        assertEquals(2, calc.lines.size)
     }
 
     @Test
@@ -128,7 +118,7 @@ class LabReportTest {
     }
 
     @Test
-    fun `a peak off the curve is reported with its frame, and the table has no break point`() {
+    fun `a peak off the curve is reported with its frame`() {
         // The steel case of TD-148: the highest load came after the last point.
         val base = labCurve()
         val points = base.points.take(12)
@@ -140,10 +130,7 @@ class LabReportTest {
         val fields = doc.blocks.filterIsInstance<LabReport.Block.Field>().associate { it.label to it.value }
 
         assertEquals("323.87 MPa (frame 15, past the end of the curve)", fields[LabReportText.Tensile.RESULT_PEAK])
-        assertEquals(
-            listOf(LabReport.Bracket(0, 11, "Elastic")),
-            doc.blocks.filterIsInstance<LabReport.Block.Table>().single().brackets,
-        )
+        assertEquals(12, doc.blocks.filterIsInstance<LabReport.Block.Table>().single().rows.size)
     }
 
     @Test
@@ -173,13 +160,12 @@ class LabReportTest {
     }
 
     @Test
-    fun `no fit still reports, without the elastic graph or bracket`() {
+    fun `no fit still reports, without the elastic graph`() {
         val curve = labCurve()
         val doc = LabReport.of(curve, modulus = null)!!
-        val table = doc.blocks.filterIsInstance<LabReport.Block.Table>().single()
 
         assertEquals(listOf(LabReport.GRAPH_FULL), doc.graphs.map { it.id })
-        assertEquals(listOf("Plastic", "Break point"), table.brackets.map { it.label })
+        assertEquals(curve.points.size, doc.blocks.filterIsInstance<LabReport.Block.Table>().single().rows.size)
         assertTrue(doc.blocks.any { it is LabReport.Block.Field && it.value == LabReportText.Tensile.NO_FIT })
     }
 

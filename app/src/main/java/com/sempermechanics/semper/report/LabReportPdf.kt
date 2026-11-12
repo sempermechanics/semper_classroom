@@ -19,7 +19,7 @@ import java.io.OutputStream
 /**
  * Draws a [LabReport.Document] as a journal sheet: a ruled page border, the
  * experiment and title centred at the top, underlined section headings, a
- * gridded observation table with its margin brackets, the worked calculation,
+ * gridded observation table, the worked calculation,
  * the graphs and ruled lines for the conclusion. A4 at 300 dpi, the same page
  * as [PdfLayoutEngine]; its own paints, since a lab journal is not the navy
  * metrology report.
@@ -50,9 +50,6 @@ class LabReportPdf(
     private val width = right - left
     private val bottom = pageHeight - margin - 60f
     private val rowH = 78f
-
-    /** The table leaves the right fifth of the line for its margin brackets. */
-    private val tableWidth = width * 0.8f
 
     private val ink = "#1F2A44".toColorInt()
     private val rule = "#9FB7C9".toColorInt()
@@ -241,19 +238,16 @@ class LabReportPdf(
 
     /** A gridded table, split across pages with its header repeated. */
     private fun table(block: LabReport.Block.Table) {
-        val cols = block.weights.map { it * tableWidth }
+        val cols = block.weights.map { it * width }
         var row = 0
         do {
             if (row > 0) newPage() else ensure(rowH * 3)
             y += 20f
             tableRow(block.headers, cols, cellHeadPaint)
-            val pageTop = y
-            val fromRow = row
             while (row < block.rows.size && y + rowH <= bottom) {
                 tableRow(block.rows[row], cols, cellPaint)
                 row++
             }
-            brackets(block.brackets, fromRow until row, pageTop)
             y += 30f
         } while (row < block.rows.size)
     }
@@ -268,24 +262,6 @@ class LabReportPdf(
             x += w
         }
         y += rowH
-    }
-
-    /** The "}"-style margin labels of the handwritten table, clipped to the [rows] on this page. */
-    private fun brackets(brackets: List<LabReport.Bracket>, rows: IntRange, top: Float) {
-        val c = canvas ?: return
-        brackets.forEach { b ->
-            val first = maxOf(b.first, rows.first)
-            val last = minOf(b.last, rows.last)
-            if (first > last) return@forEach
-            val y0 = top + (first - rows.first) * rowH + 10f
-            val y1 = top + (last - rows.first + 1) * rowH - 10f
-            val bx = left + tableWidth + 30f
-            c.drawLine(bx, y0, bx + 20f, y0, gridPaint)
-            c.drawLine(bx + 20f, y0, bx + 20f, y1, gridPaint)
-            c.drawLine(bx, y1, bx + 20f, y1, gridPaint)
-            c.drawLine(bx + 20f, (y0 + y1) / 2f, bx + 40f, (y0 + y1) / 2f, gridPaint)
-            c.drawText(b.label, bx + 55f, (y0 + y1) / 2f + 13f, bodyPaint)
-        }
     }
 
     private fun graph(block: LabReport.Block.Graph) {

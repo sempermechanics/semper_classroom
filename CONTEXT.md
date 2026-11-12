@@ -131,12 +131,20 @@ no thresholds ([TESTING.md](docs/app/TESTING.md)); the phone-run gates (`benchma
 [PERF_BASELINE_bd44af0.md](docs/engine/PERF_BASELINE_bd44af0.md)) is a manual reference.
 Keep `-O3 -ffast-math` / OpenMP / LTO on release.
 
-## Current state (2026-10-30)
+## Current state (2026-11-11)
 
 - **Semper's UI plus two test choices ([ADR-022](docs/adr/ADR-022-semper-ui-plus-lab-tests.md)).**
   **Which test?** offers 2D DIC (Semper's analysis: no load card, no test type recorded),
   Tensile and Bending; a fork change to a shared screen runs only for a lab test.
   semperdic-app accepted making this a product flavour of its repo on 2026-10-22 ([ADR-025](docs/adr/ADR-025-test-type-extension-points.md), mirrored).
+- **Seminar demo polish** (`claude/demo-ui-polish`, 2026-11-11; not merged): spacing and cut
+  titles seen on the S22 fixed; Results' Adjust is a sliders icon, filled while a correction
+  is set, and the Whole test / Elastic region toggle is smaller; about 40 on-screen texts and
+  ⓘ explanations shortened; TIFF frames show their picture in the frame strip.
+  **Tensile strain is the DIC mean** ([ADR-035](docs/adr/ADR-035-tensile-strain-dic-mean.md),
+  supersedes ADR-012): a point on the curve is that frame's mean Exx / Eyy; steel reads 40 of
+  40 photos on the curve, E 149.6 GPa. A tap on a Results point opens its frame; ⓘ shows the
+  graph and one caption line on a frame, and no Results block when opened from Results.
 - **Synced with `semperdic-app`** (forked at `bfe00e5`; `git log --merges
   --grep=semperdic-app`; rules in its `docs/ops/FORK_SYNC.md`). Last: `5b9a9e9a`, 2026-10-31,
   on `sync/semperdic-5b9a9e9`: its #516–#519, ADR-033's deploy records and `pyasn1` 0.6.5 in
@@ -174,7 +182,7 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   wizard state is `WizardInputs.lab`, changed through `edit {}`, and a run's result reads
   the lab test from its saved row (`ViewerArgs.of`). Metadata schema `/7` here (ours past
   `/3` are not the parent's numbers). Lab inputs ride its seams: `RunSpec.mechanical` (ADR-004), `ViewerArgs` (ADR-003),
-  `WizardDraft` (ADR-005). ADR numbers are shared; TD numbers are this repo's own since 2026-10-27 (ADR-032: restarted at TD-1, old numbers in `docs/ops/td-renumber-2026-10-27.csv`, upstream diffs through `scripts/td_numbers.py translate`). TD-56 is the rename, TD-57 and TD-58 the examples', TD-59 and TD-60 the Play listing's; next free TD-279.
+  `WizardDraft` (ADR-005). ADR numbers are shared; TD numbers are this repo's own since 2026-10-27 (ADR-032: restarted at TD-1, old numbers in `docs/ops/td-renumber-2026-10-27.csv`, upstream diffs through `scripts/td_numbers.py translate`). TD-56 is the rename, TD-57 and TD-58 the examples', TD-59 and TD-60 the Play listing's; next free TD-280.
 - **#140 merged 2026-10-20** (`a66606d9`, the 2026-10-19 review; not released): load logs
   in kgf/tf, decimal commas and the delimiter read after a long preamble, logged time units;
   photo times matched within 1 s when any lacks EXIF sub-seconds; E refitted over 10–40 % of
@@ -190,10 +198,12 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   consoles, indexes and dashboards deploy only from semperdic-app; never deploy Hosting from
   here. Owed: TD-9–TD-12, TD-14, TD-21, TD-23–TD-26, TD-51; for a release, this
   repo's `SEMPER_ENTITLEMENT_PUBKEYS` variable and `SEMPER_API_CERT_PINS` secret.
-- **Lab outputs.** Tensile: stress–strain (ΔL / L₀, ADR-012), E, Rp0.2, **Adjust curve**,
-  a lab report. Bending: beam-edge taps, δ, E = WL³/(48δI), loads in kg, a deflection
+- **Lab outputs.** Tensile: stress–strain (strain is the mean Exx / Eyy over the accepted
+  points, ADR-035; no virtual extensometer and no Extension column), E, Rp0.2, **Adjust
+  curve**, a lab report. Bending: beam-edge taps, δ, E = WL³/(48δI), loads in kg, a deflection
   correction (ADR-013), a lab report. Checked against published steel and PMMA data
-  ([REAL_WORLD_VALIDATION.md](docs/app/REAL_WORLD_VALIDATION.md)); re-run owed (TD-53).
+  ([REAL_WORLD_VALIDATION.md](docs/app/REAL_WORLD_VALIDATION.md)); steel re-run under the mean
+  on 2026-11-11, PMMA's strain comparison owed (TD-53); two tensile screenshots stale (TD-279).
 - **Releases.** Semper Classroom, `com.sempermechanics.semperclassroom` (ADR-009, ADR-030),
   beside Semper, on its backend; last `v1.4-beta.2` as Material Testing
   (`com.sempermechanics.materialtesting`, `d08aae07`, 2026-10-17, versionCode 1006), not yet

@@ -5,11 +5,13 @@ import android.content.res.Configuration
 import android.os.Trace
 import android.view.View
 import android.widget.TextView
+import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.sempermechanics.semper.R
+import com.sempermechanics.semper.data.mechanical.TypedLoads
 import com.sempermechanics.semper.data.session.SessionPaths
 import com.sempermechanics.semper.databinding.LabResultsPanelBinding
 import com.sempermechanics.semper.databinding.SheetSettingsUsedBinding
@@ -45,7 +47,8 @@ class ViewerStressStrainHelper(
      * Where a curve is drawn: the Details sheet's section or the summary page.
      * [range] is the Whole test / Elastic region toggle, inside its pill clip;
      * [adjust] opens the session's correction: bending's deflection scale and
-     * bias, or the tensile curve's.
+     * bias, or the tensile curve's. [onFrameOpened] runs once a point tapped on
+     * the curve has opened its frame: the sheet closes over it.
      */
     class Views(
         val plot: SweepPlotView,
@@ -53,15 +56,17 @@ class ViewerStressStrainHelper(
         val result: TextView,
         val range: MaterialButtonToggleGroup,
         val adjust: MaterialButton,
+        val onFrameOpened: () -> Unit = {},
     ) {
         companion object {
             /** The one results panel both surfaces inflate (`lab_results_panel`). */
-            fun of(panel: LabResultsPanelBinding): Views = Views(
+            fun of(panel: LabResultsPanelBinding, onFrameOpened: () -> Unit = {}): Views = Views(
                 panel.plotLabResults,
                 panel.tvLabResultsCaption,
                 panel.tvLabResultsText,
                 panel.toggleLabResultsRange,
                 panel.btnLabResultsAdjust,
+                onFrameOpened,
             )
         }
     }
@@ -86,13 +91,17 @@ class ViewerStressStrainHelper(
     /**
      * Fills the sheet's stress–strain section, building the curve first if it
      * is not cached. The sheet may be dismissed before the build finishes; the
-     * views are then simply updated off screen.
+     * views are then simply updated off screen. Opened from the Results page
+     * the section is left out: the same panel is already on screen behind the
+     * sheet. On a frame it stays, with that frame's point marked and its strain
+     * in the caption. [onFrameOpened] is [Views.onFrameOpened].
      */
-    fun populate(sheet: SheetSettingsUsedBinding) {
-        sheet.stressStrainSection.isVisible = showsResults
-        if (!showsResults) return
+    fun populate(sheet: SheetSettingsUsedBinding, onFrameOpened: () -> Unit = {}) {
+        val shown = showsResults && !host.resultsOnScreen
+        sheet.stressStrainSection.isVisible = shown
+        if (!shown) return
         // A fresh sheet each time, so its stub is inflated once.
-        fill(Views.of(LabResultsPanelBinding.bind(sheet.stressStrainStub.inflate())))
+        fill(Views.of(LabResultsPanelBinding.bind(sheet.stressStrainStub.inflate()), onFrameOpened))
     }
 
     /** Draws the curve into [views], building it first if it is not cached. */
@@ -161,13 +170,8 @@ class ViewerStressStrainHelper(
         drawn[views.plot] = views
         val plot = views.plot
         val result = views.result
-        // One button for both corrections: bending's deflection, or the tensile curve.
         val bending = curve.model.plotsLoadDeflection
-        views.adjust.isVisible = (bending || curve.model is StressStrain.Model.Axial) && !curve.isEmpty
-        views.adjust.setText(if (bending) R.string.deflection_adjust else R.string.curve_adjust)
-        views.adjust.setOnClickListener {
-            if (bending) ViewerDeflectionCorrection.show(host) else ViewerCurveCorrection.show(host)
-        }
+        bindAdjust(host, views.adjust, curve)
         if (curve.isEmpty || !curve.model.measuresStrain) {
             drawWithoutPlot(views, curve)
             return
@@ -175,6 +179,7 @@ class ViewerStressStrainHelper(
         plot.isVisible = true
         plot.compactAxes = true
         plot.scrubShowsPoint = true
+        plot.onPointTap = { x, y -> frameOfPlotPoint(curve, x, y)?.let { openFrame(host, it, views) } }
         // The summary is the whole test, so no frame is highlighted there.
         val onScreen = host.plannedFrameIndex(host.viewModel.currentFrameIndex)
         val current = if (host.isShowingSummary) null else curve.at(onScreen)
@@ -195,7 +200,9 @@ class ViewerStressStrainHelper(
             marks = plotMarks(host, curve, results),
         )
         views.caption.text = caption(curve, current, modulus?.takeIf { zoomed != null })
-        result.isVisible = true
+        // E, the yield point and the peak are the whole test's: on a frame the
+        // caption's one line (its load, stress and strain) is all the text.
+        result.isVisible = host.isShowingSummary
         result.text = resultsText(host, curve, results)
     }
 
@@ -208,7 +215,7 @@ class ViewerStressStrainHelper(
         views.plot.isVisible = false
         (views.range.parent as View).isVisible = false
         views.caption.setText(if (curve.isEmpty) R.string.stress_strain_empty else R.string.stress_strain_no_strain)
-        views.result.isVisible = !curve.isEmpty
+        views.result.isVisible = !curve.isEmpty && host.isShowingSummary
         if (!curve.isEmpty) views.result.text = resultsText(host, curve, null)
     }
 
@@ -288,6 +295,24 @@ class ViewerStressStrainHelper(
             return context.createConfigurationContext(light)
         }
 
+        /**
+         * The frame (0-based, as [StressStrain.Point.frame]) drawn at ([x], [y])
+         * on [curve]'s plot, whole or zoomed to the elastic region: every series
+         * draws a point at the curve's own strain and stress, or its deflection
+         * and its load in kg, so the two find it again. Null for the unloaded
+         * reference that leads the curve, which is not a frame.
+         */
+        fun frameOfPlotPoint(curve: StressStrain.Curve, x: Float, y: Float): Int? {
+            val bending = curve.model.plotsLoadDeflection
+            return curve.points.firstOrNull { p ->
+                if (bending) {
+                    p.deflectionMm == x && TypedLoads.kg(p.loadN) == y
+                } else {
+                    p.strainMilli == x && p.stressMPa == y
+                }
+            }?.frame
+        }
+
         /** The tensile results ([TensileResults]), or null for a model that has none. */
         fun resultsOf(curve: StressStrain.Curve): TensileResults? = TensileResults.of(curve)
 
@@ -350,5 +375,37 @@ class ViewerStressStrainHelper(
             StressStrain.Dimension.WIDTH -> R.string.settings_used_width
             StressStrain.Dimension.THICKNESS -> R.string.settings_used_thickness
         }
+    }
+}
+
+/**
+ * Opens the photo behind a tapped point: [frame] is the curve's planned index,
+ * which a run that skipped a frame does not show at that position.
+ */
+private fun openFrame(host: ResultViewerActivity, frame: Int, views: ViewerStressStrainHelper.Views) {
+    val planned = host.plannedFrames
+    val position = if (planned.isEmpty()) frame else planned.indexOf(frame)
+    if (host.frameJump.jumpTo(position)) views.onFrameOpened()
+}
+
+/**
+ * One button for both corrections: bending's deflection, or the tensile curve.
+ * It is an icon, so its name is read out and shown on a long press, and it is
+ * filled while a scale or bias is in force, so a corrected curve shows as one.
+ */
+private fun bindAdjust(host: ResultViewerActivity, adjust: View, curve: StressStrain.Curve) {
+    val bending = curve.model.plotsLoadDeflection
+    val axial = curve.model as? StressStrain.Model.Axial
+    adjust.isVisible = (bending || axial != null) && !curve.isEmpty
+    val label = host.getString(if (bending) R.string.deflection_adjust else R.string.curve_adjust)
+    adjust.contentDescription = label
+    TooltipCompat.setTooltipText(adjust, label)
+    adjust.isActivated = if (bending) {
+        !BeamDeflection.Correction.of(curve.model).isNone
+    } else {
+        axial?.correction?.isNone == false
+    }
+    adjust.setOnClickListener {
+        if (bending) ViewerDeflectionCorrection.show(host) else ViewerCurveCorrection.show(host)
     }
 }

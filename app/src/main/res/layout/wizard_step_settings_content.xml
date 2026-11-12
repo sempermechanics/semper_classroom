@@ -751,18 +751,6 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <ImageButton
-                    android:id="@+id/btnSamplesInfo"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginEnd="0dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/info"
-                    android:padding="15dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_info_min"
-                    app:tint="@color/viewer_chrome_muted" />
-
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSubsetSamples"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
@@ -807,6 +795,19 @@
                         android:textColor="@color/viewer_chrome_text"
                         tools:text="3" />
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- At the end of the row, as on the rows above: leading, it pushed
+                     the two fields in from the card's left edge. -->
+                <ImageButton
+                    android:id="@+id/btnSamplesInfo"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/info"
+                    android:padding="15dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_info_min"
+                    app:tint="@color/viewer_chrome_muted" />
             </LinearLayout>
 
             <!-- Matches the result lattice's height (compact=true set in

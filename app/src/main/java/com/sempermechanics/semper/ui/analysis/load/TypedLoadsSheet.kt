@@ -29,6 +29,7 @@ import com.sempermechanics.semper.R
 import com.sempermechanics.semper.data.mechanical.TypedLoads
 import com.sempermechanics.semper.data.mechanical.TypedLoads.Entry
 import com.sempermechanics.semper.imaging.video.VideoFrameExtractor
+import com.sempermechanics.semper.ui.analysis.frames.EngineThumb
 import com.sempermechanics.semper.ui.analysis.wizard.AnalysisViewModel
 import com.sempermechanics.semper.ui.analysis.wizard.defTimesAfterRefMs
 import com.sempermechanics.semper.ui.analysis.wizard.editLab
@@ -392,7 +393,8 @@ internal object TypedLoadsSheet {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         if (File(path).isFile) BitmapFactory.decodeFile(path, bounds)
         val longEdge = maxOf(bounds.outWidth, bounds.outHeight)
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        // No bounds: not a format the platform reads (a TIFF). The engine draws it.
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return EngineThumb.decode(path, THUMB_MAX_EDGE_PX)
         var sample = 1
         while (longEdge / sample > THUMB_MAX_EDGE_PX) sample *= 2
         return BitmapFactory.decodeFile(path, BitmapFactory.Options().apply { inSampleSize = sample })

@@ -113,22 +113,31 @@
                 android:src="@drawable/ic_nav_prev"
                 app:tint="@color/viewer_chrome_text" />
 
-            <TextView
-                android:id="@+id/tvFinding"
+            <!-- The title on the same glass pill as the buttons beside it: bare text
+                 on the map could not be read over dark or saturated colours. The
+                 frame takes the row's spare width, so the pill hugs the text and a
+                 long file name still ends in an ellipsis before the buttons. -->
+            <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="4dp"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:shadowColor="@color/viewer_text_halo"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="3"
-                android:text="@string/results_title"
-                android:textColor="@color/viewer_chrome_text"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/tvFinding"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|start"
+                    android:background="@drawable/bg_pill_glass"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:text="@string/results_title"
+                    android:textColor="@color/viewer_chrome_text"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
 
             <ImageButton
                 android:id="@+id/btnViewerSettingsInfo"

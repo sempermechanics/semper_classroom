@@ -44,7 +44,7 @@ for it to bend into.
    thickness moves E by about 1%.
 6. ROI: the speckled beam only. Keep it off the pins, the ruler and the
    nose. Accept the suggested subset. Compute.
-7. ⓘ → Results; Share → Lab report (PDF).
+7. The viewer opens on **Results**; then Share → Lab report (PDF).
 
 ## Expected
 

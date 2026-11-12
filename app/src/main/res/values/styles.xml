@@ -58,6 +58,25 @@
         <item name="android:textSize">12sp</item>
     </style>
 
+    <!-- Outlined, icon only: a 32dp round button inside a 48dp touch target (the
+         insets). The Results panel's Adjust control; its fill and ink follow
+         state_activated, which marks a correction in force. -->
+    <style name="Widget.Semper.Button.Outlined.IconToggle">
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:insetTop">8dp</item>
+        <item name="android:insetBottom">8dp</item>
+        <item name="android:insetLeft">8dp</item>
+        <item name="android:insetRight">8dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconSize">18dp</item>
+        <item name="iconTint">@color/results_adjust_icon</item>
+        <item name="backgroundTint">@color/results_adjust_bg</item>
+        <item name="cornerRadius">16dp</item>
+    </style>
+
     <!-- Destructive (sign out, cancel) -->
     <style name="Widget.Semper.Button.Text.Danger" parent="Widget.MaterialComponents.Button.TextButton">
         <item name="android:textColor">@color/semantic_danger</item>
@@ -250,9 +269,15 @@
     </style>
 
     <!-- The Results Whole test / Elastic region toggle: Grouped, with a light fill on
-         the unchecked half so it reads on the white Details sheet (results_range_bg). -->
+         the unchecked half so it reads on the white Details sheet (results_range_bg).
+         Smaller than the field pills: caption text and tighter sides, and its
+         wrapper clips it to a 32dp pill (bg_pill_clip_mask_compact) while each half
+         keeps the 48dp touch height, so title, Adjust and toggle share one row. -->
     <style name="Widget.Semper.SegmentedButton.ViewerImmersive.Grouped.ResultsRange">
         <item name="backgroundTint">@color/results_range_bg</item>
+        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
     </style>
 
     <!-- Peek sheet home action: soft glass pill on dark. -->

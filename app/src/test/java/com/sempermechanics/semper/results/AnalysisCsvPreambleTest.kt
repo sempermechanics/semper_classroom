@@ -215,8 +215,7 @@ class AnalysisCsvPreambleTest {
     private fun tensileFile(sweep: Boolean, testType: String, planned: List<Int> = listOf(0, 1, 2, 3)): String {
         val out = File.createTempFile("semper_csv_results", ".csv")
         out.deleteOnExit()
-        // E = 200 GPa: stress 100 MPa per 0.5 mε, stretched along x so the
-        // extensometer's ΔL / L₀ reads it too.
+        // E = 200 GPa: stress 100 MPa per 0.5 mε of mean Exx.
         val frames = planned.map { p ->
             val k = p + 1
             val data = stretchedGrid(exx = 0.0005f * k)

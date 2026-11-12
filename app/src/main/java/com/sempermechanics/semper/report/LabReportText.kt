@@ -59,23 +59,21 @@ object LabReportText {
         const val DIAMETER = "Diameter of specimen (mm)"
         const val AREA = "Cross-sectional area A (mm²)"
         const val STRAIN_BY = "Strain measured by"
-        fun strainBy(strainName: String) =
-            "2D DIC virtual extensometer, $strainName between the ends of the analysed region"
-        fun dicGauge(axis: String) = "DIC gauge length along $axis (px)"
-        fun dicGaugeValue(lengthPx: String) = "$lengthPx — between the ends of the analysed region"
+        fun strainBy(strainName: String) = "2D DIC, $strainName over the analysed region"
         const val FINAL_DIAMETER = "Final diameter (mm)"
         const val FINAL_GAUGE_LENGTH = "Final gauge length (mm)"
 
-        val TABLE_HEADERS = listOf("S.No", "Frame", "Load (kN)", "Extension (px)", "Stress (MPa)", "Strain")
-        val TABLE_WEIGHTS = listOf(0.08f, 0.10f, 0.18f, 0.20f, 0.20f, 0.24f)
-        const val ELASTIC = "Elastic"
-        const val PLASTIC = "Plastic"
-        const val BREAK = "Break point"
+        // No Extension column: the strain is read off the DIC field, not worked
+        // from a change in length (ADR-035).
+        val TABLE_HEADERS = listOf("S.No", "Frame", "Load (kN)", "Stress (MPa)", "Strain")
+        val TABLE_WEIGHTS = listOf(0.10f, 0.14f, 0.24f, 0.24f, 0.28f)
 
         fun stressLine(loadKn: String, areaMm2: String, stressMPa: String) =
             "Stress = L / A = $loadKn × 10³ N / ($areaMm2 × 10⁻⁶ m²) = $stressMPa MPa"
 
-        fun strainLine(strain: String) = "Strain = ΔL / L, read by DIC for row 1 = $strain"
+        /** Row 1's strain: the DIC field's mean along the load axis ([strainName], ADR-035). */
+        fun strainLine(strainName: String, strain: String) =
+            "Strain = $strainName over the analysed region, read by DIC for row 1 = $strain"
         const val CORRECTION = "Curve matched to the machine by"
         fun correction(c: CurveCorrection): String {
             fun n(value: Float) = LabReportFormat.num(value, 4)
@@ -84,9 +82,6 @@ object LabReportText {
         }
         fun correctedLine(stressMPa: String, strain: String) =
             "With the match above, row 1 reads stress = $stressMPa MPa and strain = $strain"
-
-        fun extensionLine(extensionPx: String, gaugePx: String) =
-            "Extension ΔL for row 1 = $extensionPx px over a DIC gauge of $gaugePx px"
 
         const val GRAPH_ELASTIC = "Stress vs strain — elastic region"
         const val GRAPH_FULL = "Stress–strain curve"

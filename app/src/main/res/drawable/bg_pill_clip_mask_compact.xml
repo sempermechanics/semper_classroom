@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- bg_pill_clip_mask drawn 8dp in from the top and bottom: the group it clips
+     keeps its buttons' 48dp touch height while they show as a 32dp pill (the
+     Results panel's Whole test / Elastic region toggle). -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/bg_pill_clip_mask"
+    android:insetTop="8dp"
+    android:insetBottom="8dp" />

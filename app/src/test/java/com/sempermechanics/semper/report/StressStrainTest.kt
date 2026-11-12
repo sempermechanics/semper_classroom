@@ -17,8 +17,7 @@ class StressStrainTest {
 
     /**
      * A field of [n] × [n] accepted points 10 px apart, stretched evenly: Exx /
-     * Eyy (in strain, not mε) and the displacements that give them, so the mean
-     * strain and the extensometer's ΔL / L₀ agree.
+     * Eyy (in strain, not mε) and the displacements that give them.
      */
     private fun field(exx: Float, eyy: Float, n: Int = 4, accepted: Boolean = true): FloatArray {
         val data = FloatArray(n * n * DicResult.STRIDE)
@@ -40,8 +39,8 @@ class StressStrainTest {
         return data
     }
 
-    private fun axialStrain(axisX: Boolean, gaugeOn: FloatArray, data: FloatArray): Float? =
-        StressStrain.Model.Axial(1f, axisX).strainMilli(data, Extensometer.gauge(gaugeOn, axisX))
+    private fun axialStrain(axisX: Boolean, data: FloatArray): Float? =
+        StressStrain.Model.Axial(1f, axisX).strainMilli(data)
 
     @Test
     fun `axial stress is load over area in megapascals and NaN without an area`() {
@@ -53,34 +52,35 @@ class StressStrainTest {
     }
 
     @Test
-    fun `axial strain is the extensometer's delta L over L0 along the load axis in millistrain`() {
-        val unloaded = field(0f, 0f)
+    fun `axial strain is the field's mean along the load axis in millistrain`() {
         val data = field(exx = 0.002f, eyy = -0.0006f)
 
-        assertEquals(2f, axialStrain(axisX = true, unloaded, data)!!, 1e-3f)
-        assertEquals(-0.6f, axialStrain(axisX = false, unloaded, data)!!, 1e-3f)
-        assertNull(axialStrain(axisX = true, unloaded, field(0.1f, 0.1f, accepted = false)))
-        assertNull(StressStrain.Model.Axial(1f, axisX = true).strainMilli(data, gauge = null))
+        assertEquals(2f, axialStrain(axisX = true, data)!!, 1e-3f)
+        assertEquals(-0.6f, axialStrain(axisX = false, data)!!, 1e-3f)
+        assertNull(axialStrain(axisX = true, field(0.1f, 0.1f, accepted = false)))
+        // The number a frame's field statistics show as its mean (ADR-035).
+        assertEquals(DicResult.fieldStats(data, DicResult.IDX_EXX)!![2], axialStrain(axisX = true, data)!!, 0f)
     }
 
     @Test
-    fun `axial strain follows the end bands, not the mean of the field`() {
+    fun `axial strain is the mean of the field, not the change in length between its ends`() {
         // Necking: the middle strains ten times the ends, so the mean over the
-        // region and the gauge's ΔL / L₀ part.
-        val unloaded = field(0f, 0f, n = 11)
-        val necked = unloaded.copyOf()
+        // region and ΔL / L₀ between its ends part. The curve plots the mean.
+        val necked = field(0f, 0f, n = 11)
         var i = 0
         while (i < necked.size) {
             val x = necked[i + DicResult.IDX_X]
-            // u(x): 1 mε up to x = 40, 10 mε from 40 to 60, 1 mε beyond.
+            // Exx: 1 mε up to x = 40, 10 mε from 40 to 60, 1 mε beyond; u(x) is its integral.
+            necked[i + DicResult.IDX_EXX] = if (x in 41f..60f) 0.01f else 0.001f
             necked[i + DicResult.IDX_U] = 0.001f * minOf(x, 40f) +
                 0.01f * (x.coerceIn(40f, 60f) - 40f) + 0.001f * (maxOf(x, 60f) - 60f)
             i += DicResult.STRIDE
         }
 
-        // Bands 0–10 and 90–100 px: mean positions 5 and 95 → L₀ = 90 px.
-        // ΔL = u(95) − u(5) = (0.04 + 0.2 + 0.035) − 0.005 = 0.27 px → 3 mε.
-        assertEquals(3f, axialStrain(axisX = true, unloaded, necked)!!, 1e-3f)
+        // Columns at x = 50 and 60 carry 10 mε, the other nine 1 mε: (2 × 10 + 9 × 1) / 11.
+        // Between x = 5 and x = 95, ΔL / L₀ would be 0.27 px over 90 px = 3 mε
+        // (ADR-012's reading); the mean is 2.64 mε.
+        assertEquals(29f / 11f, axialStrain(axisX = true, necked)!!, 1e-3f)
     }
 
     @Test
@@ -229,7 +229,7 @@ class StressStrainTest {
         // mean, which the curve plotted before, is 0.
         val data = bentField(k = 2e-5f, vPx = 0f)
 
-        assertEquals(1.0f, bending(BeamEdgeTaps(50f, 0f, 50f, 100f)).strainMilli(data, gauge = null)!!, 0.05f)
+        assertEquals(1.0f, bending(BeamEdgeTaps(50f, 0f, 50f, 100f)).strainMilli(data)!!, 0.05f)
         assertEquals(0f, DicResult.fieldStats(data, DicResult.IDX_EXX)!![2], 1e-6f)
     }
 
@@ -282,7 +282,7 @@ class StressStrainTest {
         listOf(0.0, 10.0, -10.0, 30.0).forEach { degrees ->
             val (data, taps) = tiltedBend(degrees)
 
-            val strain = bending(taps).strainMilli(data, gauge = null)!!
+            val strain = bending(taps).strainMilli(data)!!
 
             assertEquals("tilt $degrees°", 1.0f, strain, 0.02f)
         }
@@ -309,7 +309,7 @@ class StressStrainTest {
 
             assertEquals("tilt $degrees°", square, taps)
             assertEquals("outer-fibre strain along the beam", model.strainName)
-            assertEquals("tilt $degrees°", 1.0f, model.strainMilli(data, gauge = null)!!, 0.002f)
+            assertEquals("tilt $degrees°", 1.0f, model.strainMilli(data)!!, 0.002f)
             assertEquals("tilt $degrees°", 0.1f, model.probe!!.mmPerPx, 1e-6f)
         }
     }
@@ -320,7 +320,7 @@ class StressStrainTest {
         // Exx over 99.939 px, which numpy reads as 0.9972 mε (−0.28 %) and
         // 10 / 99.939 = 0.100061 mm/px (+0.06 %). At 0° the pair is exact.
         val (level, levelTaps) = tiltedBend(0.0)
-        assertEquals(1.0f, bending(editorTaps(levelTaps)).strainMilli(level, gauge = null)!!, 0.002f)
+        assertEquals(1.0f, bending(editorTaps(levelTaps)).strainMilli(level)!!, 0.002f)
 
         val (data, square) = tiltedBend(2.0)
         val taps = editorTaps(square)
@@ -329,7 +329,7 @@ class StressStrainTest {
         assertEquals(taps.topX, taps.bottomX, 0f)
         assertEquals(square.bottomY, taps.bottomY, 0f)
         assertEquals("outer-fibre Exx", model.strainName)
-        assertEquals(0.9972f, model.strainMilli(data, gauge = null)!!, 0.001f)
+        assertEquals(0.9972f, model.strainMilli(data)!!, 0.001f)
         assertEquals(0.100061f, model.probe!!.mmPerPx, 1e-6f)
     }
 
@@ -337,7 +337,7 @@ class StressStrainTest {
     fun `a beam upright in the photo reads Eyy from its side-by-side taps`() {
         val (data, taps) = tiltedBend(90.0)
 
-        assertEquals(1.0f, bending(taps).strainMilli(data, gauge = null)!!, 0.02f)
+        assertEquals(1.0f, bending(taps).strainMilli(data)!!, 0.02f)
         assertEquals("outer-fibre Eyy", bending(taps).strainName)
         assertEquals("outer-fibre Exx", bending(BeamEdgeTaps(50f, 0f, 50f, 100f)).strainName)
         assertEquals("outer-fibre strain along the beam", bending(tiltedBend(10.0).second).strainName)
@@ -364,7 +364,7 @@ class StressStrainTest {
         val curve = StressStrain.build(listOf(200f), model, { field(exx = 0.002f, eyy = -0.0006f) })
 
         assertFalse(model.measuresStrain)
-        assertTrue(model.strainMilli(field(exx = 0.002f, eyy = -0.0006f), gauge = null)!!.isNaN())
+        assertTrue(model.strainMilli(field(exx = 0.002f, eyy = -0.0006f))!!.isNaN())
         assertEquals(150f, curve.points.single().stressMPa, 1e-3f)
         // Only the origin: no strain to plot against.
         assertEquals(listOf(0f to 0f), curve.plotPoints())

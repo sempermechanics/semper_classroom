@@ -160,7 +160,10 @@ class FrameOrderAdapter(
         /** Tiles kept decoded; an evicted one is dropped, not recycled (it may still show). */
         private const val THUMBS_CACHED = 48
 
-        /** The strip's loader: frames decode on the IO pool, and a missing or unreadable one shows the photos icon. */
+        /**
+         * The strip's loader: frames decode on the IO pool (a TIFF through the engine),
+         * and a missing or unreadable one shows the photos icon.
+         */
         fun frameThumbnails(): ThumbnailLoader<FrameThumb> = ThumbnailLoader(
             maxCached = THUMBS_CACHED,
             executor = Dispatchers.IO.asExecutor(),
@@ -179,7 +182,8 @@ class FrameOrderAdapter(
             val bmp = if (bounds.outWidth > 0 && bounds.outHeight > 0) {
                 BitmapFactory.decodeFile(path, BitmapFactory.Options().apply { inSampleSize = sample })
             } else {
-                null
+                // No bounds: not a format the platform reads (a TIFF). The engine draws it.
+                EngineThumb.decode(path, THUMB_MAX_EDGE_PX)
             }
             return bmp?.let { ThumbnailLoader.Decoded.Loaded(it) } ?: ThumbnailLoader.Decoded.Undecodable
         }
