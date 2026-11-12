@@ -12,6 +12,30 @@ Decisions that outlive their PR are recorded in
 [CLOUD_ARCHITECTURE_GCP.md](../backend/CLOUD_ARCHITECTURE_GCP.md) §20,
 [ARCHITECTURE.md](../app/ARCHITECTURE.md) and [../adr/](../adr/).
 
+## 2026-11-12 — The 2D DIC example is a 12-image series (#169)
+
+Merged to `main`; not yet in a release (v2.0-beta.1 still ships the two pairs). The two
+2-image DICe examples, `dice_oht_cfrp` (frames 00 and 01 of the open-hole plate) and
+`dice_translation` (a 0.4 px shift), were replaced by one 2D DIC series, `dice_oht_series`
+([ADR-031](../adr/ADR-031-bundled-example-data.md), amended).
+
+- **The set.** All 12 images of DICe's `tests/regression/dic_challenge_12`: an open-hole
+  carbon-fibre plate, reference + 11 load steps, 400 × 1040 px TIFF, with DICe's solution
+  for every step (`DICe_solution_01.txt` to `_11.txt`). BSD-3-Clause, unchanged, names
+  kept. 5.3 MB against the old pairs' 1.7 MB; the three example sets are about 79 MB.
+- **Measured vs DICe.** Engine v0.6.1 (a WSL host build) at the settings Try it proposes
+  on a Galaxy S22+ (speckle 5 px: subset 17, step 5, 5-point window). Frame 11: median
+  v −8.69 px (DICe −8.64), u −0.72 (−0.75), eyy +6.68 × 10⁻³ (+6.78). Median v is within
+  0.06 px of DICe at every step. At DICe's 230 points, `DiceFieldAgreement` gives u, v RMS
+  of 0.003 px or less. The S22+'s own Try it run (debug build, 3.5 s) gave the same
+  frame-11 medians. Recorded in the set's `example.json` and README and in
+  [VALIDATION.md](../engine/VALIDATION.md).
+- **Tests.** The example unit tests follow the new set. `ExampleCatalogTest` checks frames
+  00, 01, 03, 06 and 11 and their solutions byte for byte against
+  `engine/tests/fixtures/dice`, and each solution's header against its frame.
+  `ExampleDatasetsDeviceTest` checks frames 1 and 11 within 0.1 px of DICe; not yet run on
+  a device.
+
 ## 2026-11-12 — Semper Classroom v2.0-beta.1 released
 
 The first release as Semper Classroom (`com.sempermechanics.semperclassroom`), a GitHub
