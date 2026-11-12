@@ -131,13 +131,13 @@ no thresholds ([TESTING.md](docs/app/TESTING.md)); the phone-run gates (`benchma
 [PERF_BASELINE_bd44af0.md](docs/engine/PERF_BASELINE_bd44af0.md)) is a manual reference.
 Keep `-O3 -ffast-math` / OpenMP / LTO on release.
 
-## Current state (2026-11-11)
+## Current state (2026-11-12)
 
 - **Semper's UI plus two test choices ([ADR-022](docs/adr/ADR-022-semper-ui-plus-lab-tests.md)).**
   **Which test?** offers 2D DIC (Semper's analysis: no load card, no test type recorded),
   Tensile and Bending; a fork change to a shared screen runs only for a lab test.
   semperdic-app accepted making this a product flavour of its repo on 2026-10-22 ([ADR-025](docs/adr/ADR-025-test-type-extension-points.md), mirrored).
-- **Seminar demo polish** (`claude/demo-ui-polish`, 2026-11-11; not merged): spacing and cut
+- **Seminar demo polish** (#164, merged 2026-11-12, in v2.0-beta.1): spacing and cut
   titles seen on the S22 fixed; Results' Adjust is a sliders icon, filled while a correction
   is set, and the Whole test / Elastic region toggle is smaller; about 40 on-screen texts and
   ⓘ explanations shortened; TIFF frames show their picture in the frame strip.
@@ -196,8 +196,10 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   (`*_MATERIAL_TESTING` still read), kill switches, EMM config, account-anchored
   entitlements ([ADR-024](docs/adr/ADR-024-account-anchored-entitlements.md)). The backend,
   consoles, indexes and dashboards deploy only from semperdic-app; never deploy Hosting from
-  here. Owed: TD-9–TD-12, TD-14, TD-21, TD-23–TD-26, TD-51; for a release, this
-  repo's `SEMPER_ENTITLEMENT_PUBKEYS` variable and `SEMPER_API_CERT_PINS` secret.
+  here. Owed: TD-9–TD-12, TD-14, TD-21, TD-23–TD-26, TD-51. `SEMPER_API_CERT_PINS` is a repo
+  variable since 2026-11-12 (GTS R1–R4, RELEASING.md); `SEMPER_ENTITLEMENT_PUBKEYS` and
+  `SEMPER_RELEASE_CERT_SHA256` are still unset, so releases ship without entitlement-key pins
+  and the signer check only warns.
 - **Lab outputs.** Tensile: stress–strain (strain is the mean Exx / Eyy over the accepted
   points, ADR-035; no virtual extensometer and no Extension column), E, Rp0.2, **Adjust
   curve**, a lab report. Bending: beam-edge taps, δ, E = WL³/(48δI), loads in kg, a deflection
@@ -205,9 +207,11 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   ([REAL_WORLD_VALIDATION.md](docs/app/REAL_WORLD_VALIDATION.md)); steel re-run under the mean
   on 2026-11-11, PMMA's strain comparison owed (TD-53); two tensile screenshots stale (TD-279).
 - **Releases.** Semper Classroom, `com.sempermechanics.semperclassroom` (ADR-009, ADR-030),
-  beside Semper, on its backend; last `v1.4-beta.2` as Material Testing
-  (`com.sempermechanics.materialtesting`, `d08aae07`, 2026-10-17, versionCode 1006), not yet
-  smoked on a phone. Never hand out `main`'s CI APK (TD-149). App Check waits for Play.
+  beside Semper, on its backend; last **`v2.0-beta.1`**, the first as Semper Classroom
+  (`2b3f8ef4`, 2026-11-12, versionCode 1007, GitHub pre-release; smoked on the S22, see
+  [CHANGELOG](docs/ops/CHANGELOG.md)). Before: `v1.4-beta.2` as Material Testing
+  (`com.sempermechanics.materialtesting`, `d08aae07`, 2026-10-17, versionCode 1006). Never hand
+  out `main`'s CI APK (TD-149). App Check waits for Play.
 - **Owed by hand** ([WORKFLOWS.md](docs/app/WORKFLOWS.md)): after the 2026-10-21 sync,
   `LabWorkflowDeviceTest` and `WizardDraftRestoreTest` on a device, and #458's incremental
   reference on a lab clip; ROI zoom and pan (§6.21–6.25);

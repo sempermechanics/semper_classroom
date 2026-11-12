@@ -12,6 +12,36 @@ Decisions that outlive their PR are recorded in
 [CLOUD_ARCHITECTURE_GCP.md](../backend/CLOUD_ARCHITECTURE_GCP.md) §20,
 [ARCHITECTURE.md](../app/ARCHITECTURE.md) and [../adr/](../adr/).
 
+## 2026-11-12 — Semper Classroom v2.0-beta.1 released
+
+The first release as Semper Classroom (`com.sempermechanics.semperclassroom`), a GitHub
+pre-release: [v2.0-beta.1](https://github.com/sempermechanics/semper_classroom/releases/tag/v2.0-beta.1),
+tagged at `main` `2b3f8ef4`. It carries everything merged since `v1.4-beta.2` (`d08aae07`),
+among them the rename (#147), minSdk 30, ADR-033's explicit Activate, the example data
+(#149, #154, #156), engine 0.6.1, lab maths (#140) and the seminar demo pass with
+ADR-035's mean tensile strain (#164).
+
+- **Unblocked by** #165 (`.gitleaksignore` entry for the made-up token in
+  `backend/tests/test_auth_log_redaction.py`, which failed every full-history secret scan
+  from 2026-11-02) and the repo variable `SEMPER_API_CERT_PINS` (GTS R1–R4, from
+  RELEASING.md), which `--require-pins` needs.
+- **CI.** Full-matrix run 43159338931 on `2b3f8ef4` green (Benchmarks skipped, not required).
+  Release run 43161545844 green in every job.
+- **Build.** versionCode 1007, versionName 2.0-beta.1, minSdk 30, targetSdk 36; signer
+  SHA-256 `f5dcb82afc1787d5b3d38f538f8e7fa6a4e5c7f8106a600fe706e7c6b0ee4637`. Assets
+  `app-release.apk` (94.8 MB) and `app-release.aab`. `SEMPER_RELEASE_CERT_SHA256` and
+  `SEMPER_ENTITLEMENT_PUBKEYS` are unset, so the signer check warned and the build has no
+  entitlement-key pins.
+- **Smoke, Galaxy S22+ (SM-S906U1), Android 16, engine v0.6.1.** The signed APK installed
+  in place of the debug build (which had to be uninstalled: different signer). Signed in
+  with an ADR-027 QC account. Steel example through Try it: 22 s, 40 of 40 photos on the
+  curve, E 149.6 GPa (frames 1–26, R² 0.9955), Rp0.2 305.7 MPa at 4.02 mε, peak 435.50 MPa
+  at frame 38, matching the debug build. Tapping the peak opened `steel_38`. Share is
+  locked: the QC account has no licence, so Home shows no Activate card. No crash in the
+  crash buffer. Not run: `EnginePipelineSmokeTest` (the Gradle connected task uninstalls the
+  app on a phone), Activate and Share with a licence, the PMMA, CFRP and shift examples on
+  the signed build.
+
 ## 2026-10-30 — semperdic-app's backend and consoles: licence per app (ADR-033) and the split
 
 The backend and Hosting from `main` at `12a89d31` went live, staging first. That commit
