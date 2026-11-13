@@ -30,9 +30,9 @@ import timber.log.Timber
  *
  * The SSSIG size (Pan et al., Opt. Express 16, 7037 (2008)) — see
  * [SubsetRecommender] — is the least the accuracy target allows, so it is the
- * slider's lower end, and the upper end is [SubsetRecommender.SLIDER_SPAN]
+ * slider's lower end, and the upper end is [SubsetSliderRange.SPAN]
  * above it. The slider starts at the size that spans three measured speckles
- * ([SubsetRecommender.Recommendation.startingSubset]), and stops being seeded
+ * ([startingSubset]), and stops being seeded
  * once the user sets a size of their own. The range holds for every size: a
  * typed, pasted or Re-run's size outside it is moved to the nearer end, and so
  * is the user's own when a new measurement moves the range.
@@ -119,7 +119,7 @@ class SubsetRecommendationController(
     }
 
     /**
-     * Sets the slider's ends: the measurement's [SubsetRecommender.Recommendation.sliderRange],
+     * Sets the slider's ends: the measurement's [sliderRange],
      * or the full range without one. A size outside them — the user's own
      * included — is moved to the nearer end at once: the slider will not draw
      * a value outside its ends.
