@@ -5,27 +5,21 @@ import kotlin.math.sqrt
 
 /**
  * Turns a burst of static test frames into a verdict on whether this setup can
- * measure the strain the user is about to apply.
+ * measure the strain the user is about to apply. Not wired into any screen since
+ * the in-app camera went (TD-283).
  *
- * Nothing here is loaded: the specimen is mounted and framed but unstressed, so
- * every displacement the correlator reports between two of these frames is
- * error. Converting that error into the strain it would masquerade as is what
- * makes it actionable — a displacement noise of 0.5 px means nothing to anyone,
- * while "this setup cannot see strains below 20 mε" is a decision.
+ * Nothing here is loaded, so every displacement the correlator reports between
+ * two of these frames is error. Converting it into the strain it would
+ * masquerade as makes it a decision: "this setup cannot see strains below 20 mε".
  *
- * **Why a burst rather than a pair.** One pair already estimates σ from
- * thousands of ROI points, so it is statistically precise — about *one instant*.
- * A lorry going past, one AE step, one flicker beat, and that precise number is
- * confidently wrong. Extra frames are not here to shrink a sampling error; they
- * are here to move the question from "what was the noise in that instant" to
- * "what is the noise of this setup". So the count is set by breakdown and
- * false-alarm rates, not by `1/√n`:
+ * **Why a burst rather than a pair.** One pair estimates σ precisely, but about
+ * *one instant*: a lorry, an AE step or a flicker beat makes it confidently
+ * wrong. Extra frames ask "what is the noise of this setup" instead, so the
+ * count is set by breakdown and false-alarm rates, not by `1/√n`.
  *
- * **Frames and estimates are not the same number**, and conflating them is how
- * the drift threshold was wrong for its first several device runs. *n* frames
- * give *n − 1* estimates, because every sample is one frame correlated against
- * the reference and the reference is itself one of the *n*. Every row below is
- * quoted in frames, with the estimate count it yields in brackets:
+ * **Frames are not estimates.** *n* frames give *n − 1* estimates: each sample
+ * is one frame against the reference, itself one of the *n*. Rows are in
+ * frames, with the estimates they yield in brackets:
  *
  * | Test | Needs | Why |
  * |---|---|---|
@@ -34,15 +28,11 @@ import kotlin.math.sqrt
  * | Drift vs noise | 6 frames (5) | a monotone run of *k* **estimates** happens by
  *   chance with probability `2/k!`: 33% at k=3, 8.3% at k=4, 1.7% at k=5 |
  *
- * The drift row is the binding one and the reason [MAX_FRAMES] is six rather
- * than five. Five frames yield only four estimates, which is the `k=4` row —
- * one refused run in twelve on a rig that was perfectly steady. Since
- * [Outcome.DRIFTING] *blocks*, that is not a rate a user should meet: drift is
- * the one finding whose answer differs from noise — wait or re-mount, versus
- * more light or a larger area — so asserting it wrongly sends someone to
- * re-level a tripod that was already level. Above six the false-alarm rate keeps
- * falling but nothing the user sees changes, so the extra seconds would buy a
- * better number for a decision already made.
+ * The drift row sets [MAX_FRAMES] at six: five frames give four estimates, a
+ * false drift call on one steady rig in twelve. Drift is the one finding whose
+ * fix (wait or re-mount) differs from noise's (more light, a larger area), so a
+ * false call sends someone to re-level a level tripod. Above six the rate keeps
+ * falling but no verdict changes.
  */
 object NoiseFloorStats {
 
@@ -76,7 +66,7 @@ object NoiseFloorStats {
 
     /**
      * What the burst concluded. Only [Outcome.HIGH_FLOOR] is about precision,
-     * and it is the one outcome that never stops a run — see [Verdict.blocking].
+     * and it never sets [Verdict.blocking].
      */
     enum class Outcome {
         /** The floor is within limits and the series was steady. */
@@ -86,12 +76,10 @@ object NoiseFloorStats {
          * Measurable, but coarser than the limit — strain smaller than the
          * floor will be indistinguishable from noise in the result.
          *
-         * A warning, never a refusal. The measurement is a proxy and the user
-         * knows things it does not: that the expected strain is 50 me and a
-         * 2 me floor is fine, that this is a shakedown, that the fixture cannot
-         * be re-mounted. What the app owes them is the number, stated plainly
-         * and carried onto the report and the CSV so it travels with the data —
-         * not a locked door.
+         * A warning, not [Verdict.blocking]: the measurement is a proxy, and the
+         * user knows what it does not (a 50 mε test tolerates a 2 mε floor; a
+         * shakedown; a fixture that cannot be re-mounted). They are owed the
+         * number, not a locked door.
          */
         HIGH_FLOOR,
 
@@ -105,15 +93,7 @@ object NoiseFloorStats {
         INSUFFICIENT,
     }
 
-    /**
-     * The verdict.
-     *
-     * [blocking] is deliberately *not* the same as "failed", and a floor above
-     * the limit is deliberately not blocking at all. A high floor is a strong
-     * warning that gets recorded and reported; what still stops to ask is a
-     * burst whose own estimates disagree, because then no number can be
-     * trusted — including the floor.
-     */
+    /** The verdict. [blocking] is not "failed": see [STOPS_TO_ASK]. */
     data class Verdict(
         val outcome: Outcome,
         /** Strain floor in microstrain at the gauge length in use. */
@@ -140,21 +120,14 @@ object NoiseFloorStats {
         /** Frame-to-frame brightness scatter as a fraction of mean level. */
         val brightnessScatter: Double,
         /**
-         * True when the run should not start without a deliberate override.
-         *
-         * Never set by a high floor. Only by a burst that could not measure
-         * itself consistently ([Outcome.NOT_SETTLING], [Outcome.DRIFTING]),
-         * where stopping buys the user a better measurement rather than
-         * withholding a worse one.
+         * True when a run should not start on this burst without a deliberate
+         * override: one of [STOPS_TO_ASK], never a high floor.
          */
         val blocking: Boolean,
         /**
-         * True when the floor is above the limit, whatever the outcome.
-         *
-         * Separate from [outcome] because it has to survive onto the session,
-         * the PDF and the CSV: a result exported months later must still say it
-         * was captured below the usable floor and by how much. A burst that was
-         * also drifting is still a burst whose floor was too high.
+         * True when the floor is above the limit, whatever the outcome: kept
+         * apart from [outcome] so a drifting burst's too-high floor is still
+         * on record with the result.
          */
         val floorExceeded: Boolean,
         /** True when averaging credit was applied; false when drift denied it. */
@@ -174,7 +147,7 @@ object NoiseFloorStats {
      * @param averagingK frames the run will average per state; the credit is
      *   `1/√k` and is withheld when the burst is drifting, because drift and
      *   correlated pipeline terms do not average down at all.
-     * @param limitMicrostrain the gate, in microstrain.
+     * @param limitMicrostrain the floor limit, in microstrain.
      */
     fun evaluate(
         samples: List<PairSample>,
@@ -216,10 +189,7 @@ object NoiseFloorStats {
             spread = spread,
             driftPx = usable.maxOf { it.driftPx },
             brightnessScatter = brightnessScatter(usable.map { it.meanIntensity }),
-            // A burst too short to have any confidence reports and steps aside;
-            // blocking a run on a single sample is the thing this exists to
-            // avoid. A high floor steps aside too — it is reported, recorded and
-            // printed, but the decision to record is the user's.
+            // A burst too short for a median never blocks on a single sample.
             blocking = outcome in STOPS_TO_ASK && frameCount >= FRAMES_FOR_MEDIAN,
             floorExceeded = exceeded,
             averagingCredited = credited,
@@ -251,10 +221,9 @@ object NoiseFloorStats {
      * The outcomes that stop and ask, rather than warn and continue.
      *
      * Both mean the burst could not measure *itself* consistently, so retrying
-     * costs seconds and buys a number worth having. A high floor is not in this
-     * set: there the measurement succeeded and simply came back worse than the
-     * limit, which is information the user acts on, not a reason to withhold
-     * the run from them.
+     * costs seconds and buys a number worth having. A high floor is not here:
+     * that measurement succeeded and came back worse than the limit, which is
+     * for the user to act on.
      */
     private val STOPS_TO_ASK = setOf(Outcome.NOT_SETTLING, Outcome.DRIFTING)
 
@@ -282,13 +251,9 @@ object NoiseFloorStats {
     fun microstrainFor(sigmaPx: Double, vsgPx: Double): Double =
         if (vsgPx <= 0.0) Double.POSITIVE_INFINITY else SQRT_2 * sigmaPx / vsgPx * MICRO
 
-    // ------------------------------------------------------------------
-    // Statistics
-    // ------------------------------------------------------------------
-
-    /** Median, so one disturbed frame cannot decide the outcome. */
     /**
-     * Median of the values that are real numbers, or NaN when none are.
+     * Median of the values that are real numbers, or NaN when none are; a
+     * median so one disturbed frame cannot decide the outcome.
      *
      * Non-finite inputs are dropped rather than sorted: Kotlin orders NaN above
      * every number, so a frame whose grey window would not decode would
@@ -333,10 +298,8 @@ object NoiseFloorStats {
      * than noise. Strict, because a single repeat is enough to make a run
      * ordinary; see the `2/k!` reasoning on [NoiseFloorStats].
      *
-     * [values] are *estimates*, not frames, so the guard is
-     * `FRAMES_FOR_DRIFT - 1`: six frames yield the five estimates that put the
-     * false-alarm rate at 1.7%. Anything shorter returns false and the burst
-     * reports drift as possible rather than asserting it.
+     * [values] are *estimates*, so the guard is `FRAMES_FOR_DRIFT - 1`; anything
+     * shorter returns false, and drift is reported as possible, not asserted.
      */
     internal fun isMonotone(values: List<Double>): Boolean {
         if (values.size < FRAMES_FOR_DRIFT - 1) return false
@@ -357,10 +320,8 @@ object NoiseFloorStats {
      * median or a MAD. Those are robust because they estimate a *level* that one
      * disturbed frame must not move. Flicker is not a level — it is an
      * oscillation, and its whole signature lives in the extremes, so a robust
-     * estimator here would suppress precisely the thing being measured. The
-     * usual objection does not apply either: this number is reported and logged,
-     * never gated on, so a frame that was genuinely disturbed costs a log line
-     * rather than a refused run.
+     * estimator here would suppress precisely the thing being measured. Nothing
+     * gates on it, so a genuinely disturbed frame costs only a high reading.
      */
     @Suppress("ReturnCount") // too few frames, then a level no ratio can divide by
     internal fun brightnessScatter(levels: List<Double>): Double {
@@ -372,11 +333,10 @@ object NoiseFloorStats {
     }
 
     /**
-     * The gate, widened when the burst was short.
-     *
-     * Fewer estimates means less confidence that the median is the real floor,
-     * so a short burst has to be further past the limit before it refuses a run
-     * — the error worth avoiding here is refusing a setup that was actually fine.
+     * The limit [Verdict.floorExceeded] is judged against, widened when the
+     * burst was short: fewer estimates means less confidence that the median is
+     * the real floor, so a short burst must be further past the limit before it
+     * reports [Outcome.HIGH_FLOOR] on a setup that may be fine.
      */
     private fun effectiveLimit(limitMicrostrain: Double, frameCount: Int): Double = when {
         frameCount >= FRAMES_FOR_DRIFT -> limitMicrostrain
@@ -415,16 +375,10 @@ object NoiseFloorStats {
     const val FRAMES_FOR_SPREAD = 4
 
     /**
-     * Six frames — five estimates — is where a monotone run drops to 1.7%
-     * likely from noise alone.
-     *
-     * Was five, which is five *frames* and therefore only four estimates: the
-     * 8.3% row, one false refusal in twelve. The count here is in frames
-     * because that is what the burst captures and what [Verdict.frameCount]
-     * carries; [isMonotone] converts. Doubling as the "full confidence" rung
-     * of [effectiveLimit] is deliberate — six frames is [MAX_FRAMES], so the
-     * complete burst gets the full limit and a burst shortened by a slow phone
-     * gets a margin.
+     * Six frames (five estimates): a monotone run is then 1.7% likely from noise
+     * alone. In frames, as [Verdict.frameCount] carries them; [isMonotone]
+     * converts. It is [MAX_FRAMES] on purpose: only a full burst gets the
+     * unwidened [effectiveLimit].
      */
     const val FRAMES_FOR_DRIFT = 6
 
@@ -439,13 +393,9 @@ object NoiseFloorStats {
 
     /**
      * A test shot may spend this long on the burst and still feel like one.
-     *
-     * Three seconds rather than two and a half because [MAX_FRAMES] is now six:
-     * measured first-still cost across both test devices ran 277-551 ms, so a
-     * 2500 ms budget would have handed six frames to only the faster half of
-     * those bursts and left the rest unable to assert drift at all. Spending
-     * the extra half second buys the same verdict on every phone, which is
-     * worth more than the half second.
+     * Three seconds, not 2.5: first-still cost measured 277-551 ms on both test
+     * devices, and [MAX_FRAMES] must fit on the slower one too, or it cannot
+     * assert drift at all.
      */
     private const val FRAME_BUDGET_MS = 3_000L
 

@@ -25,11 +25,8 @@ import kotlinx.coroutines.launch
  * The access-requests list of [AdminActivity] and the approvals and denials
  * sent from it, kept across a rotation (ADR-016).
  *
- * An approval used to run on the screen's own scope: a rotation while the
- * backend answered dropped the answer (no confirmation, a stale list), or
- * cancelled the request before it was sent. Here the list ([users]) and the
- * calls live on [viewModelScope], and what each call came to is handed out
- * once ([outcomes]) to whichever screen is current.
+ * The list ([users]) and the calls live on [viewModelScope], and what each
+ * call came to is handed out once ([outcomes]) to whichever screen is current.
  */
 @MainThread
 class AdminViewModel(app: Application) : AndroidViewModel(app) {

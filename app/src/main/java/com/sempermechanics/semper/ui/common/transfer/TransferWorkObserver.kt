@@ -12,13 +12,9 @@ import java.util.UUID
 
 /**
  * Follows one kind of transfer job — backups, restores or Save-to-Files
- * downloads — while a screen is alive, read the way Home and Settings both
- * read them: each job [TransferWork.classify]'d, and each finished job
- * reported to the screen once.
- *
- * Home and Settings each observed the same WorkInfo lists by hand, with their
- * own "already shown" sets, progress keys and failure keys. What a screen
- * then does with a job stays the screen's.
+ * downloads — while a screen is alive: each job [TransferWork.classify]'d, and
+ * each finished job reported to the screen once. What a screen then does with
+ * a job stays the screen's.
  *
  * @param reported ids of finished jobs already reported, so a retained old
  *   outcome is not shown again on the next list. Per observer by default; a

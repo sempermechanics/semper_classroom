@@ -12,12 +12,9 @@ import androidx.transition.TransitionManager
 import com.sempermechanics.semper.R
 
 /**
- * Subtle, professional motion primitives shared across the app.
- *
- * Keeping these in one place guarantees every screen animates with the
- * same timing and easing, so motion reads as a single design language
- * rather than ad-hoc per-screen tweaks. All durations are short
- * (< 300 ms) to stay out of the way of an engineering workflow.
+ * Motion primitives shared across the app, so every screen animates with the
+ * same timing and easing. All durations are short (< 300 ms) to stay out of
+ * the way of an engineering workflow.
  */
 object Motion {
 

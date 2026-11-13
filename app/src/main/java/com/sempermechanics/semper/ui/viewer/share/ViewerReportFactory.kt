@@ -69,8 +69,7 @@ object ViewerReportFactory {
             recordFingerprintText(checked ?: RecordIntegrity.NotRecorded)
         }
 
-        /** Every frame's solver parameters. */
-        /** Read from [args] once per source: every page and CSV row of an export asks for it. */
+        /** Every frame's solver parameters, read from [args] once: every page and CSV row asks for them. */
         val frameParams: FrameParams = args.frameParams
 
         val roi: Roi get() = args.roi
@@ -122,10 +121,8 @@ object ViewerReportFactory {
         frameIndex: Int,
         data: FloatArray,
     ): ReportData? {
-        // buildReport downscales every cover to 600 px, so a full-resolution decode of
-        // a 26 MP reference (~104 MB, and once per frame in an all-frames report) is
-        // pure waste. Decode no larger than REPORT_MAX_EDGE — the report's own render
-        // cap — via inSampleSize, so peak stays a few MB.
+        // Decoded no larger than REPORT_MAX_EDGE, the report's own render cap: buildReport keeps
+        // 600 px covers, and a full 26 MP decode (~104 MB, once per frame of an all-frames report) is waste.
         val size = source.imageSize
         val cap = VisualizationEngine.REPORT_MAX_EDGE
         val capped = VisualizationEngine.cappedDims(size.width, size.height, cap)
@@ -138,10 +135,8 @@ object ViewerReportFactory {
             rawHeight = size.height,
         )
         val decodedBase = source.args.refPath.ifBlank { null }?.let(::decodeCapped)
-        // Without a reference file, the viewer's display-size reference stands in
-        // as it is: buildReport scales whatever it is given into its capped
-        // composite and keeps only 600 px copies, so scaling it up first (it was
-        // scaled to the full sensor size, ~104 MB at 26 MP) bought nothing.
+        // Without a reference file the viewer's display-size reference stands in as it is:
+        // buildReport caps whatever it is given, so scaling it up first would buy nothing.
         val baseImg = decodedBase ?: source.displayBase ?: return null
 
         // buildReport keeps only a downscaled copy of the cover images, so the
@@ -149,9 +144,7 @@ object ViewerReportFactory {
         // report calls this once per frame.
         var defImg: Bitmap? = null
         try {
-            // This frame's own image. It used to be the viewer's opening one for
-            // every page — the first frame after a run, the reference from Home —
-            // under each frame's own "Def:" name.
+            // This frame's own image, not the viewer's opening one on every page.
             defImg = source.deformedImagePathAt(frameIndex)?.let(::decodeCapped)
             // Named from the same planned frame as the cover image, so the two
             // agree past a frame the batch skipped. A sweep's names are its

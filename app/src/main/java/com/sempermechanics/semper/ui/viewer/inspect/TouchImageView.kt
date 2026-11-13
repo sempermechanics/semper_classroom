@@ -61,7 +61,7 @@ class TouchImageView @JvmOverloads constructor(
     /** One scrub per gesture: a fast swipe is both a fling and a long swipe. */
     private var scrubbedThisGesture = false
 
-    // --- CRITICAL FIX: Explicit dimensions provided by the Activity ---
+    /** The specimen's true size in px, set by the host ([setTrueImageDimensions]); not the drawable's. */
     private var trueImageWidth = 0f
     private var trueImageHeight = 0f
 
@@ -174,7 +174,6 @@ class TouchImageView @JvmOverloads constructor(
         }
     }
 
-    // --- NEW: Manually inject the known dimensions ---
     fun setTrueImageDimensions(width: Int, height: Int) {
         trueImageWidth = width.toFloat()
         trueImageHeight = height.toFloat()

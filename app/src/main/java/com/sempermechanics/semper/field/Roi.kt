@@ -2,16 +2,9 @@ package com.sempermechanics.semper.field
 
 /**
  * A region of interest in reference-image pixels: left [x], top [y], width [w],
- * height [h]. Immutable.
- *
- * The same four ints travel today as `roiX..roiH` (wizard view model,
- * `RunSpec`, `SessionRecord`, `SessionRecordSettings`, `ViewerArgs`, the
- * viewer), an `[x, y, w, h]`
- * `IntArray` (`RoiResolveHelper`, `RunSpec.of`, the wizard's saved state), an
- * `android.graphics.Rect`, an `[l, t, r, b]` `FloatArray` (`HeatmapFit`),
- * the reports, the `ROI_X..ROI_H` extras and the `engine.roi` object of
- * `metadata.json`. This is a view over them: building one from any of those and
- * converting back gives the same values, so nothing persisted changes.
+ * height [h]. Immutable. A view over the stored forms (`roiX..roiH` fields, extras,
+ * `metadata.json`'s `engine.roi`, `[x, y, w, h]` arrays): converting there and back
+ * gives the same values, so nothing persisted changes.
  *
  * No invariant is enforced: a restored record can hold a zero or off-image ROI,
  * and the helpers below say what each caller does with one ([clampTo],

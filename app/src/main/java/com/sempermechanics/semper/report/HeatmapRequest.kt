@@ -6,8 +6,7 @@ import com.sempermechanics.semper.field.ValueRange
 /**
  * One heatmap render ([VisualizationEngine.render], [VisualizationEngine.indices]):
  * the field at [valIndex] of [data], the grid it was solved on, and how to
- * colour and size the map. It replaces the eight positional parameters each
- * of the engine's five entry points took.
+ * colour and size the map.
  *
  * Not a data class: it holds the frame's array, which is compared by identity.
  */

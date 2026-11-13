@@ -23,10 +23,7 @@ import kotlinx.coroutines.launch
  * The checks [SessionLimitActivity] runs when the user taps Re-check or
  * Refresh licence, kept across a rotation (ADR-016).
  *
- * They used to run on the screen's own scope: a rotation while the backend
- * answered cancelled the check, so a limit that had cleared left the screen
- * up with nothing said, and a refreshed licence was never checked again.
- * Here they run on [viewModelScope], and what each came to is handed out once
+ * They run on [viewModelScope], and what each came to is handed out once
  * ([outcomes]) to whichever screen is current.
  */
 @MainThread

@@ -201,7 +201,7 @@ class SplashActivity : AppCompatActivity() {
         }
 
         startActivity(intent)
-        // CRITICAL: finish() destroys the SplashActivity so the user can't hit "Back" to return to it.
+        // Finished, so Back cannot return to the splash.
         finish()
     }
 }

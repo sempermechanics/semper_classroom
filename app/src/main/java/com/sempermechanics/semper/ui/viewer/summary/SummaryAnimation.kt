@@ -255,10 +255,9 @@ class SummaryAnimation(private val spec: Spec) {
     }
 
     /**
-     * One frame as the viewer draws a frame on its own photo (ADR-011, TD-141):
-     * each point where it moved to, [VisualizationEngine.indices].
-     * The GIF carries no photo (its palette is the jet ramp and the canvas
-     * colour), so every frame is drawn displaced, photo on disk or not.
+     * One frame, each point where it moved to ([VisualizationEngine.indices]). The GIF
+     * carries no photo (its palette is the jet ramp and the canvas colour), so every
+     * frame is drawn displaced, photo on disk or not.
      */
     private fun renderFrame(
         data: FloatArray,
@@ -335,13 +334,10 @@ class SummaryAnimation(private val spec: Spec) {
          * Fields with no correlated points anywhere are absent from the result.
          *
          * @param rangesFile optional sidecar written by [FieldRangesStore.write] at
-         *   analysis time (see [com.sempermechanics.semper.ui.analysis.wizard.AnalysisViewModel]).
-         *   Used only when present and its frame count matches [batchFiles] exactly —
-         *   anything else (missing, corrupt, a resumed/edited batch whose frame count
-         *   has since changed) falls back to decoding every frame, and that decode
-         *   then writes the sidecar for next time. Either path returns bit-identical values: the
-         *   cache holds the exact same [VisualizationEngine.valueRanges] output the
-         *   fallback would (re)compute, just computed once instead of on every call.
+         *   analysis time. Used only when its frame count matches [batchFiles] exactly;
+         *   otherwise (missing, corrupt, a batch resumed or edited since) every frame is
+         *   decoded and the sidecar written for next time. Both paths return the same
+         *   [VisualizationEngine.valueRanges] output, bit for bit.
          * @param onProgress optional `(done, total)` after each frame is considered
          * (including unreadable ones). Hop to Main inside the callback for UI.
          */
@@ -369,13 +365,9 @@ class SummaryAnimation(private val spec: Spec) {
             val spans = mutableMapOf<Int, ValueRange>()
             // Kept for the sidecar; null once a frame fails to decode.
             var perFrame: MutableList<Map<Int, ValueRange?>>? = ArrayList(total)
-            // One frame at a time. The previous chain kept every ByteArray and
-            // FloatArray alive until the pass finished — a heavy PLC band OOM'd
-            // the 512 MB heap before the first GIF frame was built.
-            // The frame buffer and the per-field columns are reused across frames,
-            // growing only for a larger frame: allocating both per frame cost ~1 MB at
-            // 19 200 points (~50 MB at 1 M) on the one pass a session without a
-            // sidecar makes before saving one (TD-107).
+            // One frame at a time, the frame buffer and per-field columns reused (grown only
+            // for a larger frame): holding every frame OOM'd a heavy PLC band on a 512 MB
+            // heap, and allocating per frame cost ~1 MB at 19 200 points (TD-107).
             var frameBuffer: FloatArray? = null
             var columns: Array<FloatArray>? = null
             batchFiles.forEachIndexed { index, file ->
@@ -403,12 +395,10 @@ class SummaryAnimation(private val spec: Spec) {
         }
 
         /**
-         * Saves a full decode's per-frame ranges as the sidecar, so the next call
-         * reads them instead. A batch from an analysis already has one; a session
-         * restored from the cloud, or written before the sidecar existed, did not,
-         * and decoded every frame on every viewer open and backup. Written only when
-         * every frame decoded: an unreadable frame would otherwise be stored as
-         * "no points" for good. Best effort, like the analysis-time write.
+         * Saves a full decode's per-frame ranges as the sidecar, so a session without
+         * one (restored from the cloud, or older than the sidecar) decodes only once.
+         * Written only when every frame decoded: an unreadable frame would otherwise be
+         * stored as "no points" for good. Best effort, like the analysis-time write.
          */
         private fun saveRanges(
             rangesFile: File?,

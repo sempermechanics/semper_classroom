@@ -7,9 +7,7 @@ import android.content.SharedPreferences
  * One SharedPreferences entry: its stored [name], its type, and the [default]
  * a read returns when nothing is stored.
  *
- * The app's preference files spelled each key as a private string constant and
- * repeated the type and the default at every `getX(KEY, default)`. A key here
- * carries all three, so a read and a write can no longer disagree on them.
+ * A key carries all three, so a read and a write cannot disagree on them.
  * [name] is the stored key, byte for byte: renaming one orphans every value
  * already on a phone. The catalogue of existing keys is [PrefFiles].
  *

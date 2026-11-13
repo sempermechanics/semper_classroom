@@ -91,8 +91,6 @@ class StaticAnalysisActivity :
 
     private var refPreviewBmp: Bitmap? = null
 
-    // Prominent progress overlay (compute + video extraction), and whether
-    // the wizard is busy with either.
     private lateinit var chrome: RunChrome
 
     /** The configuration this screen's views were inflated for ([onConfigurationChanged]). */
@@ -271,11 +269,8 @@ class StaticAnalysisActivity :
         window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         if (::chrome.isInitialized) chrome.overlay.release()
         if (::frameOrder.isInitialized) frameOrder.release()
-        // Reclaim the retained reference thumbnail deterministically on close. The
-        // thumbnail ImageViews won't be drawn again after onDestroy, so this is
-        // safe. (Replace sites intentionally don't recycle: the prior bitmap may
-        // still be shown in a slot until its refresh runs, and recycling a live
-        // bitmap crashes on the next draw — the superseded ones are GC-eligible.)
+        // Safe here: no slot draws it after onDestroy. Replace sites don't recycle, since the old
+        // bitmap may still show until its slot refreshes, and a recycled live bitmap crashes the draw.
         refPreviewBmp?.recycle()
         refPreviewBmp = null
         // Finishing is the one way out that no restore follows.
@@ -370,9 +365,6 @@ class StaticAnalysisActivity :
         FaqRedirect.confirm(this, url)
     }
 
-    // ------------------------------------------------------------------
-    // Wizard navigation: page 1 (images) → page 2 (settings) → page 3 (sweep)
-    // ------------------------------------------------------------------
     override fun updateWizardChrome() =
         viewModel.inputs.value.let { wizardChrome.updateBottomNav(it.step, it.sweepMode) }
 

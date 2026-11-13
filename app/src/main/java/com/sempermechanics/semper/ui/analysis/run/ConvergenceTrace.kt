@@ -13,9 +13,11 @@ object ConvergenceTrace {
 
     /**
      * The latest frame of a streak that is one short of [strikes], or null when
-     * no streak is that long. Walks [values] in frame order as the gate saw
-     * them: NaN (not solved, or no points) and negative values neither count
-     * nor break a streak, as in [ConvergenceGate.record].
+     * no streak is that long. Walks [values] in frame order; negative values
+     * neither count nor break a streak, as in [ConvergenceGate.record]. NaN (not
+     * solved, or no points) is skipped too: [ConvergenceGate.record] would reset
+     * the streak on it, but the batch loop never passes it one, as it skips
+     * zero-point frames before calling [ConvergenceGate.record].
      */
     fun pendingStrike(
         values: FloatArray,

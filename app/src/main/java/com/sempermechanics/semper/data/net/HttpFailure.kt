@@ -7,10 +7,8 @@ import java.io.IOException
 /**
  * What a failed backend call means, read once from the exception it threw.
  *
- * Callers caught [NotApprovedException], then [ApiException] and branched on
- * its code, then [IOException] as "offline", each in its own order. This
- * keeps that order: the specific failures first, then the status of an
- * [ApiException], then any other [IOException], then the rest.
+ * Order: the specific failures first, then the status of an [ApiException],
+ * then any other [IOException] ("offline"), then the rest.
  *
  * Classify only after cancellation has been dealt with (rethrown when the
  * caller was cancelled): a [kotlin.coroutines.cancellation.CancellationException]
@@ -22,7 +20,7 @@ data class HttpFailure(val kind: Kind, val cause: Throwable) {
         /** [NotApprovedException]: the account is pending or refused. */
         NOT_APPROVED,
 
-        /** [DeviceConflictException]: the account is bound to another phone. */
+        /** [DeviceConflictException]: this phone's registration was refused. */
         DEVICE_CONFLICT,
 
         /** [DeviceInUseException]: this phone is bound to another account. */

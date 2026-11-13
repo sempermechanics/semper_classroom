@@ -42,8 +42,7 @@ internal class HardwareVideoDecoder private constructor(
          * decoding cannot be initialized.
          *
          * Every way out but success releases the extractor (and the codec, once
-         * made): a clip with no video track, or a track with no MIME type, used
-         * to return from inside the `try` and leak the extractor's native handle.
+         * made), including a clip with no video track or a track with no MIME type.
          */
         fun create(context: Context, uri: Uri, rotationDegrees: Int): HardwareVideoDecoder? {
             val extractor = MediaExtractor()

@@ -34,8 +34,7 @@ data class AnalysisEntry(
     /**
      * Whether this phone still holds frame data for [record]. Read from disk
      * once, off the main thread, by [AnalysisEntries.merge]: the row's wording
-     * and actions read it on every bind and tap, which used to list the
-     * session directory on the main thread each time.
+     * and actions read it on every bind and tap.
      */
     val hasLocalData: Boolean = false,
 ) {

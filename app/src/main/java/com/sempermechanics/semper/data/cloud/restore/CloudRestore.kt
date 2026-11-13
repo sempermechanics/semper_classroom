@@ -225,9 +225,8 @@ object CloudRestore {
         try {
             val whole = api.downloadReporting(token, bundleEntry, dest, onProgress)
             RestoreZipVerifier.verifySessionZip(dest, bundleEntry.declaredSize, bundleEntry.sha256)
-            // Since the payload was split, Session.zip alone is no longer the whole
-            // analysis. "Save to Files" is the deliverables use case, so pull Extras.zip
-            // too and hand over one merged archive — the same single file as before.
+            // Since the split, Session.zip alone is not the whole analysis. Save to Files
+            // is the deliverables use case, so Extras.zip is merged in: one archive.
             files.firstOrNull { it.role == ArtifactRoles.EXTRAS }?.let { mergeExtrasInto(api, token, it, dest) }
             onProgress(whole, whole)
             complete = true

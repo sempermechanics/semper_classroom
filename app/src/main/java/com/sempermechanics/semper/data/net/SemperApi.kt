@@ -99,8 +99,6 @@ class SemperApi @VisibleForTesting internal constructor(
 
     private inline fun <reified T> jsonBytes(value: T): ByteArray = json.encodeToString(value).toByteArray()
 
-    // ---------------------------------------------------------------- identity
-
     /** GET /v1/me. Throws [NotApprovedException] for a PENDING/SUSPENDED user. */
     override suspend fun getMe(idToken: String): MeResponse =
         calls.bearer(idToken, { url(endpoint("/v1/me")) }, ApiAnswer::failMe) { decode(it) }
@@ -154,9 +152,9 @@ class SemperApi @VisibleForTesting internal constructor(
         }
 
     /**
-     * POST /v1/devices/register. Registers this device's public key.
-     * 201 → registered, 409 → another device already bound (needs admin rebind).
-     * Requires an APPROVED user. The one call that sends no `X-Device-Id`
+     * POST /v1/devices/register. Registers this device's public key: 201 (or 200) is
+     * registered; a 409 is a [DeviceConflictException] ([ApiErrors.DEVICE_CONFLICT] says
+     * when). Requires an APPROVED user. The one call that sends no `X-Device-Id`
      * header: the id is in the body.
      */
     override suspend fun registerDevice(idToken: String) = withContext(Dispatchers.IO) {
@@ -186,10 +184,7 @@ class SemperApi @VisibleForTesting internal constructor(
      * seat, so there is no separate route to get that wrong. Call it every
      * [AppConfigDto.leaseHeartbeatMinutes] while work is in progress.
      *
-     * Throws [NoSeatAvailableException] when the pool is full. That is not a
-     * problem with the account — the member is still eligible and still in
-     * demo — so it is a distinct type rather than a generic [ApiException],
-     * to stop a caller rendering "something went wrong" for it.
+     * Throws [NoSeatAvailableException] when the pool is full ([ApiErrors.NO_FLOATING_SEAT]).
      */
     override suspend fun checkoutLease(idToken: String): AppConfigDto = seatCall(idToken, "checkout")
 
@@ -206,8 +201,6 @@ class SemperApi @VisibleForTesting internal constructor(
             answer.fail()
         },
     ) { decode<LicenseActivateResponse>(it).config }
-
-    // ------------------------------------------------------------------ phones
 
     /**
      * POST /v1/me/devices/activate. Signed, so only this phone activates
@@ -228,8 +221,6 @@ class SemperApi @VisibleForTesting internal constructor(
     /** DELETE /v1/me/devices/{id}. Signed: the route asks a step-up, which this phone's signature is. */
     override suspend fun deactivateDevice(idToken: String, deviceId: String): DeviceDeactivateResponse =
         calls.signed(idToken, SignedCall("DELETE", "/v1/me/devices/$deviceId")) { decode(it) }
-
-    // ---------------------------------------------------------- legal / consent
 
     /**
      * POST /v1/me/terms — record clickwrap acceptance of [version].
@@ -252,8 +243,6 @@ class SemperApi @VisibleForTesting internal constructor(
     /** PUT /v1/me/consents — grant or withdraw the optional product-improvement consent. */
     override suspend fun setImprovementConsent(idToken: String, granted: Boolean): Unit =
         calls.bearer(idToken, { url(endpoint("/v1/me/consents")).put(jsonBody(ConsentUpdateRequest(granted))) }) {}
-
-    // ----------------------------------------------------------- session/files
 
     /**
      * GET /v1/sessions — the caller's cloud analyses (for sync reconciliation).
@@ -299,11 +288,9 @@ class SemperApi @VisibleForTesting internal constructor(
      * instead of POSTing a new one (which would duplicate the Drive folder and
      * consume another slot of the analysis quota).
      *
-     * Device-signed, not just token-authenticated: the response carries Drive
-     * resumable upload URIs, which are bearer capabilities to write into the
-     * user's Drive folder. The backend requires attestation here for the same
-     * reason it does on createSession — a stolen ID token must not be able to
-     * recover them.
+     * Device-signed, like [createSession]: the answer's Drive resumable URIs are
+     * bearer capabilities to write into the user's Drive, which a stolen ID token
+     * alone must not recover.
      */
     override suspend fun listSessionUploads(idToken: String, sessionId: String): SessionUploadsResponse =
         fetchAllPages(
@@ -325,8 +312,6 @@ class SemperApi @VisibleForTesting internal constructor(
      */
     override suspend fun replaceSessionMetadata(idToken: String, sessionId: String, metadataJson: String) =
         calls.signed(idToken, SignedCall("PUT", "/v1/sessions/$sessionId/metadata", metadataJson.toByteArray())) {}
-
-    // ----------------------------------------------------------------- restore
 
     /**
      * GET /v1/sessions/{sid}/files — the manifest for one cloud analysis, every
@@ -378,8 +363,6 @@ class SemperApi @VisibleForTesting internal constructor(
         )
     }
 
-    // ------------------------------------------------------------------- admin
-
     /** GET /v1/admin/users?status=… (admin ID token; no device signature). */
     override suspend fun listUsers(idToken: String, status: String): List<AdminUserDto> = calls.bearer(
         idToken,
@@ -395,8 +378,6 @@ class SemperApi @VisibleForTesting internal constructor(
     /** POST /v1/admin/users/{uid}/{action} — device-attested (approve/revoke). */
     override suspend fun setUserStatus(idToken: String, uid: String, action: String) =
         calls.signed(idToken, SignedCall("POST", "/v1/admin/users/$uid/$action"), ApiAnswer::fail) {}
-
-    // ----------------------------------------------------------------- erasure
 
     /**
      * DELETE /v1/me — erase the account and every analysis it owns from the
@@ -429,8 +410,6 @@ class SemperApi @VisibleForTesting internal constructor(
             }
         },
     ) {}
-
-    // ------------------------------------------------- direct-to-Drive uploads
 
     /**
      * Resumable upload of [file] straight to Drive ([DriveUploader.uploadResumable]), as the

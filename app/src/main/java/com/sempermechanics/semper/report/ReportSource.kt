@@ -14,15 +14,10 @@ import com.sempermechanics.semper.field.Roi
  * [ReportBuilder.ReportBuildParams] shares, plus the per-frame settings a
  * sweep varies. [forFrame] adds the frame's own data and images.
  *
- * Two places assembled the same params by hand: the cloud bundle
- * ([forRecord], from a [SessionRecord]) and the viewer's report
- * (`ViewerReportFactory`, from its `Source`). They differ only in the values
- * they feed in, which is what the two factories capture.
- *
- * Its inputs are the app's own value types ([FrameParams], [Roi],
- * [ImageSize]) rather than copies of their fields: a frame's parameters are
- * [FrameParams.at]'s, so a frame past the end of a sweep's per-frame list
- * uses the session value, as both callers did.
+ * Built by the cloud bundle ([forRecord], from a [SessionRecord]) and the
+ * viewer's report (`ViewerReportFactory`, from its `Source`). A frame's
+ * parameters are [FrameParams.at]'s, so a frame past the end of a sweep's
+ * per-frame list uses the session value.
  */
 data class ReportSource(
     val sessionId: String,

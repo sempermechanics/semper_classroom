@@ -6,13 +6,10 @@ package com.sempermechanics.semper.field
  * An ordinary analysis solves each frame with [base]. A parameter sweep
  * varies the parameters instead of the image, so it carries per-frame lists,
  * index-aligned with the solved frames; there [base] describes only the first
- * frame. Today the lists live on `SessionRecord` (`sweepSubsets`,
- * `sweepSteps`, `sweepStrainWindows`), `ViewerSweepArgs`, the viewer's
- * `IntArray?` fields and `ShareCenter.Snapshot`'s `*PerFrame` arrays.
+ * frame.
  *
- * [at] is the lookup each of those sites spells out: the list's value at the
- * index, else the base value. A record's empty list and the viewer's null
- * array both mean "not a sweep" and fall back the same way.
+ * [at] is the list's value at the index, else the base value. A record's empty
+ * list and the viewer's null array both mean "not a sweep" and fall back the same way.
  *
  * The lists are copied on construction, so a caller's mutable list cannot
  * change an instance afterwards.

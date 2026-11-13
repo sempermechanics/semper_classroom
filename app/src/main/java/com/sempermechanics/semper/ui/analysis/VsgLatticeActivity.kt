@@ -78,10 +78,8 @@ class VsgLatticeActivity : AppCompatActivity() {
     /**
      * Line-cut profiles per solved combination, keyed by frame index in ascending
      * order ([sweepFrameProfiles]) — one entry per strain component. A frame that
-     * could not be read is absent. The raw `.dat` payload is never retained: at ~1M
-     * points a frame is 32 MB, so holding every frame of a sweep was O(F·n) and could
-     * exhaust the heap on its own. A profile is a single grid row/column (~√n points), so this is
-     * O(F·√n) resident and the decode stays O(n) transient.
+     * could not be read is absent. No `.dat` payload is kept (~32 MB a frame at ~1M points):
+     * a profile is one grid row or column (~√n points), so this is O(F·√n) resident.
      */
     private var frameProfiles: Map<Int, StrainProfiles> = emptyMap()
 
@@ -144,7 +142,7 @@ class VsgLatticeActivity : AppCompatActivity() {
         val skipped = skippedLatticeNodes(args.sweep) { code -> EngineFailure.shortReason(this, code) }
         val nodes = (solved + skipped).sortedWith(compareBy({ it.subset }, { it.vsg }))
         solvedNodes = nodes.filter { it.solved }
-        // Frame-index lookup, so per-frame loops don't scan solvedNodes (was O(F²)).
+        // Frame-index lookup, so per-frame loops don't scan solvedNodes.
         nodeByFrame = solvedNodes.associateBy { it.frameIndex }
 
         binding.latticeView.apply {
@@ -210,8 +208,7 @@ class VsgLatticeActivity : AppCompatActivity() {
         binding.sliderScrub.addOnChangeListener { _, value, fromUser ->
             if (fromUser && !syncingSlider) binding.plotLatticeStrain.scrubToFraction(value)
         }
-        // The chip is now the only params surface (the readout dropped its params
-        // tail, see scrubReadout), so it is the only remaining copy target.
+        // The chip is the only params surface, so it is the copy target.
         bindCopyGestures(binding.chipSelectedParams) { copySelectedParams(binding.chipSelectedParams) }
         setupStrainSpinner()
     }

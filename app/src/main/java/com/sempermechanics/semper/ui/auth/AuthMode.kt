@@ -4,8 +4,7 @@ import androidx.annotation.StringRes
 import com.sempermechanics.semper.R
 
 /**
- * What [AuthActivity]'s form is for. One at a time: the screen used to carry
- * three flags (register, re-auth, reset) that no path ever set together.
+ * What [AuthActivity]'s form is for, one at a time: no path is two of them at once.
  */
 enum class AuthMode(
     @StringRes val subtitle: Int,

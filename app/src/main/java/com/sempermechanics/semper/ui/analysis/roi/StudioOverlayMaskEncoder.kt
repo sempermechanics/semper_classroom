@@ -10,8 +10,8 @@ import android.graphics.RectF
 import androidx.core.graphics.createBitmap
 
 /**
- * ALPHA_8 ROI mask encoding extracted from [StudioOverlayView.generateMaskBytes].
- * White = correlate, clear = void.
+ * The ROI mask as ALPHA_8 bytes, one per reference pixel: 255 (opaque) =
+ * correlate, 0 (cleared) = void.
  *
  * Only the holes are void. The background outside the crop stays opaque on
  * purpose: the ROI rect (passed to the engine separately) already bounds the

@@ -26,9 +26,8 @@ import java.util.UUID
  * Every delete that touches the cloud goes through here: one queue, one
  * analysis at a time, paced to the server.
  *
- * On 2026-09-25 a ten-row delete from Home took 61 requests over 100 s: two
- * screen-scoped loops overlapped and raced for the backend's erase bucket, and
- * the second re-sent DELETE for backups the first had already erased. Here a
+ * Two overlapping screen-scoped loops once raced for the erase bucket and
+ * re-sent DELETEs (61 requests for ten rows, 2026-09-25). Here a
  * confirm queues behind any delete still running ([ExistingWorkPolicy.APPEND_OR_REPLACE]),
  * a 429 waits for the next token instead of counting as a failure, and a
  * record whose cloud copy is gone makes no call at all.

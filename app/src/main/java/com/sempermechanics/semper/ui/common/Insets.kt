@@ -9,11 +9,9 @@ import androidx.core.view.updatePadding
 /**
  * Edge-to-edge window-insets helpers.
  *
- * On targetSdk 35+ (Android 15/16) apps are ALWAYS edge-to-edge — content
- * draws under the status bar and navigation bar, and the strips behind them
- * are system gesture zones. Without handling this, top toolbars sit under
- * the clock and in the swipe-down-for-notifications area (so taps get eaten
- * by the system), and bottom controls hide under the nav bar / gesture pill.
+ * On targetSdk 35+ apps are always edge-to-edge: content draws under the
+ * status and navigation bars, whose strips are system gesture zones, so
+ * unhandled toolbars lose taps to the system and bottom controls hide.
  *
  * These helpers add the relevant system-bar inset as PADDING (preserving any
  * padding already set in XML), so backgrounds still extend edge-to-edge while

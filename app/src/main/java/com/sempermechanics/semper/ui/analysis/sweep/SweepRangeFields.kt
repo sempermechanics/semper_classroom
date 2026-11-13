@@ -41,10 +41,9 @@ internal class SweepRangeFields(
     private var bindingSweep = false
 
     /**
-     * Set once the user edits any sweep control. Until then the three sweep
-     * inputs — min subset, max subset, Max VSG — follow the app's suggestions,
-     * which track the SSSIG recommendation. After it, the user is in charge and
-     * the app only clamps their input to safe bounds.
+     * Set once the user edits any sweep control. Until then the subset and
+     * strain-window ranges follow the app's suggestions ([seed]); after it, the
+     * user is in charge and the app only clamps their input to safe bounds.
      */
     var userModified = false
 
@@ -91,12 +90,11 @@ internal class SweepRangeFields(
     }
 
     /**
-     * Writes the app's suggestion — a subset window centred on the
-     * recommendation and the default strain windows — unless the user has
-     * taken over. Then their values stand, but an ROI edit can still shrink
-     * what it's physically possible to solve, so the displayed subset range
-     * keeps up: without this, the plan silently clamped subsetMax while the
-     * slider kept showing the old value.
+     * Writes the app's suggestion — a subset window centred on the analysis
+     * subset size as the settings slider holds it now, and the default strain
+     * windows — unless the user has taken over. Then their values stand, but an
+     * ROI edit can still shrink what can be solved, so the displayed subset
+     * range is clamped to match what the plan will use.
      */
     fun seed() {
         if (userModified) {

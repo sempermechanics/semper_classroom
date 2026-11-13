@@ -17,9 +17,9 @@ import com.sempermechanics.semper.data.prefs.put
  * Local session cache alongside Firebase Auth: the signed-in identity plus the
  * backend-confirmed role/status/quota.
  *
- * Firebase owns the actual credential (the ID token, auto-refreshed) — we no
- * longer store any token here. This holds only the cached identity and the
- * app-layer state the backend tells us (approval status, admin role, quota).
+ * Firebase owns the credential (the ID token, auto-refreshed); no token is
+ * stored here, only the cached identity and the app-layer state the backend
+ * tells us (approval status, admin role, quota).
  */
 object AccountCache {
 
@@ -62,13 +62,8 @@ object AccountCache {
         prefs(context).edit { put(Session.DEVICE_REGISTERED, v) }
     }
 
-    // ── Cloud analysis quota (max sessions per account) ──────────────────
-    // The ceiling is owned by [AppRemoteConfig] (from /v1/config); AccountCache
-    // holds only the runtime USED counts and a forced-stop flag and reads the
-    // ceiling from there. One dependency direction (AccountCache → AppRemoteConfig),
-    // no cycle. Whether the account may add an analysis is the one rule in
-    // `data/session/SessionQuota`, computed live, so a changed ceiling takes
-    // effect without any write-back from AppRemoteConfig.
+    // Cloud analysis quota: only the USED counts and forced stops live here; the
+    // ceiling is [AppRemoteConfig]'s, and `SessionQuota` decides live from both.
 
     /**
      * Analyses counted against the cap: the server's count or the phone's,
@@ -103,7 +98,6 @@ object AccountCache {
      */
     fun quotaMax(context: Context): Int = AppRemoteConfig.maxSessions(context)
 
-    /** True when the backend has reported a positive quota ceiling. */
     fun isQuotaKnown(context: Context): Boolean = quotaMax(context) > 0
 
     /**

@@ -69,10 +69,9 @@ object AppRemoteConfig {
     private fun prefs(context: Context) = privatePrefs(context, RemoteConfig.NAME)
 
     /**
-     * Persist a successful config response. The session-limit hard stop is
-     * recomputed live by `SessionQuota.blocked` from the used count
-     * against [maxSessions], so storing the ceiling here is all that is needed —
-     * no write back into AccountCache, no [localSessionCount] to fold in.
+     * Persist a successful config response. The hard stop is recomputed live by
+     * `SessionQuota.blocked` against [maxSessions], so nothing is written back
+     * into AccountCache.
      *
      * [now] is stored as the fetch time. Without it the cache has no age:
      * "the license expired" and "we have not asked in three weeks" look
@@ -152,9 +151,8 @@ object AppRemoteConfig {
      * unparseable. Unparseable is treated as absent rather than as an expiry
      * at the epoch, which would read as expired forever.
      *
-     * `SimpleDateFormat`, not `java.time`: written when minSdk was 24 (no
-     * `Instant.parse` without desugaring). minSdk is 30 now, so `java.time`
-     * would do; the rest of the app still parses timestamps this way.
+     * `SimpleDateFormat`, as the rest of the app parses timestamps (from before
+     * minSdk 30); `java.time` would do now.
      *
      * `XXX` accepts both spellings of a zero offset — the backend serialises
      * an aware datetime as `+00:00`, while `Instant.toString()` (what the
@@ -173,12 +171,9 @@ object AppRemoteConfig {
     }
 
     /**
-     * Assigned unless the backend explicitly says floating.
-     *
-     * A deploy predating floating seats sends nothing here, and every license
-     * that existed then entitled its members outright — so assigned is what
-     * those responses mean, not a guess. Failing the other way would lock
-     * every institution user out of starting work against an older backend.
+     * Assigned unless the backend explicitly says floating: what an older
+     * backend's blank means ([AppConfigDto.licenseSeating]). Failing the other way
+     * would lock every institution user out of starting work against one.
      */
     private fun resolveSeating(config: AppConfigDto): String =
         if (config.licenseSeating == SEATING_FLOATING) SEATING_FLOATING else SEATING_ASSIGNED
@@ -218,7 +213,6 @@ object AppRemoteConfig {
     fun shouldHintSyncBlocked(context: Context): Boolean =
         !isKnown(context) && prefs(context)[RemoteConfig.FAIL_STREAK] >= FAIL_STREAK_HINT
 
-    /** True once the backend has reported a positive maxSessions. */
     fun isKnown(context: Context): Boolean = maxSessions(context) > 0
 
     fun maxSessions(context: Context): Int = prefs(context)[RemoteConfig.MAX_SESSIONS]
@@ -231,7 +225,7 @@ object AppRemoteConfig {
     /**
      * Whether this account may upload `.dat` entries through
      * [DatCodec][com.sempermechanics.semper.data.session.DatCodec].
-     * Fails closed like everything else here — `false` (today's raw behaviour)
+     * Fails closed like everything else here — `false` (raw `.dat` entries)
      * until a successful [apply] says otherwise, so a device that has never
      * synced config, or whose last fetch failed, never guesses "on".
      */
@@ -239,13 +233,9 @@ object AppRemoteConfig {
         prefs(context)[RemoteConfig.DAT_CODEC_ENCODING]
 
     /**
-     * Collapse the dual-keyed config response to one mode.
-     *
-     * The backend sends `mode` (`demo`/`licensed`) and, for builds that
-     * predate the rename, a `plan` mirror (`demo`/`professional`). Prefer
-     * `mode`; fall back to `plan` so this build still works against a deploy
-     * that has not shipped the rename. Anything unrecognised is demo — an
-     * entitlement is never inferred from a value we do not understand.
+     * [AppConfigDto.mode], else its [AppConfigDto.plan] mirror. Anything
+     * unrecognised is demo — an entitlement is never inferred from a value we do
+     * not understand.
      */
     private fun resolveMode(config: AppConfigDto): String = when {
         config.mode == LicenseEntitlements.MODE_LICENSED -> LicenseEntitlements.MODE_LICENSED
@@ -257,12 +247,10 @@ object AppRemoteConfig {
     /**
      * The cached mode, or demo when nothing has been cached yet.
      *
-     * Falls back to [RemoteConfig.LEGACY_PLAN], the pref key a build predating the rename
-     * wrote. Without that fallback, upgrading the app would read demo for a
-     * licensed account from launch until the next successful /v1/config fetch
-     * — which, offline, may not come for a long time. The cached value is not
-     * rewritten here: the next [apply] does that, and a read path that writes
-     * would touch prefs on every gate check.
+     * Falls back to [RemoteConfig.LEGACY_PLAN], the pref key a build predating the
+     * rename wrote, so an upgrade does not read demo for a licensed account until the
+     * next fetch (offline, a long wait). Not rewritten here: the next [apply] does
+     * that, and a read path that writes would touch prefs on every gate check.
      */
     fun mode(context: Context): String {
         val prefs = prefs(context)
@@ -291,16 +279,9 @@ object AppRemoteConfig {
     fun fetchedAtMs(context: Context): Long = prefs(context)[RemoteConfig.FETCHED_AT]
 
     /**
-     * Whether the cache is older than [maxAgeMs].
-     *
-     * `now` is a parameter with a production default, as in
-     * `WizardDraft.isLive` and `LicenseEntitlements.daysUntilExpiry` — the app
-     * has no clock abstraction and this is not the place to invent one. A
-     * cache that has never been written is stale.
-     *
-     * The `in 0 until` guard is `CloudSync`'s: a stored time in the future
-     * (NTP correction, the user changing the date) reads as stale rather than
-     * fresh forever.
+     * Whether the cache is older than [maxAgeMs]; one never written is stale. A
+     * stored time in the future (NTP correction, the user changing the date) reads
+     * as stale rather than fresh forever.
      */
     fun isStale(
         context: Context,

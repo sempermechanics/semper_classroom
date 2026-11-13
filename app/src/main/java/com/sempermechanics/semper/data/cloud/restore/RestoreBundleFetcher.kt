@@ -32,7 +32,7 @@ internal object RestoreBundleFetcher {
     /**
      * Tail fetched to read a legacy bundle's central directory. Large enough for a
      * few thousand entries; if the directory does not fit, the parse returns null and
-     * the whole archive is downloaded as before.
+     * the whole archive is downloaded instead.
      */
     private const val CENTRAL_DIRECTORY_TAIL_BYTES = 512L * 1024L
 
@@ -94,14 +94,14 @@ internal object RestoreBundleFetcher {
 
     /**
      * Download Session.zip with size checks, verify zip magic, unpack.
-     * Deletes `.part` / `.full` sidecars so a corrupt transfer cannot stick,
-     * except when the attempt will run again: a stop WorkManager reruns
-     * (TD-223) or a failure the worker retries ([keepsPartFor], TD-243)
-     * resumes from them. A failed size, zip or sha256 check, or any failure
-     * the worker gives up on, drops them, as does the worker when the app
-     * cancelled or it gave up ([CloudRestore.discardDownloads]). The bundle's
-     * sha256 catches a bad resume.
      * [onProgress] is byte-based: (bytesOnDisk, declaredSize).
+     *
+     * The `.part` / `.full` sidecars stay only for an attempt that runs again (a
+     * stop WorkManager reruns, TD-223, or a failure the worker retries, [keepsPartFor],
+     * TD-243), or when the process died first; the next download resumes from them,
+     * and the bundle's sha256 catches a bad resume.
+     * Any other failure drops them so a corrupt transfer cannot stick, as does
+     * [CloudRestore.discardDownloads] when the app cancelled or the worker gave up.
      */
     private suspend fun downloadAndUnpackBundle(
         fetch: PayloadFetch,
@@ -144,7 +144,7 @@ internal object RestoreBundleFetcher {
      * Whole-file sha256 cannot apply to a partial fetch, so entries are verified by
      * their central-directory CRC32 instead. Anything unexpected — an unreadable
      * directory, an interleaved layout, a CRC mismatch — falls back to downloading
-     * the entire archive, which is exactly today's behaviour.
+     * the entire archive.
      */
     private suspend fun restoreLegacyBundle(
         fetch: PayloadFetch,
@@ -229,7 +229,7 @@ internal object RestoreBundleFetcher {
         val total = rest.size.toLong().coerceAtLeast(1L)
         onProgress(0L, total)
         // A few GETs in flight fill the link the way parallel Drive uploads do;
-        // one failure cancels siblings via coroutineScope (same as before: abort).
+        // one failure cancels siblings via coroutineScope, aborting the restore.
         coroutineScope {
             val gate = Semaphore(LEGACY_DOWNLOAD_CONCURRENCY)
             rest.map { f ->

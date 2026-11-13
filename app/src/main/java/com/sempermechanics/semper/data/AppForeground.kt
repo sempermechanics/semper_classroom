@@ -7,11 +7,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Whether one of this app's screens is started, from one count of started
- * activities that `SemperApp` installs at launch ([install]). It replaces three
- * checks that each kept their own: the upload's read of the process importance
- * before it opens the limit screen ([DicUploadSeams.inForeground]), and the
- * started counts of [com.sempermechanics.semper.data.policy.ManagedConfigReader]
- * and [LicenseConfigWorker]'s foreground refresh, now [Listener]s.
+ * activities that `SemperApp` installs at launch ([install]). Read by the upload
+ * ([DicUploadSeams.inForeground]); [com.sempermechanics.semper.data.policy.ManagedConfigReader]
+ * and [LicenseConfigWorker]'s foreground refresh are [Listener]s.
  *
  * A started activity is a visible one, which is what Android 10+ asks of a
  * process that starts an activity from the background.

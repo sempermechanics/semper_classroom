@@ -9,17 +9,12 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Reclaims `cacheDir` leftovers.
+ * Reclaims `cacheDir` leftovers the OS rarely evicts on a phone with space to spare:
+ * the imported-image copies a finished analysis leaves, a crashed import's staging
+ * directory, a killed upload/restore worker's scratch file (hundreds of MB on a long
+ * batch of large photos).
  *
- * Nothing pruned these before: a finished analysis left a full copy of every
- * imported image behind, a crashed import left its staging directory, and a
- * killed upload/restore worker left its scratch file — all of which survived
- * until the OS decided to evict the cache, which on a device with space to
- * spare is never. On a long batch of large photos that was hundreds of
- * megabytes sitting idle.
- *
- * Both entry points are safe to call from any thread but do blocking I/O, so
- * call them off the main thread.
+ * Both entry points are thread-safe but do blocking I/O: call them off the main thread.
  */
 object CacheJanitor {
 
@@ -46,9 +41,8 @@ object CacheJanitor {
 
     /**
      * Regenerable top-level cache files that are safe to drop on an explicit
-     * clear. They are not covered by the worker-scratch prefixes and used to
-     * inflate the Temporary files size while Clear left them untouched. Named
-     * here and used by their writers, so a rename cannot leave one unreclaimed.
+     * clear, which the worker-scratch prefixes do not cover. Named here and used
+     * by their writers, so a rename cannot leave one unreclaimed.
      */
     private val REGENERABLE_FILE_NAMES = setOf(ROI_MASK_CACHE, TEMP_ROI_REF, RERUN_REFERENCE_CACHE, ACCOUNT_EXPORT)
 

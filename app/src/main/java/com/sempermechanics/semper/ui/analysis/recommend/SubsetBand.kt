@@ -17,8 +17,9 @@ import com.sempermechanics.semper.R
 /**
  * The subset sizes that hold enough of the measured speckle, shaded behind
  * the subset slider's track: from the smallest size that meets both the
- * SSSIG criterion and the three-speckle span, up to the slider's end. A
- * larger subset still correlates; it only trades spatial resolution.
+ * SSSIG criterion and the three-speckle span, up to the slider's end
+ * ([rangeFor]). A larger subset still correlates; it only trades spatial
+ * resolution.
  *
  * Drawn as the slider's background, under its track and thumb, so the slider
  * keeps its own touch and drawing.
@@ -81,8 +82,10 @@ class SubsetBand private constructor(private val slider: Slider) : Drawable() {
 
         /**
          * The sizes that hold enough speckle for [rec], within [sizes]: from
-         * the larger of its SSSIG size and its three-speckle span. Null when
-         * even the largest size falls short.
+         * the larger of its SSSIG size and its three-speckle span, up to the end
+         * of [sizes]; null only when that start is past the end. With no span
+         * (speckle unmeasured, or too coarse for any subset) it falls back to the
+         * SSSIG size and still draws a band (TD-284).
          */
         fun rangeFor(rec: SubsetRecommender.Recommendation, sizes: IntRange): IntRange? {
             val least = maxOf(rec.subsetSize, rec.subsetSpanningSpeckles ?: rec.subsetSize)

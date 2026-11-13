@@ -24,12 +24,9 @@ import kotlinx.coroutines.launch
 /**
  * The sign-in screen's state and calls, kept across a rotation (ADR-016).
  *
- * Sign-in used to run on [AuthActivity]'s own scope with its form in a plain
- * field: a rotation while Firebase or the backend answered cancelled the
- * call's routing, dropped a Create account form back to Sign in, and lost the
- * offer to save the password. Here the calls run on [viewModelScope], the
- * form ([screen]) lives in the [SavedStateHandle], and what each call came to
- * is handed out once ([outcomes]) to whichever screen is current.
+ * The calls run on [viewModelScope], the form ([screen]) lives in the
+ * [SavedStateHandle] so a Create account form survives too, and what each call
+ * came to is handed out once ([outcomes]) to whichever screen is current.
  */
 @MainThread
 class AuthViewModel(app: Application, private val saved: SavedStateHandle) : AndroidViewModel(app) {

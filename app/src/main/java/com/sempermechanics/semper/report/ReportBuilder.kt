@@ -27,7 +27,8 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
- * Headless report assembly shared by the result viewer and [DicUploadWorker].
+ * Headless report assembly shared by the result viewer and the cloud upload
+ * ([DicUploadWorker], through `SessionUploadBundler`).
  * No Activity or UI dependencies.
  */
 object ReportBuilder {
@@ -77,7 +78,7 @@ object ReportBuilder {
         val engineStats: EngineStats,
         val referenceImageName: String,
         val deformedImageName: String,
-        /** At 940e57d cloud worker PDFs drew MAX only; viewer PDFs drew MAX+MIN. */
+        /** False for the cloud bundle's PDFs ([ReportSource.forRecord]), which mark MAX only. */
         val drawMinMarker: Boolean = true,
         /**
          * True when [defImgForCover] is this frame's own photo. The field images
@@ -181,11 +182,10 @@ object ReportBuilder {
                 }
                 val meanTypeString = meanLabel(isStrain)
 
-                // One collect pass: store signed values (what computeFieldExtrema's
-                // absoluteStrainValues=false path needs) and accumulate the abs-mean sum in
-                // the same walk. mean/std keep the exact same Double accumulation and
-                // iteration order — abs is applied to the accumulator, not the stored value,
-                // so the numbers match the previous two-pass code bit-for-bit.
+                // One collect pass: store signed values (computeFieldExtrema's
+                // absoluteStrainValues=false path) and sum |value| for the mean in the same walk.
+                // abs goes on the accumulator, not the stored value, keeping the Double
+                // accumulation and order, and so the numbers, bit-for-bit.
                 var count = 0
                 var sum = 0.0
                 for (i in data.indices step DicResult.STRIDE) {
@@ -212,10 +212,7 @@ object ReportBuilder {
                 val extrema =
                     ReportFieldExtrema.extremaFromScratch(data, dataIndex, absoluteStrainValues = false, scratch, count)
 
-                // Bound the intermediate render to REPORT_MAX_EDGE. Every output here is
-                // downscaled to 600 px by compressForPdf(), so this is invisible — but it
-                // stops the full-resolution ARGB_8888 bitmaps (heatmap + composite, up to
-                // ~100 MB each on a 26 MP reference) from OOMing.
+                // Bound the intermediate render to REPORT_MAX_EDGE (see its doc: an OOM guard).
                 val longest = maxOf(params.imgW, params.imgH).coerceAtLeast(1)
                 val renderScale = if (longest > VisualizationEngine.REPORT_MAX_EDGE) {
                     VisualizationEngine.REPORT_MAX_EDGE.toFloat() / longest
@@ -237,11 +234,9 @@ object ReportBuilder {
                     maxLongEdge = VisualizationEngine.REPORT_MAX_EDGE,
                 )
 
-                // Compose at the capped size, then downscale for the PDF. The composite is
-                // a throwaway — compressForPdf() returns a *new* small bitmap, so the
-                // original must be recycled here or we leak one ARGB_8888 bitmap per field.
-                // Both full-size bitmaps are freed in finally: a draw that throws must not
-                // strand them (up to ~100 MB each before REPORT_MAX_EDGE capped them).
+                // Compose at the capped size, then downscale for the PDF. compressForPdf()
+                // returns a *new* bitmap, so the composite and the heatmap are recycled in
+                // finally, a throwing draw included, or each field leaks two ARGB_8888 bitmaps.
                 val bakedHeatmap = own(
                     try {
                         val composite = createBitmap(renderW, renderH, Bitmap.Config.ARGB_8888)

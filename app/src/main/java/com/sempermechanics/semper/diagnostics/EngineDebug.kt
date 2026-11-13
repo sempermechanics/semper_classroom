@@ -11,8 +11,7 @@ import java.io.File
  * full-ROI diagnostic images plus two CSVs *per frame* (see
  * `engine/src/pipeline/full_field_debug_export.cpp`, whose own header states
  * that production leaves the directory empty). Release builds therefore pass
- * null so the engine skips the export entirely — it is a dev tool, and on a
- * long batch it was the single largest consumer of cache storage.
+ * null so the engine skips this dev tool, which fills cache storage on a long batch.
  */
 object EngineDebug {
 

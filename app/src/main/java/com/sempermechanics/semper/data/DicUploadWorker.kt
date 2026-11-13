@@ -62,29 +62,25 @@ internal object DicUploadSeams {
  * WorkManager's small Data), then runs four steps:
  *  1. stage every artifact ([UploadStaging]),
  *  2. ensure the cloud session ([UploadSessionPlanner]): POST /v1/sessions with
- *     the full manifest (creates the Drive folder tree and one resumable upload
- *     URI per file, device-signed), or resume the one a prior run created,
+ *     the full manifest, or resume the one a prior run created; the backend opens
+ *     the resumable upload targets in a Cloud Task, so a new session is polled
+ *     until they exist,
  *  3. upload the files, streaming each **directly to Google Drive** in resumable
  *     chunks — bytes never pass through the backend — and POST
  *     /v1/files/{id}/complete to record each Drive pointer,
  *  4. complete: record the sync and drop the staging.
  *
- * Layout per analysis (3 files — artifacts are bundled rather than uploaded
- * individually to keep Firestore's per-file costs flat):
+ * Layout per analysis (3 files, bundled to keep Firestore's per-file costs flat):
  * ```
  * session/<sid>/metadata.json   device, time, engine params, frame list
- *               Session.zip     raw/…  (reference + every deformed original),
- *                               dat/frame_%04d.dat ← enables full restore
+ *               Session.zip     ref/Reference.png, raw/<each deformed original>,
+ *                               dat/frame_%04d.dat, dat/record_manifest.json
  *               Extras.zip      csv/analysis_data.csv  (one combined file),
  *                               reports/Master_Report_<frame>.pdf,
  *                               processed/<frame>/<field>.png
  * ```
- * The split is what keeps a restore cheap without losing anything a local run would
- * have produced: `Session.zip` holds every original image plus the engine results, so
- * a restored session is fully usable — including on-device re-export — with one
- * download. `Extras.zip` holds only the **derived** deliverables (regenerated on
- * export, so a restore never needs them). "Save to Files" fetches both and merges
- * them into one archive. See [SessionZip.isRestoreEssential].
+ * `Session.zip` alone restores a full session; `Extras.zip` is derived and regenerated
+ * on export ([SessionZip.isRestoreEssential]). "Save to Files" merges the two.
  */
 class DicUploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 

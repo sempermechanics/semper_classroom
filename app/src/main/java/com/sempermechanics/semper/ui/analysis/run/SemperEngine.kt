@@ -8,17 +8,16 @@ import com.sempermechanics.semper.report.newMetrics
 import java.nio.ByteBuffer
 
 /**
- * One full-field solve for the single-shot callers: the parameter sweep's per-node
- * solve and the noise-floor probe. Both cleared the output buffer, passed a
- * silent progress callback and handed back the engine's point count, around
- * the same JNI call; this is that wrapper.
+ * One full-field solve for single-shot callers: the parameter sweep's per-node solve
+ * (`NoiseFloorProbe` builds on it too, but has no live caller: TD-283). It clears the
+ * buffer, ignores progress and returns the engine's point count.
  *
  * Not for the batch run: `BatchAnalysis` keeps its
  * [SemperNativeLib.computeFullFieldDirect] call inline in its one loop (it
  * reports progress, and its buffer handling is pinned there).
  *
  * The reference must already be initialised ([SemperNativeLib.initializeReference]).
- * Runs on the caller's thread; the callers already run on the native one.
+ * Runs on the caller's thread, which is already the native one.
  */
 internal object SemperEngine {
 
@@ -70,10 +69,9 @@ internal object SemperEngine {
     /**
      * What one solve computes: the region, the grid and the solver options.
      *
-     * Construct it with named arguments, always. The JNI takes `(step, subset,
-     * strainWindow)`, and so does this constructor, but `NoiseFloorProbe`'s own
-     * solve takes `(subset, step, strainWindow)`: a positional port of either
-     * caller can swap two `Int`s without a compile error.
+     * Construct it with named arguments, always: the JNI and this constructor take
+     * `(step, subset, strainWindow)`, unlike `DicParams`' subset-first order, so a
+     * positional call can swap two `Int`s without a compile error.
      */
     @Suppress("LongParameterList") // the solve's own inputs, named once here
     class Params(
@@ -95,9 +93,8 @@ internal object SemperEngine {
     /**
      * Solves [params]' region of [defBytes] against [refBytes] into [buffer],
      * which is cleared first. [metrics] receives the telemetry slots
-     * ([EngineStats.fromArray]); the sweep passes [EngineStats.newMetrics],
-     * the probe a plain zeroed array. Progress goes to [SILENT]: both
-     * callers ignored it, and the batch, which reports it, is not a caller.
+     * ([EngineStats.fromArray]); the sweep passes [EngineStats.newMetrics].
+     * Progress goes to [SILENT]: the batch, which reports it, does not come through here.
      *
      * @return the engine's result: points written, or a negative engine code.
      */

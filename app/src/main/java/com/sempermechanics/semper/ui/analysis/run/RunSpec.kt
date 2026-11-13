@@ -15,8 +15,7 @@ import java.io.File
  * The wizard's sliders, ROI and mask stay editable during and after a run.
  * Everything downstream of Compute (the engine parameters, the saved session
  * record, the viewer the run opens) reads this snapshot instead, so the three
- * cannot disagree. They used to: the viewer got the ROI the user drew while
- * the engine solved, and the session saved, the inset one.
+ * cannot disagree.
  *
  * @property params the solver's subset, step and VSG (px); for a parameter
  *   sweep, its first combination

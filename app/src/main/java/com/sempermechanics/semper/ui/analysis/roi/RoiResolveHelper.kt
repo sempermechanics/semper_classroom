@@ -15,7 +15,7 @@ object RoiResolveHelper {
     /**
      * Clearance the engine demands around a grid point on top of half its
      * subset: 4 px of interpolation buffer plus a 15 px deformation buffer
-     * (SemperJNI.cpp, `absolute_boundary_buffer`). Points inside it are
+     * (`engine/src/pipeline/full_field_solver.cpp`, `absolute_boundary_buffer`). Points inside it are
      * dropped, and a solve with no points left returns an ROI engine error.
      */
     const val ENGINE_EDGE_BUFFER_PX = 19

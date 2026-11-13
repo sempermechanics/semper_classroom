@@ -62,11 +62,8 @@ class SweepPlotView @JvmOverloads constructor(
     data class Mark(val x: Float, val y: Float, val label: String, val color: Int)
 
     companion object {
-        /** Colour for the n-th series of a multi-line plot; safe for any index
-         *  (a skipped lattice node has frameIndex -1). */
         fun paletteColor(context: Context, index: Int): Int = SweepPlotPalette.series(context, index)
 
-        /** Colour for the n-th of the line-cut's 3 concurrent strain components. */
         fun lineCutColor(context: Context, slot: Int): Int = SweepPlotPalette.lineCut(context, slot)
 
         const val AXIS_LABEL_SP = PlotStyle.AXIS_LABEL_SP
@@ -76,16 +73,11 @@ class SweepPlotView @JvmOverloads constructor(
         /** Half the diagonal of a [Mark]'s diamond. */
         const val MARK_RADIUS_DP = 6f
 
-        /** Full axis gutters: a separate descriptive title line/rotated title
-         *  beside the tick labels -- used for the detached PNG export, which has
-         *  the 1600x1000px room to spare and no other on-screen context to lean on. */
+        /** Full axis gutters, with the axis titles beside the ticks (see [compactAxes]). */
         const val PAD_LEFT_FULL_DP = 46f
         const val PAD_BOTTOM_FULL_DP = 30f
 
-        /** Compact axis gutters ([compactAxes]): no separate title, just the tick
-         *  labels with the unit folded onto the outermost tick -- for the
-         *  space-constrained on-screen lattice and peek-sheet plots, whose
-         *  section headers/params chip already say what each axis is. */
+        /** Compact axis gutters ([compactAxes]): tick labels only. */
         const val PAD_LEFT_COMPACT_DP = 34f
         const val PAD_BOTTOM_COMPACT_DP = 18f
 
@@ -141,12 +133,11 @@ class SweepPlotView @JvmOverloads constructor(
     private var yUnit: String = ""
 
     /**
-     * When true, the plot drops its separate axis-title lines and instead folds
-     * the unit onto the outermost tick, freeing [PAD_LEFT_COMPACT_DP] /
-     * [PAD_BOTTOM_COMPACT_DP] of gutter -- for the on-screen lattice and
-     * peek-sheet plots. The detached PNG export leaves this false (default) for
-     * the full descriptive titles, since it has the room and no surrounding
-     * screen context to lean on.
+     * When true, the plot drops its separate axis-title lines and folds the
+     * unit onto the outermost tick, leaving [PAD_LEFT_COMPACT_DP] /
+     * [PAD_BOTTOM_COMPACT_DP] of gutter: for the on-screen lattice and peek-sheet
+     * plots, whose headers already name each axis. The detached PNG export keeps
+     * the default, false: it has the room and no screen around it to lean on.
      */
     var compactAxes: Boolean = false
         set(value) {
@@ -239,7 +230,7 @@ class SweepPlotView @JvmOverloads constructor(
      * @param preserveViewport keep the current pinch-zoom / pan viewport instead
      *   of resetting to fit — used when the data changes but its scale does not
      *   (switching solved node or Highlight/Isolate), so the zoom survives.
-     * @param xUnit @param yUnit only used when [compactAxes] is true, appended to
+     * @param xUnit with [yUnit], only used when [compactAxes] is true: appended to
      *   the outermost tick in place of the (then unused) [xLabel] / [yLabel] title.
      * @param marks points called out with a diamond and a legend entry.
      */

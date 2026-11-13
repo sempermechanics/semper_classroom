@@ -5,11 +5,8 @@ import java.io.File
 /**
  * Where everything sits in one session directory, by its established name.
  *
- * The run, upload, restore, export and viewer each spelled these names out as
- * string literals (`"reference.png"`, `"metadata.json"`, `"reports"`, …).
- * The segment constants that already had a home stay in [SessionPaths]; this
- * resolves them and the remaining names against a concrete [dir] and
- * delegates frame `.dat` naming to [SessionPaths].
+ * Resolves [SessionPaths]' segment constants and the remaining names against a
+ * concrete [dir]; frame `.dat` naming stays in [SessionPaths].
  *
  * Pure path arithmetic: nothing here touches the disk.
  */

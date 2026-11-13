@@ -37,13 +37,9 @@ internal object RestoreUnpacker {
      * this deliberately did not fetch. Each entry is checked against its
      * central-directory CRC before it counts as restored.
      *
-     * Deliberately does **not** go through [SessionZip]'s `DatCodec` decode: this path
-     * only runs for `schema < 3` archives (see [CloudRestore.isSplitLayout]), which predate the
-     * split-bundle feature entirely — and therefore predate `DatCodec` too. Every
-     * `.dat` entry a legacy archive can hold is guaranteed raw. A schema this old
-     * never gets `DatCodec`-encoded going forward either, since a *new* upload always
-     * writes the current schema and goes through [SessionZip.build] /
-     * [SessionZip.forEachEntry] instead of this path.
+     * Deliberately no `DatCodec` decode: only `schema < 3` archives come here
+     * ([CloudRestore.isSplitLayout]), which predate `DatCodec`, so every `.dat` is
+     * raw; a new upload writes the current schema and never takes this path.
      */
     fun unpackPrefix(zip: File, layout: SessionLayout, crcByName: Map<String, Long>): String {
         var refPath = ""
@@ -93,15 +89,13 @@ internal object RestoreUnpacker {
      * Backups before metadata schema 4 kept it at `raw/Reference.png`, so that
      * entry is the reference while [legacyReference] holds — the caller's
      * archive has no `ref/` entry — and otherwise a frame the user named
-     * `Reference.png`. Guards against
-     * zip-slip: an entry must resolve to a path strictly **inside** the session
-     * directory.
+     * `Reference.png`.
      *
-     * The containment test compares whole path segments. A plain string-prefix
-     * test let `../<id>X/…` through, since a sibling directory whose name merely
-     * starts with this session's id shares its path as a prefix. An entry that
-     * escapes is a hostile or broken archive, so it fails as a
-     * [CorruptTransferException]: terminal, never retried.
+     * Guards against zip-slip: an entry must resolve strictly **inside** the
+     * session directory, compared by whole path segments (a string prefix would
+     * let `../<id>X/…`, a sibling sharing the id as a prefix, through). An entry
+     * that escapes is a hostile or broken archive: a [CorruptTransferException],
+     * terminal, never retried.
      */
     fun destFor(role: String, name: String, layout: SessionLayout, legacyReference: Boolean = true): File {
         val dest = when {

@@ -61,9 +61,8 @@ internal class FirstRunPrompts(private val activity: AppCompatActivity) {
     /**
      * First-run diagnostics choice, then [next].
      *
-     * Crashlytics and Analytics are disabled in the manifest, so nothing has been
-     * collected before this point — the app previously started reporting on first
-     * launch with no notice and no way to decline. Asked once: a "Not now" is
+     * Crashlytics and Analytics are disabled in the manifest, so nothing is
+     * collected before the user has had notice and a way to decline. Asked once: a "Not now" is
      * recorded, so this does not nag, and the toggle stays in Settings.
      */
     private fun maybeAskDiagnostics(next: () -> Unit) {

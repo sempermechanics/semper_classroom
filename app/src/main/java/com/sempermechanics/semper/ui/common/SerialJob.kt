@@ -12,9 +12,8 @@ import kotlin.coroutines.EmptyCoroutineContext
  * latest request (the frame the user settled on, the last picked reference)
  * can land.
  *
- * Replaces the `job?.cancel(); job = scope.launch { … }` pairs in the viewer,
- * the wizard and the pickers. Cancelling is cooperative, as before: a body
- * that must not publish a stale result still checks after its last suspension.
+ * Cancelling is cooperative: a body that must not publish a stale result still
+ * checks after its last suspension.
  *
  * Main thread only, like the Activity scope it usually launches in.
  */

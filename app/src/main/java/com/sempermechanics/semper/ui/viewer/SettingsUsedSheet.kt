@@ -252,9 +252,8 @@ object SettingsUsedSheet {
 
     /**
      * Prefix plus a colour swatch beside each of Exx / Eyy / Exy for the line-cut
-     * plot -- identity comes from the swatch, not from colouring the label text
-     * itself (a light categorical hue is illegible as text; see the dataviz
-     * skill's marks-and-anatomy.md). Labels stay in the row's own ink colour.
+     * plot: identity comes from the swatch, and labels stay in the row's own ink
+     * colour (a light categorical hue is illegible as text).
      */
     fun lineCutLegend(
         host: ResultViewerActivity,

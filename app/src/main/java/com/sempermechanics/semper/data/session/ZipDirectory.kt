@@ -15,10 +15,9 @@ import java.nio.ByteOrder
  * backup instead of all of it.
  *
  * Legacy backups (metadata schema < 3) put raw/, dat/, csv/, reports/ and
- * processed/ in one `Session.zip`, but a restore only needs raw/ + dat/. Those are
- * written first (see `DicUploadWorker`'s artifact order, preserved by
- * `SessionZip.build`), so they form a **contiguous prefix** and the rest can simply
- * not be downloaded.
+ * processed/ in one `Session.zip`, but a restore only needs raw/ + dat/. The upload
+ * listed those first and [SessionZip.build] keeps member order, so they form a
+ * **contiguous prefix** and the rest can simply not be downloaded.
  *
  * This parses only what that decision needs. Anything unusual — zip64, a multi-disk
  * archive, an interleaved layout — returns null so the caller falls back to

@@ -121,9 +121,8 @@ class CoachMarkController(
     /**
      * Places the ring and the card around [target]. A target with no visible
      * bounds yet (not laid out, gone, or scrolled off) is retried once a frame
-     * for about half a second, then the card shows unanchored. This used to
-     * re-post itself with no limit, spinning the main thread for as long as the
-     * target stayed hidden. A late post for a step already left does nothing.
+     * for about half a second (never unbounded: that spun the main thread), then
+     * the card shows unanchored. A late post for a step already left does nothing.
      */
     private fun layoutAround(target: View) {
         val shown = overlay

@@ -18,10 +18,8 @@ import java.io.File
 /**
  * The "Save to Files" copy, held across a rotation of [SaveExportActivity].
  *
- * The copy used to run in the activity's own scope, so a rotation mid-copy
- * cancelled the wait and the recreated proxy started a second copy into the
- * same document while the first, blocking in IO, was still writing it. Here one
- * copy runs per proxy, and whichever instance is current awaits it.
+ * One copy runs per proxy, and whichever instance is current awaits it, so a
+ * rotation never starts a second copy into the same document (ADR-016).
  *
  * The copy runs on [io]; the activity builds this through [factory].
  */

@@ -10,21 +10,15 @@ import kotlin.math.sqrt
  * How much of a frame's displacement field is the whole scene moving, rather
  * than the specimen deforming.
  *
- * Two device runs on a tripod, with the specimen flat on a table under a fixed
- * lamp, still walked 2.3 px over sixty seconds — monotonically, which is
- * thermal, not vibration. That number has to reach the user, because it is the
- * one error in this whole chain that no camera setting touches and that only
- * they can fix.
+ * Two device runs on a tripod, specimen flat under a fixed lamp, still walked
+ * 2.3 px over sixty seconds, monotonically (thermal, not vibration). No camera
+ * setting touches that error and only the user can fix it, so it is reported.
  *
  * **It is reported and never subtracted.** A uniform translation already
- * cancels in strain, which is a spatial derivative of the displacement, so
- * removing it would change how the field *looks* without changing a single
- * strain value — the definition of a cosmetic fix. Worse, subtracting a fit
- * taken over the whole ROI would quietly remove real deformation along with
- * it, since under load the field is not rigid and the least-squares fit does
- * not know the difference. Where a genuinely undeforming region is available
- * to fit over, subtracting becomes defensible; until one is, reporting is the
- * honest half of the job and the only half worth doing.
+ * cancels in strain (a spatial derivative of the displacement), so removing it
+ * would only change how the field *looks*; and a fit over the whole ROI under
+ * load would also remove real deformation, which the least-squares fit cannot
+ * tell apart. Subtracting becomes defensible only over a genuinely undeforming region.
  *
  * Pure JVM, no Android types, so the arithmetic is unit-testable.
  */
@@ -51,13 +45,9 @@ object RigidBodyFit {
         fun shiftPx(): Double = hypot(uPx, vPx)
 
         /**
-         * True when the shift is large enough to be worth a sentence.
-         *
-         * A pixel is the threshold because it is the scale the rest of this
-         * work operates at: the whole point of the ISP lockdown is to hold
-         * frame-to-frame motion at hundredths of a pixel, so a whole pixel of
-         * bulk movement is the rig, not the camera, and no further capture
-         * setting will improve it.
+         * True when the shift is large enough to be worth a sentence. The ISP
+         * lockdown holds frame-to-frame motion to hundredths of a pixel, so a whole
+         * pixel of bulk movement is the rig, which no capture setting will improve.
          */
         fun isNotable(): Boolean = shiftPx() >= NOTABLE_SHIFT_PX
     }
@@ -66,12 +56,8 @@ object RigidBodyFit {
     const val NOTABLE_SHIFT_PX = 1.0
 
     /**
-     * Fewest accepted points worth fitting three parameters to.
-     *
-     * Three unknowns need three points to be determined at all; below a few
-     * dozen the rotation term is dominated by whichever handful of points
-     * happened to converge, and a rotation read off eight points is a number
-     * with no error bar being shown to someone who will believe it.
+     * Fewest accepted points worth fitting three parameters to: below a few dozen
+     * the rotation term is dominated by whichever handful of points converged.
      */
     const val MIN_POINTS = 32
 
@@ -82,12 +68,10 @@ object RigidBodyFit {
      * The model is `u = tx - θ(y - ȳ)`, `v = ty + θ(x - x̄)`. Centring on the
      * centroid is what makes it separable: the rotation terms are then
      * zero-mean, so the translation is just the mean displacement and θ falls
-     * out of a single ratio rather than a 3x3 solve. The small-angle form is
-     * not an approximation being got away with — a frame that rotated enough
-     * for it to matter has a rig failure the number would only understate.
+     * out of a single ratio rather than a 3x3 solve. A frame that rotated enough
+     * for the small-angle form to matter has a rig failure it would only understate.
      *
-     * @return null when too few points converged to fit anything, which is a
-     *   frame with its own problems and not a place to report a drift number.
+     * @return null when fewer than [MIN_POINTS] points converged.
      */
     fun fit(data: FloatArray?): Fit? {
         val sums = accumulate(data) ?: return null

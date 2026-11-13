@@ -66,10 +66,8 @@ class BatchRunController(
 
     /**
      * Shows how a run ended. First, whatever the ending: the run's chrome
-     * comes down and the buttons are re-checked. Compute was disabled for the
-     * run, and a branch that forgot to re-check left it disabled: a failed
-     * run could not be re-run after changing a setting, since the sliders
-     * never re-check.
+     * comes down and the buttons are re-checked, since Compute was disabled for
+     * the run and the sliders never re-check it.
      */
     @VisibleForTesting
     internal fun render(end: RunEnd) {
@@ -129,11 +127,9 @@ class BatchRunController(
      * A run that stopped itself partway: the images decorrelated, but the frames
      * solved before that are valid and the session already holds them.
      *
-     * Told plainly and then opened. The alternative — a failure dialog — left a
-     * session appearing on Home that the user had just been told was a failure,
-     * with no route to it from here. Two short sentences say how many frames
-     * were kept and why it stopped; **Why?** has the rest (the frame it stopped
-     * on, the engine's full reason, what the frames kept are).
+     * Told plainly and then opened, not as a failure: the session is on Home
+     * either way. Two short sentences say how many frames were kept and why it
+     * stopped; **Why?** has the frame, the engine's full reason and what was kept.
      */
     private fun showPartial(partial: RunEnd.Partial) {
         status.setFaq(null)

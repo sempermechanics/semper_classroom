@@ -156,8 +156,7 @@ class GifEncoder(
  * GIF-flavour LZW: variable code width from `minCodeSize + 1` up to 12 bits,
  * codes packed least-significant-bit first, output split into sub-blocks of at
  * most 255 bytes.
- */
-/**
+ *
  * @param table a scratch string table of at least `1 shl 20` ints, owned by the
  *   caller and reused across frames. Filled with [ABSENT] on each [compress]; its
  *   incoming contents are irrelevant.

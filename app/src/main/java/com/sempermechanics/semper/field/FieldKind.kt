@@ -5,10 +5,9 @@ package com.sempermechanics.semper.field
  * `.dat` point ([dataIndex]), what it is called ([label] on the pills, in the
  * CSV and in file names; [title] in the report) and the unit it is printed in.
  *
- * The one table: the viewer's pills, the exports, the summary animation, the
- * CSV and the report all read it, where each used to keep its own copy.
- * [label]s are what CSV headers and GIF / PNG file names are built from, so
- * they never change.
+ * The one table the viewer's pills, the exports, the summary animation, the
+ * CSV and the report all read. [label]s are what CSV headers and GIF / PNG
+ * file names are built from, so they never change.
  */
 enum class FieldKind(val dataIndex: Int, val label: String, val title: String) {
     U(DicResult.IDX_U, "U", "U Displacement"),
@@ -18,7 +17,10 @@ enum class FieldKind(val dataIndex: Int, val label: String, val title: String) {
     EXY(DicResult.IDX_EXY, "Exy", "Exy Shear"),
     ;
 
-    /** Exx, Eyy and Exy: shown in millistrain, their mean taken over absolute values. */
+    /**
+     * Exx, Eyy and Exy: shown in millistrain. Only the PDF report's mean is taken over absolute
+     * values ([com.sempermechanics.semper.report.ReportBuilder.meanLabel]); every other mean is signed.
+     */
     val isStrain: Boolean get() = DicResult.isStrainFieldIndex(dataIndex)
 
     /** Raw value → display units ([unit]). */

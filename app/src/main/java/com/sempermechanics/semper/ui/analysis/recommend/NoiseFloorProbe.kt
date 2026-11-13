@@ -15,20 +15,15 @@ import kotlin.math.sqrt
 
 /**
  * Correlates a burst of static test frames against the first one, turning each
- * pair into the [NoiseFloorStats.PairSample] the gate reasons about.
+ * pair into the [NoiseFloorStats.PairSample] that [NoiseFloorStats] reasons about.
  *
- * Nothing is loaded while these frames are taken, so every displacement here is
- * error — this is the measurement that says whether the setup can see the strain
- * about to be applied, before a specimen is spent finding out.
- *
- * It is deliberately coarse. The gate needs a *scatter* over the ROI, not a
- * field: a lattice of a few hundred points estimates σ as precisely as tens of
+ * It is deliberately coarse. A *scatter* over the ROI is wanted, not a field:
+ * a lattice of a few hundred points estimates σ as precisely as tens of
  * thousands would, and the test shot has to still feel like a test shot. The
  * step is widened until the grid fits [TARGET_GRID_POINTS], never narrowed.
  *
- * Every failure path returns fewer samples rather than throwing. A burst that
- * could not be correlated is the *existing* speckle failure — the caller
- * already has a dialog for it — and must never be a new crash.
+ * Every failure path returns fewer samples rather than throwing: a burst that
+ * could not be correlated is a speckle failure, never a crash.
  */
 object NoiseFloorProbe {
 
@@ -115,11 +110,9 @@ object NoiseFloorProbe {
      * dropped from the output entirely, and its perfectly good u,v go with it.
      *
      * The window is a diameter in pixels, walked at the grid's own spacing. On
-     * this deliberately coarse lattice the analysis default of 15 px therefore
-     * lands inside a single cell: the centre point is alone in its own window,
-     * fails the engine's three-point minimum, and every point in the ROI is
-     * discarded. A whole burst then measures as zero — which is exactly what
-     * both test devices reported.
+     * this coarse lattice the analysis default of 15 px lands inside one cell:
+     * each point is alone in its window, fails the engine's three-point minimum,
+     * and the whole burst measures as zero (as both test devices once reported).
      *
      * `2 * step + 1` is the smallest window that reaches the four orthogonal
      * neighbours at `step` and stops short of the diagonals at `step√2`. Five

@@ -14,11 +14,9 @@ import com.sempermechanics.semper.field.ImageSize
  * carried sub-seconds ([captureSubSec]; null when not recorded, a draft
  * saved before it was), and bending's [typedLoadKg] (null: a box left blank). A video frame is matched by
  * [timeMs] less the reference's clip time (`AnalysisViewModel.refVideoTimeMs`).
- * They ride with the frame like the rest, so a load follows its photo when
- * the list is reordered.
  *
- * A batch is a `List<DeformedFrame>` in run order, so a frame's name, date,
- * size and time move with it whenever the list is reordered. The wizard's draft
+ * A batch is a `List<DeformedFrame>` in run order, so all of a frame's fields,
+ * its load included, move with it whenever the list is reordered. The wizard's draft
  * (`WizardState.Frames`) and the view model's read-only list views keep the
  * older parallel-list shape; [unzip] makes it.
  */

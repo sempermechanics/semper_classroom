@@ -9,13 +9,9 @@ import org.json.JSONObject
  * [step] (px) and [strainWindow], the VSG diameter in **px** that the engine is
  * handed (`SweepStudy.vsgFor(points, step)`), never the window in data points.
  *
- * The same three ints travel today as `subset/step/strainWindow` (`RunSpec`,
- * `SessionRecord`, `SkippedNode`, CSV frames), `subset/step/strainWin`
- * (`SessionRecordSettings`, the JNI call),
- * `subsetSize/step/strainWindow` (`ViewerArgs`, `ReportBuildParams`),
- * `subset/step/vsg` (`SweepStudy.Point`, `ParamClipboard`, lattice nodes), the
- * `SUBSET_SIZE` / `STEP` / `STRAIN_WINDOW` extras and the `engine` object of
- * `metadata.json`. This is a view over those fields; it writes the same keys.
+ * A view over the fields that store them under various names (the
+ * `SUBSET_SIZE` / `STEP` / `STRAIN_WINDOW` extras, `metadata.json`'s `engine`
+ * object, …); it writes the same keys.
  *
  * `use6x6` and the strain method are not here: each travels on only one side
  * of a run (engine inputs vs. outputs), never per frame.

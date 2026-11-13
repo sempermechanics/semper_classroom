@@ -30,12 +30,10 @@ import timber.log.Timber
 /**
  * The one account deletion in flight, held outside any screen.
  *
- * Settings has no `configChanges`, so a rotation destroys and recreates it.
- * Run on the Activity's `lifecycleScope`, the deletion was cancelled half-way
- * (cloud erased, local data and sign-in still there) and its progress dialog
- * leaked with the old window. Here it runs on an application-lifetime scope,
- * and whichever Settings instance is showing renders [state] — the progress
- * dialog while [State.Running], then the outcome once ([consume]).
+ * It runs on an application-lifetime scope, so a rotation cannot cancel it
+ * half-way with the cloud already erased (ADR-016). Whichever Settings instance
+ * is showing renders [state]: the progress dialog while [State.Running], then
+ * the outcome once ([consume]).
  *
  * Process death still ends the run, so how far it got is kept on disk
  * ([AccountDeletionMarker]): the stage is written before the erase is sent and

@@ -59,9 +59,8 @@ internal class ViewerFrameLoader(
     )
 
     /**
-     * Largest `.dat` size, from the [FrameSet] ([useFrameSet]). The prefetch heap
-     * guard used to `stat()` every file on every frame load (3F syscalls per scrub
-     * step); the file set never changes once read, so one scan suffices.
+     * Largest `.dat` size, for the prefetch heap guard: scanned once into the [FrameSet]
+     * ([useFrameSet]), since the file set never changes once read.
      */
     private var maxDatBytes: Long = 0L
 
@@ -136,16 +135,11 @@ internal class ViewerFrameLoader(
      * Fills [scrubCache] with a bounded look-ahead window around [center], so a scrub
      * step is usually a cache hit without letting memory grow with scrub speed.
      *
-     * One serialized worker, not a job per neighbour: the previous version launched up
-     * to two uncancelled coroutines on *every* frame load, so a fast scrub could have a
-     * dozen concurrent decodes in flight — each holding a full frame — while the cache
-     * only ever kept the last two, so most of that work became garbage on arrival. Peak
-     * memory then scaled with how fast the user scrubbed rather than with any bound.
-     *
-     * Here exactly one decode runs at a time, the window is cancelled and restarted when
-     * the user moves on, and each frame is admitted only if the cache still has room
-     * (count *and* bytes) and the heap guard passes — so the queue stays warm while peak
-     * stays flat.
+     * One serialized worker, not a job per neighbour (that let a fast scrub hold a dozen
+     * full-frame decodes, most evicted on arrival): exactly one decode runs at a time,
+     * the window is cancelled and restarted when the user moves on, and each frame is
+     * admitted only if the cache still has room (count *and* bytes) and the heap guard
+     * passes, so the queue stays warm while peak stays flat.
      */
     @Suppress("CyclomaticComplexMethod", "LoopWithTooManyJumpStatements") // one guard per reason to skip or stop
     private fun prefetchAround(center: Int) {
@@ -254,7 +248,6 @@ internal class ViewerFrameLoader(
                 defImagePaths = defPaths,
                 batchFiles = files,
                 plannedFrames = SessionPaths.plannedFrameIndices(files),
-                // Once, here: the prefetch heap guard used to stat() every file per load.
                 maxDatBytes = files.maxOfOrNull { it.length() } ?: 0L,
             )
         }

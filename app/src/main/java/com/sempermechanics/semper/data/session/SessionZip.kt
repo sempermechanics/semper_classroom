@@ -61,33 +61,23 @@ internal object SessionZip {
     val REFERENCE_ENTRY: String = entryName(REFERENCE_ROLE, REFERENCE_NAME)
 
     /**
-     * Whether a [role] belongs in the restore-essential bundle: every original
-     * image (`ref/` — the reference — and `raw/` — the deformed originals) plus the
-     * engine results (`dat/`, which also carries the run's `record_manifest.json`,
-     * ADR-028: the backend validates roles, so the manifest has none of its own).
-     * Restoring a session brings back everything a local analysis
-     * run would have produced, so on-device re-export and the report covers work
-     * without a second fetch.
+     * Whether a [role] goes in `Session.zip`, the restore-essential bundle: every original
+     * image (`ref/` the reference, `raw/` the deformed originals) plus the engine results
+     * (`dat/`, which also carries the run's `record_manifest.json`, ADR-028: the backend
+     * validates roles, so the manifest has none of its own). That restores everything a
+     * local run produced, re-export and report included, without a second fetch.
      *
-     * `csv`, `reports`, `processed` are excluded: they are derived and regenerated
-     * on export (`SessionEverythingExporter`), so nothing reads them back after a
-     * restore — those alone go to `Extras.zip`.
-     *
-     * Upload uses this to decide what goes in `Session.zip` vs `Extras.zip`. The
-     * decision is role-level (not per-artifact) now that every `raw/` entry is
-     * restore-essential; kept as a named predicate rather than an inline role-set
-     * check because restore's ranged-prefix reader ([RESTORE_ENTRY_PREFIXES]) needs
-     * to stay in step with it.
+     * `csv`, `reports` and `processed` are derived and regenerated on export
+     * (`SessionEverythingExporter`), so they alone go to `Extras.zip`. Keep
+     * [RESTORE_ENTRY_PREFIXES] in step with this.
      */
     fun isRestoreEssential(role: String): Boolean =
         role == ArtifactRoles.DAT || role == ArtifactRoles.RAW || role == REFERENCE_ROLE
 
     /**
-     * Entry-name prefixes a restore fetches from a **legacy** single-archive backup.
-     * Same set as [isRestoreEssential] admits by role, expressed as zip-entry
-     * prefixes for the ranged-prefix reader, which works on entry names rather than
-     * artifact records. (A legacy archive predates `ref/`; it is listed to keep the
-     * two sets in step.)
+     * Entry-name prefixes a restore fetches from a **legacy** single-archive backup:
+     * [isRestoreEssential]'s roles as zip-entry prefixes, for the ranged-prefix reader.
+     * (A legacy archive predates `ref/`; it is listed to keep the two sets in step.)
      */
     val RESTORE_ENTRY_PREFIXES: Set<String> = setOf("$REFERENCE_ROLE/", "raw/", "dat/")
 
@@ -103,18 +93,11 @@ internal object SessionZip {
         fileName.substringAfterLast('.').lowercase(Locale.US) in STORE_EXTENSIONS
 
     /**
-     * `.dat` gets its own path on both read and write. *Read* — [DatCodec.decodeIfEncoded]
-     * is applied in [readEntry] and [copyEntry], so this archive transparently
-     * understands a codec-encoded entry (self-describing by magic header; a raw,
-     * legacy entry passes through unchanged) regardless of which side of the
-     * version gate produced it. *Write* — [putMember] calls [DatCodec.encode] only
-     * when the caller's [build] passes `encodeDatEntries = true`, which [build]'s
-     * own callers gate on [com.sempermechanics.semper.data.net.AppRemoteConfig]'s
-     * `datCodecEncodingEnabled` (backend-controlled rollout — see that function's
-     * doc and `backend/app/config.py`'s `DAT_CODEC_ENCODING_ENABLED` for why this
-     * cannot just default to on: an already-installed client with no [DatCodec]
-     * awareness at all writes a restored `.dat` straight to disk with no decode
-     * step, so an encoded entry reaching it would silently corrupt that restore).
+     * `.dat` entries are [DatCodec]-decoded on every read ([readEntry], [copyEntry]; a raw legacy
+     * entry passes through) but encoded on write only when [build] gets `encodeDatEntries = true`,
+     * which its callers take from [com.sempermechanics.semper.data.net.AppRemoteConfig.datCodecEncodingEnabled].
+     * The rollout is backend-gated (`backend/app/config.py` `DAT_CODEC_ENCODING_ENABLED`) because a
+     * client older than the codec writes a restored `.dat` to disk undecoded.
      */
     private fun isDatEntry(fileName: String): Boolean =
         fileName.substringAfterLast('.').equals("dat", ignoreCase = true)
@@ -126,10 +109,7 @@ internal object SessionZip {
      * @param onBytes invoked with source bytes written into the archive (not
      * the CRC pre-pass for STORED entries). Used for Home "preparing %" on
      * large PLC bundles where zip dominates prepare time.
-     * @param encodeDatEntries version-gated — see [isDatEntry]'s doc. `false`
-     * (today's raw-STORED behaviour) unless the caller has confirmed via
-     * [com.sempermechanics.semper.data.net.AppRemoteConfig] that the account may
-     * upload the codec-encoded format.
+     * @param encodeDatEntries [DatCodec]-encode `.dat` members; see [isDatEntry].
      */
     fun build(
         members: List<Member>,
@@ -182,12 +162,9 @@ internal object SessionZip {
      * Concatenate [sources] into one archive at [out], first source winning on a
      * duplicate entry name.
      *
-     * Used by "Save to Files", which must still hand over a single complete archive
-     * now that upload splits the payload across `Session.zip` and `Extras.zip`.
-     * Each entry keeps its original compression method, so `STORED` payloads are
-     * copied rather than re-compressed. Note this deliberately never calls
-     * [ZipOutputStream.setLevel] — see the class comment on the Android Deflater
-     * corruption caused by toggling levels mid-archive.
+     * Used by "Save to Files" to hand over `Session.zip` and `Extras.zip` as one archive.
+     * Each entry keeps its compression method, and [ZipOutputStream.setLevel] is never
+     * called (see the class comment on toggling levels).
      */
     fun merge(sources: List<File>, out: File) {
         require(sources.isNotEmpty()) { "merge needs at least one source" }
@@ -215,10 +192,8 @@ internal object SessionZip {
     private fun copyEntry(from: ZipFile, entry: ZipEntry, zos: ZipOutputStream) {
         val fileName = entry.name.substringAfterLast('/')
         if (isDatEntry(fileName)) {
-            // Save to Files hands the user a real, directly-usable session archive —
-            // a DatCodec-encoded .dat inside it would not be a valid .dat to anything
-            // outside this app, so decode it back to the real layout on the way out.
-            // A payload that will not decode is a corrupt transfer, as on restore.
+            // Save to Files hands the user a usable archive, so an encoded .dat is decoded on
+            // the way out; one that will not decode is a corrupt transfer, as on restore.
             Zips.putStoredBytes(zos, entry.name, decodeDatEntryOrThrow(from, entry))
             return
         }
@@ -285,11 +260,7 @@ internal object SessionZip {
         )
     }
 
-    /**
-     * [DatCodec.encode] is applied to a `.dat` member only when [encodeDatEntries]
-     * is true — see [isDatEntry]'s class-doc note on why this is version-gated
-     * rather than unconditional. Every other member is unaffected either way.
-     */
+    /** Writes one member: `.dat` encoded only under [encodeDatEntries] (see [isDatEntry]), else STORED or DEFLATED. */
     private fun putMember(
         zip: ZipOutputStream,
         member: Member,
@@ -334,13 +305,8 @@ internal object SessionZip {
         val entry = zf.getEntry(name)
             ?: error("Session.zip missing entry $name after bundling")
         if (encodeDatEntries && isDatEntry(member.name)) {
-            // A DatCodec-encoded entry's bytes never equal the source file's own
-            // bytes (that's the point), so neither the CRC32 nor the SHA-256 path
-            // below applies — decode the entry back and compare THAT against the
-            // source. This exercises the decoder on every single upload, which is
-            // a strictly stronger guarantee than comparing raw bytes: a codec bug
-            // that corrupts data would be caught right here, before promote, not
-            // discovered later on someone's restore.
+            // An encoded entry never equals the source bytes, so decode it and compare
+            // that: a codec bug is caught here, before promote, not on someone's restore.
             val decoded = DatCodec.decode(zf.getInputStream(entry).use { it.readBytes() })
             val got = Digests.toHex(Digests.sha256(decoded))
             val expect = Digests.sha256Hex(member.file)
@@ -350,15 +316,9 @@ internal object SessionZip {
             return
         }
         if (entry.method == ZipEntry.STORED) {
-            // STORED entries already carry a CRC32 in the archive's central
-            // directory — putStored computed it in the same pre-pass that set
-            // entry.size, before ever writing a byte. Comparing that against a
-            // fresh CRC32 of the source (not a fresh SHA-256 of *both* sides)
-            // means this check never re-reads the just-written archive entry at
-            // all, and CRC32 — not a cryptographic digest — is exactly the
-            // algorithm the zip format itself uses to catch accidental byte
-            // corruption, which is the only threat model here (this promotes a
-            // local file we just wrote, not data received from an untrusted party).
+            // STORED: compare the archive's CRC-32 with the source's (from putStored's pre-pass),
+            // so the entry is never re-read. CRC suffices: the only risk is accidental corruption
+            // of a file we just wrote, not untrusted input.
             val expectCrc = storedCrcs[name] ?: member.file.crc32()
             check(entry.crc == expectCrc) {
                 "Session.zip entry $name round-trip CRC mismatch after bundling " +

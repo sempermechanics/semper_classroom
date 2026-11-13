@@ -32,8 +32,8 @@ internal object NoiseFloorPixels {
      *
      * The two frames are of a static scene, so their difference is twice the
      * per-frame noise; halving the variance of that difference recovers one
-     * frame's worth. NaN when either window could not be read, which the caller
-     * treats as "no measurement" and falls back to the paper's constant.
+     * frame's worth. NaN when either window could not be read: no measurement,
+     * for which [SubsetRecommender.thresholdFor] keeps the paper's constant.
      */
     @Suppress("ReturnCount") // a window that would not decode, then two that do not match
     fun noiseVarianceOf(ref: FloatArray?, def: FloatArray?): Double {
@@ -70,8 +70,8 @@ internal object NoiseFloorPixels {
      * answers with the noise-reduction mode it was asked for and runs its own
      * graph anyway.
      *
-     * NaN when the windows could not be read or are not square, which the
-     * caller treats as "not measured" rather than as "not denoising".
+     * NaN when the windows could not be read or are not square: "not measured",
+     * never "not denoising".
      */
     @Suppress("ReturnCount") // unreadable windows, mismatched windows, a non-square window
     fun noiseCorrelationOf(ref: FloatArray?, def: FloatArray?): Double {

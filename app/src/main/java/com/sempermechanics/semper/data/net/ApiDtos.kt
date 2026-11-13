@@ -63,32 +63,23 @@ data class AppConfigDto(
     val maxSessions: Int = 0,
     val maxFilesPerSession: Int = 0,
     val maxFrames: Int = 0,
-    /** Version gate for the `.dat` archive codec — see [AppRemoteConfig] and
-     * [com.sempermechanics.semper.data.session.SessionZip]'s class doc. Missing on an older
-     * backend deploy this app talks to → false (fail closed, matches the
-     * default already used for every field here). */
+    /** Version gate for the `.dat` archive codec ([AppRemoteConfig],
+     * [com.sempermechanics.semper.data.session.SessionZip]). Missing on an older
+     * backend → false (fail closed, like every field here). */
     val datCodecEncodingEnabled: Boolean = false,
-    /** `demo` or `licensed`. Empty on a backend deploy predating the
-     * plan→mode rename; [AppRemoteConfig] falls back to [plan] in that case,
-     * so a blank here is "not told", not "demo". */
+    /** `demo` or `licensed`. Empty on a backend predating the plan→mode rename,
+     * where [AppRemoteConfig] falls back to [plan]: blank is "not told", not "demo". */
     val mode: String = "",
-    /** Pre-rename spelling of [mode]: `demo` or `professional`. Still sent by
-     * the backend alongside `mode` for builds that predate the rename, and
-     * still read here as the fallback when `mode` is absent. Missing from both
-     * → demo (fail closed). */
+    /** Pre-rename spelling of [mode]: `demo` or `professional`, still sent beside it
+     * for older builds and read as the fallback. Missing from both → demo (fail closed). */
     val plan: String = "demo",
     val cloudBackupEnabled: Boolean = false,
     val shareEnabled: Boolean = false,
     val licensePrefix: String = "",
-    /** `""`, `"individual"`, or `"institution"` — display/support metadata,
-     * so Settings can show e.g. "Activated via university.edu" and support
-     * tickets can tell the two shapes apart. A backend predating the rename
-     * sends `"campus"`; [AppRemoteConfig] normalises it.
-     *
-     * Not a gating input: entitlements are identical for an individual and an
-     * institution seat once [mode] is licensed. What differs on an institution
-     * license is [licenseSeating], and it is that field — not this one — that
-     * decides whether a seat has to be taken. */
+    /** `""`, `"individual"`, or `"institution"` (`"campus"` from a backend predating
+     * the rename; [AppRemoteConfig] normalises it). Display/support metadata, never a
+     * gate: entitlements are identical for both once [mode] is licensed, and whether a
+     * seat must be taken is [licenseSeating]'s. */
     val licenseKind: String = "",
     /** `assigned` or `floating`, for an institution license. Empty on a
      * backend predating floating seats, which the cache reads as assigned —
@@ -98,17 +89,12 @@ data class AppConfigDto(
      * work, but somebody else is holding the seat": eligible, not blocked. */
     val licenseSeating: String = "",
     /** ISO-8601 instant this account's floating seat lapses, or null when it
-     * holds none (and always null on an assigned license).
-     *
-     * Parsed so the contract stays honest, and deliberately not cached: the
-     * backend folds the lease into `mode`, so a local copy of the lapse time
-     * would only be a second, staler opinion of what `isLicensed` already
-     * answers. The account console shows it; the app has no use for it. */
+     * holds none (always on an assigned license). Parsed but deliberately not
+     * cached: the backend folds the lease into [mode], so a local copy would only
+     * be a second, staler opinion of it. */
     val leaseExpiresAt: String? = null,
-    /** How often to renew the seat. Renewing IS the heartbeat — the backend
-     * has no separate route — so this is the interval between checkout calls
-     * while work is in progress. 0 until a backend that knows about seats
-     * answers. */
+    /** Minutes between checkout calls while work is in progress (renewing IS the
+     * heartbeat, [SemperApi.checkoutLease]); 0 from a backend without seats. */
     val leaseHeartbeatMinutes: Int = 0,
     /** `perpetual` or `timed`. Empty on a backend predating duration; the
      * cache infers it from whether an expiry arrived. */

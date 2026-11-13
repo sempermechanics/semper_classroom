@@ -87,7 +87,6 @@ class DeviceKeys(private val context: Context) {
         }
     }
 
-    /** This device's id; see [deviceId]. */
     fun getDeviceId(): String = deviceId(context)
 
     /**

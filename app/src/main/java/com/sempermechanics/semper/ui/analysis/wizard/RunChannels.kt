@@ -46,11 +46,9 @@ import kotlin.coroutines.coroutineContext
  * no-op.
  */
 internal class RunChannels {
-    // Buffered (not conflated): a StateFlow would drop intermediate per-frame /
-    // intra-frame ticks when the native solve emits faster than Main collects, so
-    // the bar appeared to stall between frames. replay=1 keeps the latest for a
-    // late collector; the buffer + DROP_OLDEST preserves ordering without blocking
-    // the solve thread.
+    // Buffered, not conflated: a StateFlow drops intermediate ticks when the
+    // native solve emits faster than Main collects, and the bar stalls. replay=1
+    // serves a late collector; DROP_OLDEST keeps order without blocking the solve.
     val progress = MutableSharedFlow<BatchProgressUpdate?>(
         replay = 1,
         extraBufferCapacity = PROGRESS_BUFFER,
@@ -73,14 +71,10 @@ internal class RunChannels {
 /**
  * A run's outcome, held until a started screen takes it, and taken once.
  *
- * The outcomes used to be a `MutableSharedFlow` with no replay, collected
- * only while the wizard is started. An emission with no collector is
- * dropped, so a run that ended while the wizard was in the background never
- * tore its chrome down or opened its result. Held here instead, in
- * the view model as ADR-016 asks: [post] keeps the outcome, and
- * [consumeEach] hands it over when a collector starts and clears it in the
- * same atomic step, so a later collector (the screen started again) does not
- * handle it a second time.
+ * Held in the view model (ADR-016), not emitted on a flow with no replay,
+ * which drops an outcome that ends while the wizard is in the background.
+ * [post] keeps it; [consumeEach] hands it over and clears it in one atomic
+ * step, so a screen started again does not handle it a second time.
  */
 internal class PendingOutcome<T : Any> {
     /** A box compared by identity, so taking one outcome never takes an equal one posted after it. */
@@ -180,11 +174,9 @@ private suspend fun AnalysisViewModel.runBatchAnalysis(
 }
 
 /**
- * Sweep's counterpart to [launchBatchAnalysis], and for the same reason: a
- * sweep is one full solve per combination, so it is as long as a batch run
- * and was equally worth not losing to a rotation. It ran on the Activity's
- * own scope until now, which cancelled it on destroy and left the partial
- * session behind. Progress arrives on [AnalysisViewModel.sweepProgress], the
+ * Sweep's counterpart to [launchBatchAnalysis], on [viewModelScope] for the
+ * same reason: a sweep is one full solve per combination, as long as a batch
+ * run. Progress arrives on [AnalysisViewModel.sweepProgress], the
  * result is held on [AnalysisViewModel.sweepOutcome] until the screen takes it.
  * Its images and the working session are frozen here, as a batch run's are,
  * and the view model takes what it learned on Main ([applyRunOutcome]).
@@ -235,9 +227,8 @@ internal sealed interface RunAdmission {
 /**
  * Hard stop before any native work: a new analysis cannot start at the
  * account's limit ([SessionQuota.blocked], with the index's live rows; this
- * runs on the native thread). Every run is checked: a saved analysis is
- * never written over (owner decision, 2026-10-15), so whatever a run saves is
- * a new Home row.
+ * runs on the native thread). Every run is checked: whatever a run saves is a
+ * new Home row ([openRunSession]).
  */
 @WorkerThread
 internal fun AnalysisViewModel.admitRun(appContext: Context, plannedFrames: Int): RunAdmission = when {
@@ -389,12 +380,9 @@ private const val SESSION_ID_LENGTH = 12
 /**
  * Follows the deformed images to wherever a run left them. They are moved
  * from the import cache into the session directory rather than copied, so the
- * staged cache paths this view model was handed at import time go stale the
- * moment a run finishes; the next run in this wizard reading them would find
- * nothing. An image
- * in another session's directory is copied, never moved: it is that
- * session's own input.
- * [AnalysisViewModel.defFrameSizes] is keyed by path, so it is re-keyed alongside.
+ * staged cache paths go stale the moment a run finishes. An image in another
+ * session's directory is copied, never moved: it is that session's own input.
+ * [AnalysisViewModel.defFrameSizes] is keyed by path and follows the new paths.
  *
  * Main thread only, like every wizard input field; a run on the native
  * thread goes through [repointDeformedPathsOnMain].
@@ -412,8 +400,8 @@ internal fun AnalysisViewModel.repointDeformedPaths(resolved: List<String>) {
 
 /**
  * [repointDeformedPaths] for a run on the native thread, which must not
- * write the wizard's fields: the Activity reads them on Main, and the two
- * used to race. Posted rather than awaited, because the run's loop cannot
+ * write the wizard's fields: the Activity reads them on Main. Posted rather
+ * than awaited, because the run's loop cannot
  * suspend; it is posted before the run's outcome is emitted, and both reach
  * the Activity through the main queue in that order, so the outcome
  * handler already sees the moved paths.

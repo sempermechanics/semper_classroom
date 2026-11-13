@@ -48,14 +48,10 @@ import com.sempermechanics.semper.ui.analysis.sweep.SweepStudy
  * @property subsetOverlap the subset overlap every combination of a sweep shares
  * @property lineCutHorizontal true when the sweep's line cut runs along x
  * @property sweepFrame the frame the sweep is solved against
- * @property working the session folder the next run of its kind writes, while
- *   no Home row names it: the last run of that kind in this wizard saved
- *   nothing, and the next one writes there again (`openRunSession`). Null for
- *   none, so the next run mints a new one. A run reads it once, on Main, as it
- *   is launched (`snapshotRunInputs`), and its outcome sets it there
- *   (`applyRunOutcome`): the run itself never touches it. A run that saves
- *   clears it: a saved analysis is never written over (owner decision,
- *   2026-10-15). New inputs clear it too
+ * @property working the session folder the next run of its kind writes again,
+ *   while no Home row names it (`openRunSession`); null for none, so the next
+ *   run mints a new one. Set on Main from a run's outcome (`applyRunOutcome`),
+ *   never by the run; cleared by a run that saves and by new inputs
  *   ([AnalysisViewModel.clearPreviousResults]).
  * @property lab the lab test's inputs (Semper Classroom): the test type, the
  *   specimen and the machine loads ([LabWizardState]); its logic is in LabInputs.kt

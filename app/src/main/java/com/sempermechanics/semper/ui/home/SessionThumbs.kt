@@ -31,7 +31,7 @@ import java.util.concurrent.Executors
  *
  * Two loaders, two stacked views. The reference ([referenceView]) shows at
  * once; the result ([resultView]) covers it when its render lands. A session
- * whose frames are not on this phone shows its reference only, as before.
+ * whose frames are not on this phone shows its reference only.
  * The render is read-only: it decodes a `.dat` and writes only
  * [SessionPaths.resultThumb], which a later bind reads instead of rendering.
  *

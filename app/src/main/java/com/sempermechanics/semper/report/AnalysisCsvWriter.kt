@@ -21,11 +21,10 @@ import java.util.Locale
  * starting with `#` (e.g. `pandas.read_csv(..., comment='#')`).
  *
  * Point rows lead with `image` and the eight DIC columns (`x_px`…`znssd`), then
- * the three rigid-body motion columns, then the frame's machine load and
- * engineering stress. All six trail every session — the motion fit is read off
- * the solved field itself, and the two mechanical columns are simply empty for
- * a session without a load log — so a reader never has to guess which value
- * went missing from a short row.
+ * the three rigid-body motion columns on every session ([motionSuffixColumns]).
+ * A lab test ([Metadata.isLabTest]) adds `load_N,stress_MPa`, the frame's load
+ * and its model's stress, empty for a frame without a load
+ * ([mechanicalSuffixColumns]); a plain DIC session has no such columns.
  *
  * A typed session with loads may end with a `# mechanical_results` trailer
  * after the last point row: the results the lab report quotes (Young's
@@ -95,8 +94,7 @@ object AnalysisCsvWriter {
      */
     private const val LAB_CSV_VERSION = 3
 
-    // One definition, shared with the row formatter's tests (TD-75): a second
-    // copy here let the header and the rows drift apart unnoticed.
+    // One definition, shared with the row formatter's tests, so header and rows cannot drift (TD-75).
     private const val POINT_HEADER_BASE = DicResult.CSV_POINT_HEADER
     private const val MOTION_SUFFIX_HEADER = "shift_u_px,shift_v_px,shift_rot_deg"
     private const val MECHANICAL_SUFFIX_HEADER = "load_N,stress_MPa"
@@ -160,13 +158,9 @@ object AnalysisCsvWriter {
 
     /**
      * The three rigid-body motion values a point row ends with, without the
-     * comma that joins them to the DIC columns.
-     *
-     * Written for every session, because the fit is read off the solved field
-     * itself and so exists whatever the frames came from. A frame whose field
-     * admits no fit still yields three empty columns rather than a short row:
-     * a reader counting columns must not have to guess which value went
-     * missing.
+     * comma that joins them to the DIC columns. Written for every session (the
+     * fit is read off the solved field itself); a frame that admits no fit gets
+     * three empty columns rather than a short row.
      */
     internal fun motionSuffixColumns(fit: RigidBodyFit.Fit?): String {
         if (fit == null) return ",,"
@@ -239,9 +233,9 @@ object AnalysisCsvWriter {
     }
 
     /**
-     * One open CSV file; see [open] for the two call orders. Every  stats row
-     * lands before the blank line and the point header, whichever order is used,
-     * and the  trailer after the last point row.
+     * One open CSV file; see [open] for the two call orders. Every `# field_stats`
+     * row lands before the blank line and the point header, whichever order is used,
+     * and the `# mechanical_results` trailer after the last point row.
      */
     class Appender internal constructor(
         private val writer: Writer,

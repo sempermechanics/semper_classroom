@@ -12,7 +12,7 @@ package com.sempermechanics.semper.data.net.drive
  */
 data class DriveUpload(val driveFileId: String, val md5Hex: String) {
 
-    /** `driveFileId to md5Hex`, the form `uploadResumable` returns today. */
+    /** `driveFileId to md5Hex`, the form `uploadResumable` returns. */
     fun toPair(): Pair<String, String> = driveFileId to md5Hex
 
     companion object {
