@@ -133,6 +133,10 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
 
 ## Current state (2026-11-12)
 
+- **Trim and comment pass** (#174, `claude/trim-and-comment-pass`, not merged): about 1,040 lines
+  out with no behaviour change. Test-only helpers are deleted, copied test setup is shared, and
+  the CI checkers share `scripts/kotlin_lex.py`. A comments-only pass fixes about 30 wrong comments
+  and adds CONTRIBUTING rules 26–29. It found TD-283 to TD-285, which are left for a decision.
 - **Continue as guest** (`claude/continue-as-guest`, not merged; [ADR-036](docs/adr/ADR-036-continue-as-guest.md)):
   the sign-in screen opens the app with Demo's limits and no account (`data/account/GuestMode`);
   the cloud is off, the Terms gate still runs (a returning guest is not asked again), the
