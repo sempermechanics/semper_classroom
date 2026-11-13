@@ -17,6 +17,7 @@ import com.sempermechanics.semper.report.ReportBuilder
 import com.sempermechanics.semper.report.ReportData
 import com.sempermechanics.semper.report.VisualizationEngine
 import com.sempermechanics.semper.ui.viewer.share.ViewerReportFactory
+import com.sempermechanics.semper.ui.viewer.share.viewerMapPixel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -62,22 +63,6 @@ class ReportDeformedFrameTest {
 
     private fun exxImage(report: ReportData) = report.fieldResults.single { it.fieldKey == "Exx" }.bakedHeatmap
 
-    private fun viewerMapPixel(displaced: Boolean, at: Pair<Int, Int>): Int {
-        val map = VisualizationEngine.generateFrameHeatmap(
-            displaced,
-            data,
-            DeformedFrameFixture.W,
-            DeformedFrameFixture.H,
-            DicResult.IDX_EXX,
-            DeformedFrameFixture.STEP,
-            maxLongEdge = VisualizationEngine.REPORT_MAX_EDGE,
-        ).bitmap
-        val pixel = map.getPixel(at.first, at.second)
-        map.recycle()
-        assertEquals("the viewer's map covers $at", 0xFF, Color.alpha(pixel))
-        return pixel
-    }
-
     @Test
     fun `a frame with its own photo has its field images on it, the map displaced`() {
         val photo = DeformedFrameFixture.writePhoto(File(tmp.root, "f0.png"), PHOTO_COLOR)
@@ -87,7 +72,7 @@ class ReportDeformedFrameTest {
         val (ax, ay) = ONLY_DEFORMED
         assertColor(
             "under the displaced map",
-            blend(viewerMapPixel(displaced = true, ONLY_DEFORMED), PHOTO_COLOR, reportAlpha),
+            blend(viewerMapPixel(data, displaced = true, ONLY_DEFORMED), PHOTO_COLOR, reportAlpha),
             image.getPixel(ax, ay),
             tolerance,
         )
@@ -132,7 +117,7 @@ class ReportDeformedFrameTest {
         val (bx, by) = ONLY_REFERENCE
         assertColor(
             "under the reference-position map",
-            blend(viewerMapPixel(displaced = false, ONLY_REFERENCE), REFERENCE_COLOR, reportAlpha),
+            blend(viewerMapPixel(data, displaced = false, ONLY_REFERENCE), REFERENCE_COLOR, reportAlpha),
             image.getPixel(bx, by),
             tolerance,
         )

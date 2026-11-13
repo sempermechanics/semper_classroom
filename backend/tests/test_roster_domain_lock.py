@@ -16,60 +16,21 @@ Now, at IT's tier (`/v1/institutions/...`):
 Semper staff (`/v1/admin/...`) keep the explicit refusal and may seat an
 external collaborator off the domain.
 """
-import time
 
 import pytest
 
-import fake_firestore
 import repo_view as repo
-from app import deps, licenses
-from app.config import settings
+from app import licenses
+from _helpers_roster import _account, _it_store, _mint, _staff_store
 from refusals import attempt_add
-
-IT_EMAIL = "it@uni-a.edu"
-
-
-def _mint(domain: str, admin: str, **kw) -> str:
-    return repo.create_institution_license(
-        domain_lock=domain, admin_emails=[admin], created_by_uid="staff", **kw,
-    )["license"]["id"]
-
-
-def _account(store, uid: str, email: str, **extra) -> None:
-    store._data.setdefault("users", {})[uid] = {
-        "email": email, "access_status": "APPROVED", "emailVerified": True, "plan": "demo", **extra,
-    }
-
-
-def _as(monkeypatch, uid: str, email: str) -> None:
-    monkeypatch.setattr(
-        deps, "verify_id_token",
-        lambda _t: {"sub": uid, "email": email, "email_verified": True,
-                    "firebase": {"sign_in_second_factor": "totp"},
-                    "auth_time": time.time() - 60},
-    )
-    profile = {"uid": uid, "email": email, "role": "user",
-               "access_status": "APPROVED", "emailVerified": True}
-    repo.patch(monkeypatch, "get_or_create_user", lambda claims, device_id=None: dict(profile))
 
 
 @pytest.fixture
 def it(monkeypatch, audited):
     """IT for licence A (uni-a.edu). Licence C is another institution's licence
     on the same domain; licence B is on uni-b.edu."""
-    store = fake_firestore.install(monkeypatch)
-    monkeypatch.setattr(repo.notify, "access_request", lambda *a, **k: None)
-    monkeypatch.setattr(settings, "DEV_INSECURE_AUTH", False)
-    monkeypatch.setattr(settings, "ADMIN_WEB_MFA_ENABLED", True)
-    monkeypatch.setattr(settings, "ADMIN_WEB_REAUTH_SECONDS", 900)
-    _as(monkeypatch, "it-a", IT_EMAIL)
-    store._data["users"] = {}
-    store.a = _mint("uni-a.edu", IT_EMAIL)
-    store.b = _mint("uni-b.edu", "it@uni-b.edu")
+    store = _it_store(monkeypatch, audited)
     store.c = _mint("uni-a.edu", "it-c@uni-a.edu")
-    store.bearer = {"Authorization": "Bearer ok"}
-    store.base = f"/v1/institutions/licenses/{store.a}"
-    store.audited = audited
     return store
 
 
@@ -309,11 +270,7 @@ async def test_revoking_the_licence_drops_its_held_invites(it, client):
 
 @pytest.fixture
 def staff(monkeypatch, audited):
-    store = fake_firestore.install(monkeypatch)
-    monkeypatch.setattr(repo.notify, "access_request", lambda *a, **k: None)
-    monkeypatch.setattr(deps, "_DEV_USER", {**deps._DEV_USER, "email": "staff@semper.test"})
-    store._data["users"] = {}
-    store.a = _mint("uni-a.edu", IT_EMAIL)
+    store = _staff_store(monkeypatch)
     store.c = _mint("uni-a.edu", "it-c@uni-a.edu")
     return store
 

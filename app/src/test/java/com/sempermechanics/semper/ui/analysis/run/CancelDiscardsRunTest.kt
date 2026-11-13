@@ -4,31 +4,21 @@ import android.content.Context
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
-import androidx.work.impl.WorkManagerImpl
-import androidx.work.testing.WorkManagerTestInitHelper
 import com.sempermechanics.semper.data.cloud.WorkTags
-import com.sempermechanics.semper.data.net.AccountCache
-import com.sempermechanics.semper.data.net.AppConfigDto
-import com.sempermechanics.semper.data.net.AppRemoteConfig
 import com.sempermechanics.semper.data.session.SessionLayout
 import com.sempermechanics.semper.data.session.SessionPaths
 import com.sempermechanics.semper.data.session.SessionRecord
 import com.sempermechanics.semper.data.session.SessionStore
-import com.sempermechanics.semper.field.Roi
 import com.sempermechanics.semper.field.RunStop
 import com.sempermechanics.semper.fixtures.CleanAppState
 import com.sempermechanics.semper.fixtures.QuotaBackendOn
 import com.sempermechanics.semper.fixtures.sessionRecord
 import com.sempermechanics.semper.ui.analysis.frames.DeformedFrame
-import com.sempermechanics.semper.ui.analysis.frames.FrameImportHelper
-import com.sempermechanics.semper.ui.analysis.sweep.SweepStudy
-import com.sempermechanics.semper.ui.analysis.sweep.SweepStudyRunner
 import com.sempermechanics.semper.ui.analysis.wizard.AnalysisViewModel
 import com.sempermechanics.semper.ui.analysis.wizard.BatchAnalysisOutcome
 import com.sempermechanics.semper.ui.analysis.wizard.RunAdmission
 import com.sempermechanics.semper.ui.analysis.wizard.RunKind
 import com.sempermechanics.semper.ui.analysis.wizard.RunSession
-import com.sempermechanics.semper.ui.analysis.wizard.SweepSession
 import com.sempermechanics.semper.ui.analysis.wizard.admitRun
 import com.sempermechanics.semper.ui.analysis.wizard.applyRunOutcome
 import com.sempermechanics.semper.ui.analysis.wizard.endSweep
@@ -81,46 +71,21 @@ class CancelDiscardsRunTest {
 
     private val ctx: Context = ApplicationProvider.getApplicationContext()
     private val vm = AnalysisViewModel()
-    private val importDir by lazy {
-        File(ctx.cacheDir, FrameImportHelper.COMMITTED_DIR_NAME).apply {
-            deleteRecursively()
-            mkdirs()
-        }
-    }
+    private val importDir by lazy { RunFixtures.importDir(ctx) }
 
     @Before
     fun setUp() {
-        WorkManagerTestInitHelper.initializeTestWorkManager(ctx)
         // One analysis on this account: a run that consumed it would block the next.
-        AppRemoteConfig.apply(ctx, AppConfigDto(maxSessions = 1, maxFilesPerSession = 600, maxFrames = 150))
-        AccountCache.setQuota(ctx, used = 0)
-        vm.edit {
-            it.copy(
-                refSize = it.refSize.copy(width = REF_SIDE, height = REF_SIDE),
-                refName = "ref.png",
-                refBytes = ByteArray(REF_SIDE * REF_SIDE * 4),
-            )
-        }
+        RunFixtures.setUpWizard(ctx, vm, maxSessions = 1)
     }
 
     @After
-    fun tearDown() {
-        importDir.deleteRecursively()
-        WorkManagerTestInitHelper.closeWorkDatabase()
-        WorkManagerImpl.setDelegate(null)
-    }
+    fun tearDown() = RunFixtures.tearDownWizard(importDir)
 
     private fun idle() = shadowOf(Looper.getMainLooper()).idle()
 
     /** [count] frames as an import commits them, in the wizard. */
-    private fun importFrames(count: Int): List<File> {
-        val files = (0 until count).map { i ->
-            File(importDir, "000${i}_def_$i.png").apply { writeBytes(byteArrayOf(i.toByte(), 1, 2, 3)) }
-        }
-        val picked = files.map { DeformedFrame(it.absolutePath, it.name.substringAfter('_')) }
-        vm.edit { it.copy(deformedFrames = picked) }
-        return files
-    }
+    private fun importFrames(count: Int) = RunFixtures.importFrames(vm, importDir, count)
 
     /**
      * What the batch loop does in [session] for frames 0 until [reached]:
@@ -363,24 +328,7 @@ class CancelDiscardsRunTest {
         assertTrue("an empty staging", next.staging.isDirectory && next.staging.list().isNullOrEmpty())
     }
 
-    /** A two-combination sweep against frame 0 that the runner left in [session] with [code]. */
-    private fun sweepRun(session: RunSession, code: Int, tag: String): SweepSession {
-        val plan = listOf(SweepStudy.Point(21, 5, 3), SweepStudy.Point(31, 5, 3))
-        val sweepSpec = RunSpec.sweep(
-            RunSpec.Sweep(plan, labels = listOf("a", "b"), lineCutHorizontal = true, frameIndex = 0),
-            roi = Roi(0, 0, REF_SIDE, REF_SIDE),
-            mask = null,
-            use6x6 = false,
-            debugDir = null,
-        )
-        val dats = plan.indices.map { SessionPaths.frameDat(session.staging, it).apply { writeText("$tag $it") } }
-        val result = SweepStudyRunner.SweepResult(
-            runs = plan.mapIndexed { i, p -> SweepStudyRunner.RunOutcome(p, dats[i], 400) },
-            firstMetrics = null,
-            engineErrorCode = code,
-        )
-        return SweepSession(session.id, session.dir, vm.snapshotRunInputs(), result, sweepSpec, 3_000)
-    }
+    private fun sweepRun(session: RunSession, code: Int, tag: String) = RunFixtures.sweepRun(vm, session, code, tag)
 
     @Test
     fun `a cancelled sweep saves nothing, however many combinations it solved`() {
@@ -491,9 +439,5 @@ class CancelDiscardsRunTest {
         assertFalse("never the sessions root", SessionStore.deleteUnsavedDir(ctx, ""))
         assertFalse(SessionStore.deleteUnsavedDir(ctx, ".."))
         assertTrue(savedDir.isDirectory)
-    }
-
-    private companion object {
-        const val REF_SIDE = 4
     }
 }

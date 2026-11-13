@@ -3,14 +3,9 @@ package com.sempermechanics.semper.ui.analysis.run
 import android.content.Context
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
-import androidx.work.impl.WorkManagerImpl
-import androidx.work.testing.WorkManagerTestInitHelper
 import com.sempermechanics.semper.data.integrity.ManifestJson
 import com.sempermechanics.semper.data.integrity.RecordIntegrity
 import com.sempermechanics.semper.data.integrity.RecordVerifier
-import com.sempermechanics.semper.data.net.AccountCache
-import com.sempermechanics.semper.data.net.AppConfigDto
-import com.sempermechanics.semper.data.net.AppRemoteConfig
 import com.sempermechanics.semper.data.session.SessionLayout
 import com.sempermechanics.semper.data.session.SessionPaths
 import com.sempermechanics.semper.field.DicParams
@@ -18,14 +13,9 @@ import com.sempermechanics.semper.field.Roi
 import com.sempermechanics.semper.field.RunStop
 import com.sempermechanics.semper.fixtures.CleanAppState
 import com.sempermechanics.semper.fixtures.QuotaBackendOn
-import com.sempermechanics.semper.ui.analysis.frames.DeformedFrame
-import com.sempermechanics.semper.ui.analysis.frames.FrameImportHelper
-import com.sempermechanics.semper.ui.analysis.sweep.SweepStudy
-import com.sempermechanics.semper.ui.analysis.sweep.SweepStudyRunner
 import com.sempermechanics.semper.ui.analysis.wizard.AnalysisViewModel
 import com.sempermechanics.semper.ui.analysis.wizard.RunKind
 import com.sempermechanics.semper.ui.analysis.wizard.RunSession
-import com.sempermechanics.semper.ui.analysis.wizard.SweepSession
 import com.sempermechanics.semper.ui.analysis.wizard.endSweep
 import com.sempermechanics.semper.ui.analysis.wizard.openRunSession
 import org.junit.After
@@ -61,51 +51,24 @@ class RecordManifestRunTest {
 
     private val ctx: Context = ApplicationProvider.getApplicationContext()
     private val vm = AnalysisViewModel()
-    private val importDir by lazy {
-        File(ctx.cacheDir, FrameImportHelper.COMMITTED_DIR_NAME).apply {
-            deleteRecursively()
-            mkdirs()
-        }
-    }
+    private val importDir by lazy { RunFixtures.importDir(ctx) }
     private val spec = RunSpec.of(
         DicParams(subset = 21, step = 5, strainWindow = 21),
-        Roi(0, 0, REF_SIDE, REF_SIDE),
+        Roi(0, 0, RunFixtures.REF_SIDE, RunFixtures.REF_SIDE),
         null,
         false,
         null,
     )
 
     @Before
-    fun setUp() {
-        WorkManagerTestInitHelper.initializeTestWorkManager(ctx)
-        AppRemoteConfig.apply(ctx, AppConfigDto(maxSessions = 5, maxFilesPerSession = 600, maxFrames = 150))
-        AccountCache.setQuota(ctx, used = 0)
-        vm.edit {
-            it.copy(
-                refSize = it.refSize.copy(width = REF_SIDE, height = REF_SIDE),
-                refName = "ref.png",
-                refBytes = ByteArray(REF_SIDE * REF_SIDE * 4),
-            )
-        }
-    }
+    fun setUp() = RunFixtures.setUpWizard(ctx, vm, maxSessions = 5)
 
     @After
-    fun tearDown() {
-        importDir.deleteRecursively()
-        WorkManagerTestInitHelper.closeWorkDatabase()
-        WorkManagerImpl.setDelegate(null)
-    }
+    fun tearDown() = RunFixtures.tearDownWizard(importDir)
 
     private fun idle() = shadowOf(Looper.getMainLooper()).idle()
 
-    private fun importFrames(count: Int): List<File> {
-        val files = (0 until count).map { i ->
-            File(importDir, "000${i}_def_$i.png").apply { writeBytes(byteArrayOf(i.toByte(), 1, 2, 3)) }
-        }
-        val picked = files.map { f -> DeformedFrame(f.absolutePath, f.name.substringAfter('_')) }
-        vm.edit { it.copy(deformedFrames = picked) }
-        return files
-    }
+    private fun importFrames(count: Int) = RunFixtures.importFrames(vm, importDir, count)
 
     /** What the batch loop stages for frames 0 until [reached], and the summary's sidecar it stages after. */
     private fun stageUpTo(session: RunSession, reached: Int) {
@@ -210,23 +173,7 @@ class RecordManifestRunTest {
     }
 
     /** A two-combination sweep the runner left in [session] with [code]. */
-    private fun sweepRun(session: RunSession, code: Int): SweepSession {
-        val plan = listOf(SweepStudy.Point(21, 5, 3), SweepStudy.Point(31, 5, 3))
-        val sweepSpec = RunSpec.sweep(
-            RunSpec.Sweep(plan, labels = listOf("a", "b"), lineCutHorizontal = true, frameIndex = 0),
-            roi = Roi(0, 0, REF_SIDE, REF_SIDE),
-            mask = null,
-            use6x6 = false,
-            debugDir = null,
-        )
-        val dats = plan.indices.map { SessionPaths.frameDat(session.staging, it).apply { writeText("node $it") } }
-        val result = SweepStudyRunner.SweepResult(
-            runs = plan.mapIndexed { i, p -> SweepStudyRunner.RunOutcome(p, dats[i], 400) },
-            firstMetrics = null,
-            engineErrorCode = code,
-        )
-        return SweepSession(session.id, session.dir, vm.snapshotRunInputs(), result, sweepSpec, 3_000)
-    }
+    private fun sweepRun(session: RunSession, code: Int) = RunFixtures.sweepRun(vm, session, code, tag = "node")
 
     @Test
     fun `a sweep that saves writes one manifest over its combinations`() {
@@ -253,9 +200,5 @@ class RecordManifestRunTest {
 
         assertEquals(RunStop.Cancelled, outcome.stop)
         assertFalse(manifestOf(session.dir).exists())
-    }
-
-    private companion object {
-        const val REF_SIDE = 4
     }
 }
