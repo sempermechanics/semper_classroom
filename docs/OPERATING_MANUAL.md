@@ -29,13 +29,12 @@ strain fields — and has not used this app. -->
 
 ---
 
-> **`delete-dialog.png` below still shows the pre-2026-08 UI** — recapturing it
-> needs a signed-in account with a cloud-backed analysis. `home.png` shows the
-> list as of 2026-10-10, but only local analyses, so every cloud icon reads *Not
-> backed up*; the other cloud states and the Settings **Download** row still need
-> a real-account pass. `settings.png` shows the
-> current UI but only its local-only state. Every other screenshot on this page
-> matches the current UI. The diagrams
+> **Screenshots** were retaken on 2026-11-13 from `main` (Pixel 5 emulator, light
+> theme) with the app's own examples: steel tensile, PMMA bending and the
+> carbon-fibre plate. That emulator has no cloud, so `home.png` shows every
+> analysis as *Not backed up*, `delete-dialog.png` is the no-backup delete, and
+> `settings.png` is the local-only state; the cloud states still need a
+> signed-in pass. The diagrams
 > (`pipeline.svg`, `wizard.svg`, `subset-step.svg`, `vsg.svg`, `lattice.svg`) are
 > conceptual, not screen captures, and are current. Remaining work:
 > [images/CAPTURE_CHECKLIST.md](images/CAPTURE_CHECKLIST.md).
@@ -64,6 +63,12 @@ Two things to know up front:
 
 Accounts need approval, not just sign-up.
 
+**No account?** Tap **Continue as guest** under the sign-in or create-account
+form. After the Terms screen you go straight to Home with Demo's limits: 25
+analyses at a time, no cloud backup and no Share. Your analyses stay on this
+phone and nothing is sent to the server. To get an account later, tap
+**Sign in** at the bottom of Settings.
+
 1. Sign in with Google or email.
 2. **Passwords** need 8+ characters with upper and lower case, a digit and a
    special character. **Generate secure password** fills a strong one in for you
@@ -74,23 +79,24 @@ Accounts need approval, not just sign-up.
    puts you back on the sign-in form with your address still filled in. Open the
    link, then sign in there. Until you do, sign-in is refused and a fresh link is
    sent each time you try.
-4. New accounts land on **Pending approval**. Support is emailed automatically
+4. New accounts land on an **Access required** screen. Support is emailed automatically
    at this point — you do not have to ask to be noticed.
 5. Tap **Request access** if you want to add context. It opens a prefilled
    email; send it.
-6. After an admin approves you, tap **Check status**.
+6. After an admin approves you, tap **Check now**.
 
 **Nothing polls.** The screen never updates on its own. Use the button.
 
-Google and email-link sign-ins skip step 2 — both already prove the address.
+Google and email-link sign-ins skip steps 2 and 3 — both already prove the address.
 
-Offline works if you have been approved on this device before. Import, solve and
+Offline works as a guest, or if your account has been approved on this phone
+before. Import, solve and
 read results all work without a network. Uploads wait.
 
 **Crash reports are opt-in.** After the beta notice on first run the app asks
 once whether it may send crash diagnostics. Nothing is collected unless you say
 yes, and you can change your mind at any time under **Settings → Your data →
-Send crash reports**.
+Send crash reports and usage data**.
 
 **First-run tips.** The first time you reach a screen, a short tip card points
 at the control it describes, with the rest of the screen dimmed. When a screen
@@ -190,7 +196,8 @@ spinners are left out.
 
 <img src="images/step1-frames.png" width="300" alt="Step 1 with three deformed frames loaded">
 
-Tap each dropzone and pick your images:
+After you choose the test, the **New analysis** sheet opens for the reference; the
+**Deformed frames** dropzone opens the same sheet for the frames:
 
 <img src="images/new-analysis-source.png" width="300" alt="The New analysis sheet">
 
@@ -200,7 +207,7 @@ gallery, three columns, with videos badged so you can tell them apart. For about
 the reference image" before tiles unlock. Tapping the **Files** tab hands you to the
 system file browser instead; that is still the only route to RAW and DNG. Picking
 deformed frames is multi-select: tap the tiles you want and confirm with
-**Use N**. Select-all lives in the three-dot menu.
+**Use N images**. In **Files**, Select all is under the system browser's three-dot menu.
 
 The sheet asks for media permission the first time the Images tab needs it:
 
@@ -781,8 +788,8 @@ Home shows a card above the list — "4 analyses in your cloud backup aren't on
 this phone." **Restore** lists them, all ticked; untick any you don't want and
 they restore in the background. **Hide** puts the card away until the account
 gets a backup this phone has not seen; hidden backups stay in the cloud and
-Settings → Analyses data management can still restore them. Demo accounts have
-no cloud backup, so they never see the card.
+Settings → Analyses data management can still restore them. Demo accounts and
+guests have no cloud backup, so they never see the card.
 
 <img src="images/home-selection.png" width="300" alt="Selection mode">
 
@@ -802,11 +809,11 @@ from being local again, so freeing space is a reversible decision.
 
 <img src="images/settings.png" width="300" alt="Settings sections">
 
-**Cloud backup**: turn **Save to cloud** on and it offers to back up what is
+**Cloud backup**: turn **Back up to the cloud** on and it offers to back up what is
 already local; off, new analyses stay on the phone and existing cloud copies
 remain. **Wi-Fi only** holds uploads until Wi-Fi. The line under the switches
 says whether everything is backed up, or how many analyses are not. On a Demo
-account this section, **Analyses data management** and Storage's Free-up controls
+account, and as a guest, this section, **Analyses data management** and Storage's Free-up controls
 are shown locked, with the licence note (Appendix D). **Analyses data management**
 lists local and cloud together, with three actions per row:
 
@@ -843,7 +850,7 @@ again**. A restore that fails (the backup
 was deleted, or is not this account's) says so once, on whichever of Home or
 Settings you are on. You are no longer left guessing.
 
-**Your data** also holds **Send crash reports**. That one switch governs both
+**Your data** also holds **Send crash reports and usage data**. That one switch governs both
 crash diagnostics and anonymous product analytics — which screens and actions get
 used, in coarse buckets. Neither carries your images, results, specimen names or
 addresses, and nothing is sent until you turn it on.
@@ -852,6 +859,9 @@ addresses, and nothing is sent until you turn it on.
 builds a ZIP of everything on this phone; **Download cloud data** asks
 the server for its copy. Both show progress and finish at the same **Send to**
 sheet as any other export.
+
+As a guest, Settings shows *Guest (not signed in)*, has only **Export my
+data** under Your data, and its last button reads **Sign in**.
 
 **Delete account** (Settings → Your data) asks you to confirm your
 identity first, on the sign-in screen itself — whichever way you normally sign
@@ -869,8 +879,8 @@ Every run is checked against it, since every run that saves makes a new
 analysis (Re-run included); a run already under way when the cap fills still
 saves.
 Not a paywall: the limit screen asks for nothing. Delete an analysis and tap
-**Re-check**, or, if a seat or licence has just been added, tap **Refresh
-licence**. **Email support** opens a plain mail with the account details
+**Re-check limit**, or, if a seat or licence has just been added, tap **Refresh
+licence**. **Email support@sempermechanics.com** opens a plain mail with the account details
 underneath. On Demo the cap also counts every account's analyses stored from
 this phone.
 
@@ -912,7 +922,7 @@ Write above that block; leave it in place.
 | Restore never arrived | If it failed for good, Home and Settings both show a message saying so; otherwise it retries on a flaky network |
 | Row says "Only in cloud" | Its local frames were freed (by you, or by the auto-free budget). Tap it and choose **Restore** |
 | Phone out of space | **Settings → Storage → Free up N MB**, and consider setting an auto-free budget |
-| Still pending approval | Tap **Check status** — it never polls |
+| Still pending approval | Tap **Check now** — it never polls |
 | Sign-in refused after signing up | Open the verification link in your email, then try again |
 | Nothing here matches | **Settings → Help & support** — [Support](https://sempermechanics.com/support/) or **Email support** (the mail carries your account, device and build) |
 
@@ -942,11 +952,11 @@ Formulas, accuracy and worked numbers: [app/STUDENT_LAB_WORKFLOW.md](app/STUDENT
 
 <p>
 <img src="images/step1-tensile.png" width="260" alt="Tensile step 1: frames, load log, area, strain axis">
-<img src="images/results-tensile.png" width="260" alt="Tensile Results: curve, E, peak stress">
+<img src="images/results-tensile.png" width="260" alt="Tensile Results: curve, E, yield strength, peak stress">
 </p>
 
 1. **Photos.** Pick the reference (no load), then the loaded photos, or a video.
-2. **Load log.** The machine's CSV with one load per row, in N or kN. With photos, a log that matches the frame count is paired in order.
+2. **Load log.** The machine's CSV with one load per row, in N, kN, kgf, tf or lbf. With photos, a log that matches the frame count is paired in order.
    With a video, or photos that carry an EXIF capture time (reference too), a timed log is matched by time: a frame takes a row within 100 ms, or has no load.
 3. **Cross-section** in mm², and the **strain axis** (the pulling direction in the photo).
 4. Set the ROI on the gauge section and tap **Compute** (§4).
@@ -954,6 +964,7 @@ Formulas, accuracy and worked numbers: [app/STUDENT_LAB_WORKFLOW.md](app/STUDENT
 **Results** is the first page of the viewer. It shows:
 - the curve;
 - **E** from the straight part (the frames used and R²);
+- the yield strength **Rp0.2** (0.2 % offset), also marked on the curve;
 - the peak stress.
 
 The strain is the **mean strain along the pulling direction (Exx or Eyy) over the analysed region**, so draw the ROI over the gauge section. It is the "mean" the ⓘ sheet shows for that field on each photo, so a point on the curve can be matched to its photo. Tap a point to open its photo; ⓘ there shows the curve with that point marked and the photo's load, stress and strain under it. A photo where one end of the region has left the view stays on the curve, read over the points still in view.
@@ -961,15 +972,19 @@ The strain is the **mean strain along the pulling direction (Exx or Eyy) over th
 ### Bending: load–deflection and E
 
 <p>
-<img src="images/step1-bending.png" width="260" alt="Bending step 1: timed log, sync, beam size, load point">
+<img src="images/step1-bending.png" width="260" alt="Bending step 1: photos, load log, beam size, beam height">
 <img src="images/beam-taps.png" width="260" alt="Tap the top and bottom edges under the load">
 <img src="images/results-bending.png" width="260" alt="Bending Results: load–deflection graph and E">
 </p>
 
-1. **Video** of the beam's side face at mid-span, filmed from a tripod. Extract on **Interval** at 1 fps, or take its **Keyframes** (§4).
-2. **Timed load log** (`time, load`). Frames are matched to it by time. If the log started later than the video,
-   put the gap in **Log started after the reference**, in seconds (negative if the log started first).
-   Hanger mass in kg × 9.81 = load in N.
+1. **Photos or video** of the beam's side face at mid-span, from a tripod: the reference with the
+   hanger empty, then one photo per load. From a video, extract on **Interval** at 1 fps, or take its
+   **Keyframes** (§4).
+2. **Loads.** Tap **Type loads (kg)** and type the mass on the hanger for each photo (0 for the
+   reference). The app works out W = m × 9.80665 N. **Loads typed as** switches between **Absolute**
+   and **Incremental**. A load CSV in newtons is optional; for a video with a timed log, frames are
+   matched to it by time, and if the log started later than the video, put the gap in
+   **Log started after the reference**, in seconds (negative if the log started first).
 3. **Span, width and thickness** in mm.
 4. **Beam height → Set.** Double-tap to zoom, then tap the top edge and then the bottom edge right under the load.
    The readout gives mm/px. Under 40 px a 1 px slip moves E by several percent, so zoom in or film closer.
@@ -982,7 +997,8 @@ In **Results**:
 
 ### The lab report
 
-**Share → Lab report** fills in the handwritten report's layout.
+**Share → Lab report** fills in the handwritten report's layout. Share needs an institution seat
+or a semper licence; on Demo or as a guest the Share button is greyed out.
 Blank lines are left where the app has no value, such as the final diameter, name and date.
 
 <img src="images/lab-report-tensile.png" width="720" alt="Tensile lab report: setup, observations, table, calculation, graphs, results">
@@ -1033,7 +1049,7 @@ The analysis is saved as a plain DIC analysis: no **Results** page, no lab repor
 
 Admin accounts get **Settings → Account → Pending access requests**: everyone
 waiting, with **Approve** and **Deny**. Approved users get in when they next tap
-**Check status** — they are not notified, so tell them.
+**Check now** — they are not notified, so tell them.
 
 You do not have to watch that list. The backend emails `support@sempermechanics.com`
 the moment an account is created pending, naming the account and its user id,
@@ -1056,7 +1072,7 @@ healthy.
 
 ## Appendix D — Licensing (Demo / individual / institution)
 
-Every account signs in, and every account is **Demo** (25 saved analyses, no
+Every account is **Demo** (25 saved analyses, no
 share, no backup/restore *feature*) until the server attaches a paid
 entitlement to it. A Demo account's analyses are still **recorded** — images
 and results upload and are stored exactly as a Licensed account's are — but the

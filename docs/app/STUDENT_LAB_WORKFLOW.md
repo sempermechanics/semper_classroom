@@ -96,7 +96,7 @@ Typed loads and a CSV are never combined; ✕ on one brings back the choice. Ten
   - the yield strength Rp0.2, also marked on the curve;
   - peak stress, or the bending summary.
 
-  Tapping a point on the curve opens its photo; dragging along it reads values off. On a photo, the ⓘ sheet closes with the graph, that photo's point marked, and one line under it: the photo's load, stress and strain. E, the yield strength and the peak stress are on the Results page only. Opened from Results itself the sheet leaves the graph out, since it is on the page behind. The heatmap loop is under **Share → Animations**.
+  Tapping a point on the curve opens its photo; dragging along it reads values off. On a photo, the ⓘ sheet closes with the graph, that photo's point marked, and one line under it: the photo's load, stress and strain. E, the yield strength and the peak stress are on the Results page only. Opened from Results itself the sheet leaves the graph out, since it is on the page behind. The heatmap loop is under **Share → Animations**. Share needs an institution seat or a semper licence; on Demo or as a guest it is greyed out.
 - **Share → Lab report (PDF):** the report's own layout, filled in. Anything the app can't know (lengths, final diameter, name, date) stays as a blank line.
 
 <img src="../images/lab-report-tensile.png" width="720" alt="Tensile lab report pages">
@@ -141,7 +141,7 @@ It's offered once the thickness is tapped.
 4. Get at least three photos in the elastic part before yield. More is better.
 5. Loads: one CSV row per photo in order (no time column), or the machine's timed log for a video or for photos straight off the phone.
 6. Bending: frame the **middle** of the beam, not the whole span. Aim for 100+ px across the thickness.
-7. Bending: if your TA gives a deflection scale and bias for your camera, lighting and tripod, open **Results** after the run and tap the adjust icon (sliders) beside the title; it opens **Adjust deflection**. The app uses δ = scale × δ measured + bias for the graph, table, both E values, the lab report and the CSV, prints the correction in the report, and saves it with the analysis. **Reset** goes back to the camera's δ. No re-run is needed.
+7. Bending: if your TA gives a deflection scale and bias for your camera, lighting and tripod, open **Results** after the run and tap the adjust icon (sliders) beside the title; it opens **Deflection correction**. The app uses δ = scale × δ measured + bias for the graph, table, both E values, the lab report and the CSV, prints the correction in the report, and saves it with the analysis. **Reset** goes back to the camera's δ. No re-run is needed.
 
 ## Worked numbers
 

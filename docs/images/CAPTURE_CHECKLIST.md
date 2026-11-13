@@ -1,90 +1,68 @@
 # Screenshot recapture checklist
 
-Most of the folder was recaptured on a debug build (Pixel 5 emulator,
-`SEMPER_DEV_AUTH_BYPASS` on, local-only sessions) against the UI current as of
-**2026-08-19**. A second, smaller pass on **2026-09-09** (headless Pixel 8
-emulator) refreshed the three shots the camera removal and the speckle readout
-made wrong. What's left below needs a signed-in account against a real
-backend, which the recapture pass didn't have credentials for. Device: any
-phone-class emulator or device at the project's debug build; light theme
-unless noted. Keep the 460×1022 crop so the manual's `width="300"` doesn't
-distort.
+Every screenshot in this folder was retaken on **2026-11-13** from a debug build
+of `main` at `9d7e8cc8`, on the `Pixel_5` AVD (API 34, 1080 × 2340, light theme,
+`SEMPER_DEV_AUTH_BYPASS` on, so local-only with the cloud off). Phone screens are
+scaled to **460 × 997** (the full screen, no crop); the manual shows them at
+`width="300"`, the lab section at `260`, the README at `220`. The lab report
+strips are the PDF pages rendered at 900 px high, 16 px apart, each with a
+1 px #DDD border.
 
-> **Theme mismatch, open:** the 2026-09-09/10 shots `speckle-warning.png` and
-> `speckle-span-warning.png` came off a dark-themed emulator, while the rest of
-> the folder is light. They are scaled to 460×1022 so they lay out correctly,
-> but the manual alternates light and dark mid-flow. Recapture both in light
-> theme on the next pass.
+The runs are the app's own examples (Home **+** → **No photos yet? Try an
+example**), so anyone can repeat them:
 
-## Done
+- **Steel strip in tension** (tensile), its ROI 1960 × 297 untouched: E 149.6 GPa
+  (frames 1–26, R² 0.9955), Rp0.2 305.7 MPa, peak 435.50 MPa (frame 38),
+  40 of 40 on the curve, out to 337 mε.
+- **PMMA beam in 3-point bending**, beam-height taps 571 px (0.0543 mm/px): E
+  from the graph 2.00 GPa, average 2.10 GPa.
+- **Carbon-fibre plate with a hole** (2D DIC), 11 frames.
 
-| File | Used in §. | State captured |
-|---|---|---|
-| `home.png` | §1 | *(2026-10-10, light, Pixel_5 AVD)* Outlined cards under **Today** / **Yesterday** headers: single runs ("5 frames · 87.9%", one amber 84.3%), a video analysis ("Video · 29 frames, 0:00–0:02 · 96.0%"), a sweep ("9 of 9 solved"), result thumbnails. Local-only, so every cloud icon reads *Not backed up* — see below for the other states |
-| `new-analysis-source.png` | §4 | Images tab open, gallery grid populated, a video tile showing its badge |
-| `step1-frames.png` | §4 | Reference + 3 deformed frames loaded, order badges visible |
-| `frame-order-menu.png` | §4 | The sort menu open over the loaded strip |
-| `step2-parameters.png` | §4 | *(2026-10-10, light, Pixel_5 AVD)* Single/Sweep at the top, the ROI row reading "Full image · 30,968 points", the Correlation section with the "Speckle 4.8 px" chip and the shaded band behind the subset slider, "21 px VSG" beside the strain window, **Advanced** closed, and **Compute · about 7 s** |
-| `speckle-warning.png` | §4 (new) | *(2026-09-09, dark)* Step 1 with the over-resolved speckle chip — a 12.8 px pattern against the 9 px ceiling |
-| `speckle-span-warning.png` | §4 (new) | *(2026-09-10, dark)* Step 2 with the subset-span chip under the slider — a 7.1 px pattern against a 15 px subset, asking for 23 |
-| `running.png` | §4 | **Retake** (the run sheet changed 2026-10-15). Mid-run, the sheet docked at the bottom with step 2 visible above it: "Frame 4 of 5" with 72.8%, "steel_00 · About 2 s left", three finished convergence bins with their values above them and the fourth in progress, pale and outlined with its percent, narrow and centred, over the dashed line labelled 50; "Convergence per frame" under them; **Cancel** a red text button at the right. *(Old shot 2026-10-10: the centred card)* |
-| `roi-editor.png` | §6 | Draw + Crop mode, one rectangle drawn, HUD showing `W × H at (x, y)` |
-| `step3-sweep.png` | §7 | *(2026-10-10, light, Pixel_5 AVD)* Sweep settings: **Subset** 15–35 and **Strain window** 3–11 with "11–121 px VSG" on its title row, step "subset ÷ 3", **Advanced** closed, the **X / Y** line-cut toggle over the strip preview, and **Run 9 · 7 s** |
-| `result-lattice.png` | §7 | Summary line above the lattice, hollow (skipped) nodes, **All / Node** pill visible |
-| `result-viewer.png` | §8 | *(2026-10-10, light, Pixel_5 AVD)* Exx on the last frame of a steel strip: back · "steel_27" · ⓘ · Home · share along the top, the field chip, the colour bar with its limits, a probed point ("Exx: 1.90895 mε"), and the frame jump field "5 / 5" between the arrows |
-| `settings-used.png` | §8 | ⓘ details sheet on a sweep result, line-cut section showing. Still missing: a run that stopped early, to show the "Stopped early / Frames solved" rows |
-| `home-selection.png` | §10 | *(2026-10-10, light, Pixel_5 AVD)* Two cards selected under different day headers, bar reads "2 selected" with **Select all** and delete |
-| `settings.png` | §10 | Settings scrolled to **Analyses data management**, expanded. Still missing: a row with all three actions (Download / Restore / Delete) and the transfer banner — see below |
-| `media-picker-files-saf.png` | §4 (new) | The **Files** tab handing off to the system file browser |
-| `media-picker-permission-empty.png` | §4 (new) | The Images tab's empty state with **Allow access**, before media permission is granted |
-
-`viewer-tools.png` was deleted — confirmed unreferenced anywhere in
-`OPERATING_MANUAL.md` before removal.
-
-## Still needs a real backend + account
-
-Everything below needs `SEMPER_DEV_AUTH_BYPASS=false` plus `SEMPER_API_BASE_URL`
-pointed at a live backend, and a signed-in, approved account with at least one
-cloud-backed analysis. Don't fake these states — recapture once that account is
-available.
-
-| File | Used in §. | State to be in |
-|---|---|---|
-| `home.png` | §1 | A few sessions with mixed cloud state icons (**Backed up** / **Upload pending** / **Only in cloud**) and result-heatmap thumbnails, so the icon language is visible in one shot. The camera-glyph problem is fixed as of 2026-09-09, but that replacement is an empty-state shot, so the list itself is still undocumented |
-| `delete-dialog.png` | §10 | The delete choice dialog, on a row with both local and cloud copies, so it reads **Delete device** / **Delete cloud** |
-| `settings.png` | §10 | **Analyses data management** with a row showing all three actions — Download / Restore / Delete — and, if a transfer is running, the top transfer banner (§4.0 of WORKFLOWS.md) |
-
-## New screens with no screenshot yet
-
-- The Settings **Download** flow: the SAF save-location picker, and a row mid-download. *(cloud-dependent, see above)*
-- The non-modal **transfer banner** itself (Settings and the viewer), ideally
-  mid-transfer with the ‹ › paging visible on two concurrent jobs. *(cloud-dependent, see above)*
-- The viewer's **Send to** sheet for a slow export (opens before generation —
-  distinct from the single-photo path, which still builds first). Attempted
-  this pass but not captured: the viewer's custom chrome icons (ⓘ / Home /
-  share) registered inconsistently under `adb shell input tap` on the Pixel 5
-  emulator used here — taps sometimes landed on the underlying image as a
-  tap-to-probe instead of the icon beneath the cursor. Worth a retry on a
-  different AVD or with a physical device.
-
-## Semper Classroom: the lab tests
-
-Taken on this fork's own builds (2026-09-23/25, API 36 emulator) with the
-validation's inputs: the tensile 40-frame steel set, 12.5 mm², ROI 1960 × 297 at
-(20, 69); the bending synthetic beam video, log offset 2 s, 935 / 150 / 6.38 mm,
-taps 170 px, ROI 1240 × 157 at (20, 255). Screens are cropped to 460 px wide and
-shown at `width="260"`. Every other screen is Semper's, above. The fork's own
-`video-extract.png`, `share-sheet.png` and `settings-used.png` showed its earlier
-video sheet and share sheet, which the 2026-10-14 sync replaced with Semper's;
-retake them on the next pass.
+The picker and warning shots used images pushed to `/sdcard/Pictures/SemperDocs`
+and media-scanned: example frames (steel, PMMA, CFRP), a short PMMA video for the
+badge, and two synthetic speckle patterns. One is coarse (it measures 15.8 px)
+for the over-resolved warning. The other measures 7.9 px; with the subset slider
+dragged to 15 px, it raises the span warning.
 
 | File | State captured | Used in |
 |---|---|---|
-| `test-type.png` | **Which test?** with Tensile, Bending and 2D DIC; retake with 2D DIC first (since the 2026-10-14 sync) (retaken 2026-09-25, API 36 emulator, same setup) | Manual §12, README |
-| `step1-tensile.png` | Reference, 40 frames, `steel_loads.csv` (kN), 12.5 mm², axis X, speckle chip | Manual §12, lab workflow, README |
-| `step1-bending.png` | Timed log, time-match chip, **Log started after the reference** = 2 (renamed from *…after the first frame*; recapture), L / b / t, load point 170 px | Manual §12, lab workflow, README |
-| `beam-taps.png` | The tap editor zoomed, both marks and the probe circle, 0.0375 mm/px | Manual §12, lab workflow, README |
-| `results-tensile.png` | **Retake** (TD-279). Results: stress–strain curve out to 337 mε, the caption "40 of 40 photos on the curve. Tap a point or › for its photo.", E ≈ 149.6 GPa (frames 1–26, R² 0.9955), yield Rp0.2 ≈ 305.7 MPa marked on the curve, peak 435.50 MPa (frame 38), the Whole test / Elastic region toggle and the adjust icon beside the title. *(Old shot: the same E and peak, but the earlier caption, no yield line, no toggle)* | Manual §12, lab workflow, README |
-| `results-bending.png` | Results: load–deflection graph, E 142.0 GPa (slope), 173.7 GPa (average), 0.0375 mm/px | Manual §12, lab workflow, README |
-| `lab-report-tensile.png` | **Retake** (TD-279). All four PDF pages, side by side: "Strain measured by = 2D DIC, mean Exx over the analysed region", no DIC gauge line, the table with its Frame column and no Extension column, across the full width with no Elastic / Plastic / Break point margin brackets, the Calculation's "Strain = mean Exx over the analysed region…" line, and the yield strength under Results. *(Old shot: "Strain = ΔL / L, read by DIC", Extension to two decimals, no Frame column, no yield strength)* | Manual §12, lab workflow, README |
-| `lab-report-bending.png` | **Retake** (TD-279). All three PDF pages, side by side; the table runs the full width of the page. *(Old shot: the table stops at four fifths of the width)* | Manual §12, lab workflow, README |
+| `home.png` | Four analyses under **Today**: CFRP (11 frames · 93.3%), the CFRP sweep (9 of 9 solved), PMMA (33 frames · 92.8%), steel (40 frames · 96.1%), each *Not backed up* | Manual §1 |
+| `test-type.png` | **Which test?** with 2D DIC first, then Tensile and Bending, and the **Try an example** link | Manual §12, README |
+| `new-analysis-source.png` | **New analysis** sheet, Images tab, example frames with a video badge | Manual §4 |
+| `media-picker-permission-empty.png` | Images tab before media permission: **Allow access** | Manual §4 |
+| `media-picker-files-saf.png` | **Files** tab handing off to the system browser (Downloads) | Manual §4 |
+| `speckle-warning.png` | Step 1, coarse speckle reference: "Speckle is about 15.8 px, above the 9 px guide…" | Manual §4 |
+| `step1-frames.png` | Step 1, CFRP reference and three deformed frames with order badges | Manual §4 |
+| `frame-order-menu.png` | The sort menu over the steel example's 40 frames | Manual §4 |
+| `step2-parameters.png` | Steel step 2: ROI 1960 × 297 · 23,128 points, Speckle 4.8 px, subset 19, step 5, strain window 5 (21 px VSG), **Compute · 34 s** | Manual §4 |
+| `speckle-span-warning.png` | Step 2 on the 7.9 px pattern, subset dragged to 15: "…at least 25 px here." | Manual §4 |
+| `running.png` | Run sheet at *Frame 27 of 40* · 65.9%, convergence bins, **Cancel** | Manual §4 |
+| `roi-editor.png` | Draw + Crop on the CFRP plate, one rectangle, HUD "ROI: 310 × 838 px \| Pos: (44, 98)" | Manual §6, README |
+| `step3-sweep.png` | Sweep settings: Subset 15–35, Strain window 3–11 (11–121 px VSG), step subset ÷ 3, line cut X, **Run 9 · 2 s** | Manual §7 |
+| `result-lattice.png` | 9 combinations · 9 solved · 0 skipped, the focused node ringed, All / Node, Exx | Manual §7 |
+| `settings-used.png` | ⓘ sheet on a sweep combination, scrolled to Settings used and the centre line cut | Manual §8 |
+| `result-viewer.png` | CFRP frame 11 of 11, Exx, colour bar 1.09 / −3.18 mε, a probed point, chrome shown | Manual §8, README |
+| `share-sheet.png` | Share on the steel result: This field … Lab report … Everything | README |
+| `home-selection.png` | Two analyses selected, "2 selected", **Select all**, delete | Manual §10 |
+| `delete-dialog.png` | Delete with no cloud copy: "Delete steel_00? This can't be undone." | Manual §10 |
+| `settings.png` | Settings, every section collapsed, About / Sign out | Manual §10 |
+| `step1-tensile.png` | Steel example: 40 frames, `steel_loads.csv` (kN), 12.5 mm², axis X | Manual §12, lab workflow, README |
+| `results-tensile.png` | Results with the curve, the Rp0.2 diamond, the Whole test / Elastic region toggle, the adjust icon, and E / Rp0.2 / peak as above | Manual §12, lab workflow, README |
+| `step1-bending.png` | PMMA example: 33 frames, `pmma_loads.csv` (N), 75 / 12 / 31 mm, beam height 571 px | Manual §12, lab workflow, README |
+| `beam-taps.png` | Beam height editor zoomed: both marks, the probe circle, "31 mm over 571 px · 0.0543 mm/px" | Manual §12, lab workflow, README |
+| `results-bending.png` | Load–deflection graph, E 2.00 GPa (slope 690.15 kg/mm, R² 0.9993), average 2.10 GPa | Manual §12, lab workflow, README |
+| `lab-report-tensile.png` | All four PDF pages: Frame column, no Extension column, full-width table, mean-Exx Calculation line, yield strength in Results | Manual §12, lab workflow, README |
+| `lab-report-bending.png` | All three PDF pages, full-width table | Manual §12, lab workflow, README |
+
+`semper-mark.png` is the logo. `video-extract.png` was deleted on 2026-11-13: nothing
+linked to it.
+
+## Still needs a signed-in account with a cloud backup
+
+The emulator's dev bypass has the cloud off, so these need a real account on a
+phone (the S22 runs a signed-in debug build):
+
+- `home.png` with mixed cloud icons (**Backed up** / **Upload pending** / **Only in cloud**).
+- The delete dialog on a backed-up row (**From this phone** / **From the cloud** / **Everywhere**).
+- `settings.png` with **Analyses data management** expanded on a row with Download / Restore / Delete, and the transfer banner.
+- The guest sign-in screen with **Continue as guest** (ADR-036) has no screenshot yet; it needs `SEMPER_DEV_AUTH_BYPASS=false`.

@@ -136,7 +136,7 @@ Also:
   (ΔL / L₀: 8.0 %), and E is 5.0 % below their 157.5 GPa (was 5.5 %).
   `RealSteelModulusTest` holds the new curve.
 - The screenshots `docs/images/results-tensile.png` and
-  `lab-report-tensile.png` show older wording (TD-279).
+  `lab-report-tensile.png` were retaken on 2026-11-13 (TD-279, closed).
 
 ## Action items
 
@@ -146,6 +146,6 @@ Also:
       `AnalysisCsvPreambleTest`, `RealSteelModulusTest`).
 - [x] Re-run the steel example under the mean and replace the tables
       (2026-11-11, Galaxy S22+).
-- [ ] Retake the two tensile screenshots (TD-279).
+- [x] Retake the two tensile screenshots (TD-279, done 2026-11-13).
 - [ ] ADR-012's option C (a gauge length in mm) stays deferred until tensile
       has a mm scale.

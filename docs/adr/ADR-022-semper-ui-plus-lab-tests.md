@@ -60,12 +60,12 @@ The five places above were brought back to the parent's behaviour in the
   re-applying the lab hook; the hooks are listed in the sync's PR.
 - The CSV has two versions: Semper's 1 for a plain session, 2 for a lab test.
 - Docs follow: the operating manual is Semper's, with the lab tests in its §12;
-  the screenshots are the parent's except the lab ones
+  every screenshot was retaken on this app on 2026-11-13
   ([CAPTURE_CHECKLIST](../images/CAPTURE_CHECKLIST.md)).
 
 ## Action items
 
-- [ ] Retake `test-type.png`, `video-extract.png`, `share-sheet.png` and
-      `settings-used.png` on this build.
+- [x] Retake `test-type.png`, `share-sheet.png` and `settings-used.png` on this
+      build (2026-11-13; `video-extract.png` was unused and is deleted).
 - [ ] Check 2D DIC side by side with a Semper build on one phone
       ([WORKFLOWS](../app/WORKFLOWS.md) §3b).

@@ -7,19 +7,20 @@
 </p>
 
 Phone-camera **2D digital image correlation (DIC)** for the first-semester
-**tensile** and **bending** labs. You photograph the speckled specimen and import the
-machine's load log. The app gives you E and fills in your lab report.
+**tensile** and **bending** labs. You photograph the speckled specimen and give the
+loads: the machine's load log for tensile, the hanger mass of each photo for bending.
+The app gives you E and fills in your lab report.
 
 <p align="center">
   <img src="docs/images/test-type.png" width="220" alt="Which test? 2D DIC, Tensile or Bending">
   &nbsp;
   <img src="docs/images/step1-tensile.png" width="220" alt="Tensile setup: frames, load log, cross-section">
   &nbsp;
-  <img src="docs/images/results-tensile.png" width="220" alt="Tensile results: stress–strain curve and E">
+  <img src="docs/images/results-tensile.png" width="220" alt="Tensile results: stress–strain curve, E and yield strength">
 </p>
 
 <p align="center">
-  <img src="docs/images/step1-bending.png" width="220" alt="Bending setup: video, timed load log, beam size, load point">
+  <img src="docs/images/step1-bending.png" width="220" alt="Bending setup: photos, load log, beam size, beam height">
   &nbsp;
   <img src="docs/images/beam-taps.png" width="220" alt="Tap the beam's top and bottom edges for the mm scale">
   &nbsp;
@@ -28,11 +29,12 @@ machine's load log. The app gives you E and fills in your lab report.
 
 | Test | You give | You get |
 |---|---|---|
-| **Tensile** | Photos or video, the load log (N or kN), cross-section area | Stress–strain curve, **E** from the straight part, peak stress |
-| **Bending** | Video, the timed load log, span / width / thickness, two taps on the beam edges | Load–deflection graph, σb and E for each load step, **E from the slope** |
+| **Tensile** | Photos or video, the load log (N, kN, kgf, tf or lbf), cross-section area | Stress–strain curve, **E** from the straight part, yield strength Rp0.2, peak stress |
+| **Bending** | Photos or video, the hanger mass of each photo typed in kg (or an optional load CSV), span / width / thickness, two taps on the beam edges | Load–deflection graph, σb and E for each load step, **E from the slope** |
 
 **Share → Lab report** fills in the journal layout: aim, observations, table,
-calculation, graphs and results.
+calculation, graphs and results. Share needs an institution seat or a semper
+licence; on Demo, or as a guest with no account, it is greyed out.
 
 <p align="center">
   <img src="docs/images/lab-report-tensile.png" width="720" alt="Tensile lab report, four pages">
@@ -161,13 +163,13 @@ detail: `engine/docs/ARCHITECTURE.md` · [docs/engine/](docs/engine/).
 
 | Parameter | Default | Range | Role |
 |---|---|---|---|
-| Subset size | measured (41 px fallback) | 15–121, **odd** | Tracked window — larger = robust, less detail |
+| Subset size | the size that spans three speckles (41 px before a measurement) | the SSSIG size to 50 px above it (15–121 before a measurement), **odd** | Tracked window — larger = robust, less detail |
 | Step size | 5 px | 1–30 | Grid spacing between points |
 | Strain window | 5 points (bending 9) | 3–31, **odd** | Data points per strain fit; VSG = (window − 1) × step + 1 px |
 
 Subset width is **suggested from the reference speckle** (SSSIG criterion, Pan
 et al. 2008): weak speckle → larger window. Typed evens snap to odd; out-of-range
-values clamp. Override freely — **Reset** restores the suggestion.
+values move to the nearer end. Override freely — **Reset** restores the suggestion.
 
 ---
 
