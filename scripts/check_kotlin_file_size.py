@@ -30,6 +30,9 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from kotlin_lex import POINTER, allowlist_lines, line_of, strip_code  # noqa: E402  (a sibling module)
+
 #: ADR-015's guide: "a file that grows past about 500 lines is split".
 BUDGET = 500
 
@@ -51,81 +54,12 @@ HOT_LOOPS: dict[str, tuple[str, ...]] = {
     "ui/viewer/inspect/PointSpatialIndex.kt": ("build",),
 }
 
-_POINTER = re.compile(r"\b(?:TD|ADR)-\d+\b")
-
-
-def strip_code(text: str) -> str:
-    """Blank comments, string and char literals; every offset and newline stays.
-
-    Only braces and parentheses in code are matched against each other, so a
-    `"{"` in a string or a `}` in a comment must not count.
-    """
-    out = list(text)
-    n = len(text)
-
-    def blank(start: int, end: int) -> None:
-        for k in range(start, min(end, n)):
-            if out[k] != "\n":
-                out[k] = " "
-
-    i = 0
-    while i < n:
-        if text.startswith("//", i):
-            end = text.find("\n", i)
-            end = n if end < 0 else end
-        elif text.startswith("/*", i):
-            depth, end = 1, i + 2
-            while end < n and depth:
-                if text.startswith("/*", end):
-                    depth, end = depth + 1, end + 2
-                elif text.startswith("*/", end):
-                    depth, end = depth - 1, end + 2
-                else:
-                    end += 1
-        elif text.startswith('"""', i):
-            end = text.find('"""', i + 3)
-            end = n if end < 0 else end + 3
-            while end < n and text[end] == '"':
-                end += 1
-        elif text[i] == '"':
-            end = _string_end(text, i + 1)
-        elif text[i] == "'":
-            end = i + 1
-            if end < n and text[end] == "\\":
-                end += 2
-            close = text.find("'", end)
-            end = n if close < 0 else close + 1
-        else:
-            i += 1
-            continue
-        blank(i, end)
-        i = end
-    return "".join(out)
-
-
-def _string_end(text: str, j: int) -> int:
-    """The offset just past a one-line string literal opened before `j`."""
-    n = len(text)
-    while j < n:
-        c = text[j]
-        if c == "\\":
-            j += 2
-        elif text.startswith("${", j):
-            depth, j = 1, j + 2
-            while j < n and depth:
-                depth += {"{": 1, "}": -1}.get(text[j], 0)
-                j += 1
-        elif c == '"':
-            return j + 1
-        elif c == "\n":
-            return j
-        else:
-            j += 1
-    return n
-
 
 def matching(code: str, start: int) -> int:
-    """Offset of the bracket closing the one at `start`, or -1."""
+    """Offset of the bracket closing the one at `start`, or -1.
+
+    Unlike `kotlin_lex.matching`, only brackets of the kind at `start` count.
+    """
     pairs = {"(": ")", "{": "}", "[": "]"}
     opener = code[start]
     closer = pairs[opener]
@@ -163,7 +97,7 @@ def function_spans(code: str, name: str) -> list[tuple[int, int]]:
         end = matching(code, brace)
         if end < 0:
             continue
-        spans.append((code.count("\n", 0, match.start()) + 1, code.count("\n", 0, end) + 1))
+        spans.append((line_of(code, match.start()), line_of(code, end)))
     return spans
 
 
@@ -178,19 +112,14 @@ def read_allowlist(path: Path) -> tuple[dict[str, Entry], list[str]]:
     """Entries by package-relative path, and any problems with the file itself."""
     entries: dict[str, Entry] = {}
     problems: list[str] = []
-    if not path.is_file():
-        return entries, problems
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
+    for number, line in allowlist_lines(path):
         parts = [part.strip() for part in line.split("|")]
         where = f"{ALLOWLIST}:{number}"
         if len(parts) != 3 or not parts[1].isdigit():
             problems.append(f"{where}: expected `path | max lines | reason`, got {line!r}")
             continue
         file, ceiling, reason = parts[0], int(parts[1]), parts[2]
-        if not _POINTER.search(reason):
+        if not POINTER.search(reason):
             problems.append(f"{where}: the reason for {file} names no TD- or ADR- pointer")
         if file in entries:
             problems.append(f"{where}: {file} is listed twice")

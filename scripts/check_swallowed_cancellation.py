@@ -47,10 +47,12 @@ from pathlib import Path
 from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from check_activity_scope_work import (  # noqa: E402  (a sibling script, stdlib only)
+from kotlin_lex import (  # noqa: E402  (a sibling module, stdlib only)
+    POINTER,
     Function,
-    _enclosing_paren,
-    _skip_space,
+    allowlist_lines,
+    enclosing_paren,
+    skip_space,
     enclosing,
     functions,
     line_of,
@@ -113,7 +115,6 @@ _HANDLES = re.compile(
     r"\bis\s+(?:[\w.]+\.)?CancellationException\b|\brethrowIfCallerCancelled\b|\bensureActive\b"
 )
 _CHAIN_HANDLES = re.compile(_HANDLES.pattern + r"|\bgetOrThrow\b")
-_POINTER = re.compile(r"\b(?:TD|ADR)-\d+\b")
 
 
 class Names(NamedTuple):
@@ -170,12 +171,12 @@ def in_suspend_context(code: str, funs: list[Function], pos: int) -> bool:
 
 def _lambda_after(code: str, pos: int) -> tuple[int, int] | None:
     """The `{ }` that starts at `pos`, after an optional `( )` argument list."""
-    pos = _skip_space(code, pos)
+    pos = skip_space(code, pos)
     if pos < len(code) and code[pos] == "(":
         close = matching(code, pos)
         if close < 0:
             return None
-        pos = _skip_space(code, close + 1)
+        pos = skip_space(code, close + 1)
     if pos < len(code) and code[pos] == "{":
         end = matching(code, pos)
         if end > pos:
@@ -188,7 +189,7 @@ def non_cancellable(code: str) -> list[tuple[int, int]]:
     `withContext(Dispatchers.IO + NonCancellable) { }`, `launch(NonCancellable) { }`."""
     regions = []
     for match in _NON_CANCELLABLE.finditer(code):
-        paren = _enclosing_paren(code, match.start())
+        paren = enclosing_paren(code, match.start())
         if paren < 0:
             continue
         block = _lambda_after(code, paren)
@@ -275,7 +276,7 @@ def _chain(code: str, pos: int) -> str:
     """The `.call { } .call( )` chain that follows a `runCatching { }` ending at `pos`."""
     start = pos
     while True:
-        nxt = _skip_space(code, pos)
+        nxt = skip_space(code, pos)
         if nxt + 1 < len(code) and code[nxt] in "?." and code[nxt:nxt + 2] != "?:":
             match = re.compile(r"\??\.\s*\w+\s*").match(code, nxt)
             if not match:
@@ -285,7 +286,7 @@ def _chain(code: str, pos: int) -> str:
                 close = matching(code, pos)
                 if close < 0:
                     return code[start:]
-                pos = _skip_space(code, close + 1)
+                pos = skip_space(code, close + 1)
         else:
             break
     return code[start:pos]
@@ -353,13 +354,8 @@ class Entry(NamedTuple):
 def read_allowlist(path: Path) -> tuple[list[Entry], list[str]]:
     entries: list[Entry] = []
     problems: list[str] = []
-    if not path.is_file():
-        return entries, problems
     keys: set[tuple[str, str, str, str]] = set()
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
+    for number, line in allowlist_lines(path):
         parts = [part.strip() for part in line.split("|", 4)]
         where = f"{ALLOWLIST}:{number}"
         if len(parts) != 5 or not all(parts):
@@ -368,7 +364,7 @@ def read_allowlist(path: Path) -> tuple[list[Entry], list[str]]:
             )
             continue
         entry = Entry(*parts, number)
-        if not _POINTER.search(entry.reason):
+        if not POINTER.search(entry.reason):
             problems.append(f"{where}: the reason names no TD- or ADR- pointer")
         key = entry[:4]
         if key in keys:

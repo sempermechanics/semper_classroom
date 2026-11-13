@@ -39,6 +39,20 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from kotlin_lex import (  # noqa: E402  (a sibling module, stdlib only)
+    POINTER,
+    Function,
+    allowlist_lines,
+    enclosing,
+    enclosing_paren,
+    functions,
+    line_of,
+    matching,
+    skip_space,
+    strip_code,
+)
+
 PACKAGE_ROOT = Path("app/src/main/java/com/sempermechanics/semper")
 SCAN = "ui"
 ALLOWLIST = Path("scripts/activity_scope_allowlist.txt")
@@ -80,126 +94,18 @@ _ONE_TIME = re.compile(r"(?<![\w])oneTimeWork\b")
 
 _SCOPE = re.compile(r"(?<![\w$.@])(?:([\w@]+)\s*\.\s*)?lifecycleScope\b")
 _LAUNCH = re.compile(r"\s*\.\s*(launch\w*|async)\b")
-_FUN = re.compile(r"\bfun\s+(?:<[^>]*>\s*)?(?:([\w.<>?, ]+)\.)?(\w+)\s*\(")
 _CLASS = re.compile(r"\b(?:class|object)\s+(\w+)")
 _SCREEN_SUPER = re.compile(r"(?<![\w])(?:\w+\.)*\w*(?:Activity|Fragment)\s*\(")
 _LOCAL_CALL = re.compile(r"(?<![\w.])(\w+)\s*[({]")
-_POINTER = re.compile(r"\b(?:TD|ADR)-\d+\b")
 
 
-# ── Kotlin source, read just enough ─────────────────────────────────────
-
-
-def strip_code(text: str) -> str:
-    """Blank comments, string and char literals; every offset and newline stays."""
-    out = list(text)
-    n = len(text)
-
-    def blank(start: int, end: int) -> None:
-        for k in range(start, min(end, n)):
-            if out[k] != "\n":
-                out[k] = " "
-
-    i = 0
-    while i < n:
-        if text.startswith("//", i):
-            end = text.find("\n", i)
-            end = n if end < 0 else end
-        elif text.startswith("/*", i):
-            depth, end = 1, i + 2
-            while end < n and depth:
-                if text.startswith("/*", end):
-                    depth, end = depth + 1, end + 2
-                elif text.startswith("*/", end):
-                    depth, end = depth - 1, end + 2
-                else:
-                    end += 1
-        elif text.startswith('"""', i):
-            end = text.find('"""', i + 3)
-            end = n if end < 0 else end + 3
-            while end < n and text[end] == '"':
-                end += 1
-        elif text[i] == '"':
-            end = _string_end(text, i + 1)
-        elif text[i] == "'":
-            end = i + 1
-            if end < n and text[end] == "\\":
-                end += 2
-            close = text.find("'", end)
-            end = n if close < 0 else close + 1
-        else:
-            i += 1
-            continue
-        blank(i, end)
-        i = end
-    return "".join(out)
-
-
-def _string_end(text: str, j: int) -> int:
-    n = len(text)
-    while j < n:
-        c = text[j]
-        if c == "\\":
-            j += 2
-        elif text.startswith("${", j):
-            depth, j = 1, j + 2
-            while j < n and depth:
-                depth += {"{": 1, "}": -1}.get(text[j], 0)
-                j += 1
-        elif c == '"':
-            return j + 1
-        elif c == "\n":
-            return j
-        else:
-            j += 1
-    return n
-
-
-_OPEN = {"(": ")", "{": "}", "[": "]"}
-_CLOSE = {v: k for k, v in _OPEN.items()}
-
-
-def matching(code: str, start: int) -> int:
-    """Offset of the bracket closing the one at `start`, or -1."""
-    depth = 0
-    for k in range(start, len(code)):
-        if code[k] in _OPEN:
-            depth += 1
-        elif code[k] in _CLOSE:
-            depth -= 1
-            if depth == 0:
-                return k
-    return -1
-
-
-def _skip_space(code: str, pos: int) -> int:
-    while pos < len(code) and code[pos].isspace():
-        pos += 1
-    return pos
-
-
-def _enclosing_paren(code: str, pos: int) -> int:
-    """The `(` whose argument list holds `pos`, or -1 when `pos` is not in one."""
-    depth = 0
-    for k in range(pos - 1, -1, -1):
-        c = code[k]
-        if c in _CLOSE:
-            depth += 1
-        elif c in _OPEN:
-            if depth == 0:
-                return k if c == "(" else -1
-            depth -= 1
-    return -1
-
-
-def line_of(code: str, pos: int) -> int:
-    return code.count("\n", 0, pos) + 1
+# ── Which files are screens ─────────────────────────────────────────────
 
 
 def is_screen(code: str) -> bool:
     """Whether the file declares an Activity or Fragment subclass."""
     for match in _CLASS.finditer(code):
-        pos = _skip_space(code, match.end())
+        pos = skip_space(code, match.end())
         if pos < len(code) and code[pos] == "<":
             pos = code.find(">", pos) + 1
         header_end = code.find("{", pos)
@@ -214,66 +120,6 @@ def is_screen(code: str) -> bool:
         if colon >= 0 and _SCREEN_SUPER.search(code, colon, header_end):
             return True
     return False
-
-
-class Function(NamedTuple):
-    name: str
-    start: int
-    params: tuple[int, int]  # the parameter list's `(` and `)`
-    body: int  # offset of the body's first character
-    end: int
-    receiver: str  # an extension's receiver type, else ""
-
-
-def _expression_end(code: str, pos: int) -> int:
-    """Where an expression body that starts at `pos` ends: the first line end at
-    bracket depth 0 that the next line does not continue (`.let`, `?:`, `&&`)."""
-    depth, end = 0, _skip_space(code, pos)
-    while end < len(code):
-        c = code[end]
-        if c == "\n" and depth == 0:
-            following = _skip_space(code, end)
-            if following >= len(code) or code[following] not in ".?:&|+-*/":
-                return end
-        depth += 1 if c in _OPEN else -1 if c in _CLOSE else 0
-        end += 1
-    return end
-
-
-def functions(code: str) -> list[Function]:
-    """Every `fun` with a body, block (`{ }`) or expression (`= …`)."""
-    found = []
-    for match in _FUN.finditer(code):
-        close = matching(code, match.end() - 1)
-        if close < 0:
-            continue
-        brace, equals = code.find("{", close), code.find("=", close)
-        if equals >= 0 and (brace < 0 or equals < brace):
-            end = _expression_end(code, equals + 1)
-            body = equals + 1
-        elif brace >= 0:
-            body, end = brace + 1, matching(code, brace)
-            if end < 0:
-                continue
-        else:
-            continue
-        receiver = (match.group(1) or "").strip().split("<")[0].split(".")[-1]
-        found.append(
-            Function(match.group(2), match.start(), (match.end() - 1, close), body, end, receiver)
-        )
-    return found
-
-
-_PROPERTY = re.compile(r"\b(?:val|var)\s+(\w+)")
-
-
-def enclosing(code: str, funs: list[Function], pos: int) -> str:
-    """The function holding `pos`; outside one, the property it initialises."""
-    inside = [f for f in funs if f.start <= pos <= f.end]
-    if inside:
-        return max(inside, key=lambda f: f.start).name
-    properties = list(_PROPERTY.finditer(code, 0, pos))
-    return properties[-1].group(1) if properties else "<init>"
 
 
 # ── The check ────────────────────────────────────────────────────────────
@@ -358,9 +204,9 @@ def launches(
         for match in call.finditer(code):
             if not _calls_launcher(code, rel, match.group(1), launcher):
                 continue
-            pos = _skip_space(code, match.end())
+            pos = skip_space(code, match.end())
             if pos < len(code) and code[pos] == "(":
-                pos = _skip_space(code, matching(code, pos) + 1)
+                pos = skip_space(code, matching(code, pos) + 1)
             if pos < len(code) and code[pos] == "{":
                 end = matching(code, pos)
                 if end > pos:
@@ -370,14 +216,14 @@ def launches(
             continue
         call = _LAUNCH.match(code, match.end())
         if call:
-            pos = _skip_space(code, call.end())
+            pos = skip_space(code, call.end())
             if pos < len(code) and code[pos] == "(":
-                pos = _skip_space(code, matching(code, pos) + 1)
+                pos = skip_space(code, matching(code, pos) + 1)
         else:
-            paren = _enclosing_paren(code, match.start())
+            paren = enclosing_paren(code, match.start())
             if paren < 0:
                 continue
-            pos = _skip_space(code, matching(code, paren) + 1)
+            pos = skip_space(code, matching(code, paren) + 1)
         if pos < len(code) and code[pos] == "{":
             end = matching(code, pos)
             if end > pos:
@@ -473,20 +319,15 @@ class Entry(NamedTuple):
 def read_allowlist(path: Path) -> tuple[list[Entry], list[str]]:
     entries: list[Entry] = []
     problems: list[str] = []
-    if not path.is_file():
-        return entries, problems
     keys: set[tuple[str, str, str]] = set()
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
+    for number, line in allowlist_lines(path):
         parts = [part.strip() for part in line.split("|")]
         where = f"{ALLOWLIST}:{number}"
         if len(parts) != 4 or not all(parts):
             problems.append(f"{where}: expected `path | function | call | reason`, got {line!r}")
             continue
         entry = Entry(*parts, number)
-        if not _POINTER.search(entry.reason):
+        if not POINTER.search(entry.reason):
             problems.append(f"{where}: the reason names no TD- or ADR- pointer")
         key = (entry.path, entry.function, entry.call)
         if key in keys:
