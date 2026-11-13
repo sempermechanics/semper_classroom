@@ -18,21 +18,16 @@ import java.util.Locale
 /*
  * A cancelled run keeps nothing (owner decision, 2026-10-15), batch or sweep:
  * not its frames, not a row, not an upload. Its results never left the
- * session's staging folder ([RunSession.staging]); what a batch run did move
- * is the deformed images it reached ([keepDeformedFrame]), which go back to
- * where it found them ([returnMovedFrames]). A batch run that throws before
- * its results are committed is undone the same way ([undoFailedBatch]), and
- * so is one that throws after, before the wizard follows its frames
- * ([undoCommittedBatch]).
+ * session's staging folder ([RunSession.staging]); the deformed images a batch
+ * run moved ([keepDeformedFrame]) go back where it found them ([returnMovedFrames]).
  */
 
 /**
  * Throws away a sweep in [session] that the user cancelled, however many
- * combinations it solved ([discardRun]): no row, no upload, and any saved
- * sweep stays exactly as it was. A sweep moves no image before it
- * saves, so there is none to put back. Like a cancelled batch run, it sends
- * no analytics end event, and its outcome names no session, so the wizard
- * stays as it was. [executionTimeMs] is how long it ran.
+ * combinations it solved ([discardRun]); any saved sweep stays as it was. A
+ * sweep moves no image before it saves, so there is none to put back. Like a
+ * cancelled batch run it sends no analytics end event and names no session
+ * ([cancelledOutcome]). [executionTimeMs] is how long it ran.
  */
 @WorkerThread
 internal fun discardCancelledSweep(
@@ -79,10 +74,8 @@ internal fun AnalysisViewModel.discardCancelledBatch(
 /**
  * A batch run in [session] that threw before it committed its results (a
  * full disk under `DicFieldIo.write`, say) is undone as a cancelled one is
- * ([discardCancelledBatch]): each image it moved out of [launched] (to
- * [resolved]) goes back, and nothing else of it is kept, so the next Compute
- * finds its frames where the wizard left them. [failure] then goes on up as
- * the run's outcome.
+ * ([discardCancelledBatch]), so the next Compute finds its frames where the
+ * wizard left them; then [failure] is rethrown as the run's outcome.
  */
 @WorkerThread
 internal fun AnalysisViewModel.undoFailedBatch(
@@ -98,15 +91,11 @@ internal fun AnalysisViewModel.undoFailedBatch(
 }
 
 /**
- * A batch run in [session] that threw after it committed its results but
+ * As [undoFailedBatch], for a batch run that threw after its commit but
  * before the wizard followed its frames ([repointDeformedPathsOnMain]): in the
  * "Saving…" post, the stale-frame prune, or Re-run's keep past the
- * `IOException` it catches itself (TD-225). The commit had moved the frames
- * into the session while the wizard still named [launched], so it is undone
- * as one that threw before its commit is ([undoFailedBatch]), its committed
- * results first ([RunSession.dropResults]): each image goes back from
- * [resolved], or the wizard is pointed at where it stayed, and nothing of the
- * run is kept. [failure] then goes on up as the run's outcome.
+ * `IOException` it catches itself (TD-225). Its committed results go first
+ * ([RunSession.dropResults]).
  */
 @WorkerThread
 internal fun AnalysisViewModel.undoCommittedBatch(

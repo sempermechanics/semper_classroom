@@ -128,17 +128,13 @@ object SweepStudyRunner {
      * further away and finishing only spends minutes producing fields nobody
      * should trust.
      *
-     * A sweep's consecutive solves are successive *parameter combinations* on
-     * one frame pair, where that reasoning does not hold. The plan is ordered
-     * smallest subset first, and a small subset is exactly the one most likely
-     * to come back under-converged — so the strike rule systematically killed
-     * sweeps in their opening combinations, before reaching the larger subsets
-     * the user ran the sweep to find. It is the same argument [skipCodeFor]
-     * already makes about failures: one bad node says nothing about the rest.
-     *
-     * Under-converged combinations are kept and written like any other. The
-     * lattice shows each node's own result, which is where a judgement about
-     * which settings worked belongs.
+     * A sweep's consecutive solves are *parameter combinations* on one frame
+     * pair, where that does not hold: one bad node says nothing about the rest.
+     * The plan starts at the smallest subset, the one most likely to
+     * under-converge or fail, so the strike rule would end sweeps before the
+     * larger subsets the user ran them to find. Under-converged combinations
+     * are written like any other, and failed ones skipped; the lattice shows
+     * each node's own result.
      *
      * The cancel flag is cleared when the sweep is launched (`launchSweep`),
      * not here, so a Cancel confirmed before the first solve still stops it.
@@ -182,10 +178,9 @@ object SweepStudyRunner {
         var lastSolved: Solved? = null
 
         // A cancel short-circuits the remaining solves; the one already running
-        // stops on its own, since the engine polls the same flag. Nothing else
-        // ends the sweep early — see the KDoc. The guard must be inside the
-        // loop — Iterable.takeWhile on a List is eager and would capture the
-        // whole plan before cancelRequested can flip.
+        // stops on its own, since the engine polls the same flag. The guard must
+        // be inside the loop: Iterable.takeWhile on a List is eager and would
+        // capture the whole plan before cancelRequested can flip.
         for ((index, point) in params.plan.withIndex()) {
             if (cancelRequested) break
             val metrics = EngineStats.newMetrics()
@@ -193,10 +188,7 @@ object SweepStudyRunner {
             onProgress(Progress(index, total, starting, point, 0, -1f, outcomes.toList(), lastSolved))
 
             val solved = SemperEngine.solve(refBytes, defBytes, params.engineParams(point), buffer, metrics)
-            // One bad node says nothing about the rest — a small subset can fail
-            // where a larger one solves, and the plan starts at the smallest — so
-            // skip and keep sweeping rather than abort. skipCodeFor also rejects a
-            // point count that would overrun the shared buffer (a crash guard).
+            // Skip and keep sweeping rather than abort (see [run]).
             val skipCode = skipCodeFor(solved, buffer)
             if (skipCode != null) {
                 recordSkip(point, skipCode, skipped, skippedCodes)

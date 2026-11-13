@@ -24,19 +24,16 @@ import kotlin.math.hypot
  *
  * Interactive: tap to focus a solved node, double-tap/long-press to open it.
  *
- * Both plot axes: Y (VSG) is floored at 1; X (subset) uses evenly spaced
- * columns for the present subset sizes. Labels are the app's sans, set
- * horizontally.
+ * Y (VSG) frames the swept range with a margin ([setNodes]); X (subset) uses
+ * evenly spaced columns for the present subset sizes. Labels are the app's
+ * sans, set horizontally.
  */
 class SweepLatticeView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
-    /**
-     * Off by default so the planned lattice preview keeps its old passive
-     * behaviour; the result lattice explicitly enables interactions.
-     */
+    /** Off by default, so the planned lattice preview is passive; the result lattice turns it on. */
     var interactionEnabled: Boolean = false
 
     /**
@@ -110,7 +107,7 @@ class SweepLatticeView @JvmOverloads constructor(
         const val TICK_GAP_DP = SweepLatticeGutters.TICK_GAP_DP
         const val Y_TICKS = SweepLatticeGutters.Y_TICKS
 
-        /** Y-axis floor: VSG ticks / origin start at 1. */
+        /** The VSG range of a lattice with no nodes yet. */
         const val AXIS_MIN = 1
 
         /** Head-room above the VSG range so nodes are not clipped. */
@@ -157,9 +154,7 @@ class SweepLatticeView @JvmOverloads constructor(
         this.nodes = nodes
         columns = nodes.map { it.subset }.distinct().sorted()
         val windows = nodes.map { it.vsg }
-        // Frame the windows actually swept rather than anchoring at 1: the
-        // sweep's own range is the interesting span, and starting below it threw
-        // away most of the plot.
+        // Frame the VSGs actually swept, not from 1: below them is empty plot.
         val lo = windows.minOrNull() ?: AXIS_MIN
         val hi = windows.maxOrNull() ?: AXIS_MIN
         vsgLo = lo
@@ -339,10 +334,8 @@ class SweepLatticeView @JvmOverloads constructor(
     private fun drawNodes(canvas: Canvas, columnX: Map<Int, Float>, yFor: (Int) -> Float) {
         val radius = nodeRadius(yFor)
         val selectedRadius = radius + dp(if (compact) SELECT_RING_DP else CURRENT_RING_LIVE_DP)
-        // Single solved colour, not one per curve (SweepPlotView.paletteColor is
-        // reserved for the plot's own emphasis -- keying the node fill to it too
-        // taught a colour that never matched once more than one node was solved,
-        // since only the FOCUSED curve is ever shown in colour there now).
+        // One solved colour, not SweepPlotView.paletteColor: the plot colours
+        // only its focused curve, so a per-node hue would never match it.
         val solved = ContextCompat.getColor(context, R.color.viewer_plot_node_solved)
         val skipped = ContextCompat.getColor(context, R.color.viewer_plot_node_skipped)
         val pending = ContextCompat.getColor(context, R.color.viewer_plot_muted)

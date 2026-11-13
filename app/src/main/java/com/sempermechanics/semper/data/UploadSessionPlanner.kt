@@ -62,9 +62,9 @@ internal sealed interface Resume {
     /**
      * The backend is still opening upload targets — poll again shortly. It
      * opens Drive's resumable sessions in a Cloud Task rather than inside
-     * POST /v1/sessions, so an empty upload list means "not ready yet", not
-     * "nothing to do". Read as [Rebuild] it would spin, creating a fresh
-     * session on every poll.
+     * POST /v1/sessions (600 files was ~1200 sequential Drive round-trips in a
+     * 60 s budget), so an empty upload list means "not ready yet", not
+     * "nothing to do". Read as [Rebuild] it would create a fresh session on every poll.
      */
     data object Wait : Resume
 
@@ -172,9 +172,8 @@ internal class UploadSessionPlanner(
      * rebuild packs new zip timestamps: the same sizes, other bytes. Resumed,
      * the old session would take those bytes (`:complete` checks Drive's md5
      * against the file sent, and [matchPending] only role, name and size when
-     * the backend sends no hash)
-     * while the backup keeps the sha256 it was created with, so every restore
-     * of it would fail `session_zip_sha256_mismatch`.
+     * the backend sends no hash) while the backup keeps the sha256 it was
+     * created with, so every restore of it would fail `session_zip_sha256_mismatch`.
      *
      * Null when the run may restage with no session: there was none, it is
      * gone, or it is now deleted ([discardCloudSession]). Otherwise the step to
@@ -222,18 +221,14 @@ internal class UploadSessionPlanner(
      * [staging] bound to it: the session and the sha256 declared for each
      * file, which a later run's [UploadStaging.prepare] checks before resuming.
      *
-     * The backend opens those targets in a Cloud Task rather than inside the
-     * request (600 files was ~1200 sequential Drive round-trips in a 60s
-     * budget), so the response may come back PROVISIONING with an empty upload
-     * list. The caller then polls the resume endpoint until the targets exist
-     * ([nextStep]).
+     * The response may come back PROVISIONING with no targets yet ([Resume.Wait]);
+     * [nextStep] then polls until they exist.
      *
-     * **Never** map `SessionCreateResponse.uploads` by list index. Those
-     * targets are listed in Firestore document-id order
-     * (`{sid}_{role}_{name}`), so `bundle/Session.zip` sorts *before*
-     * `metadata/metadata.json`. Index pairing PUT the ~2 KB JSON onto the
-     * ~84 MB zip resumable URI → Drive 400 Content-Range size mismatch.
-     * Always resolve via [resumeSession] / [awaitProvisioned] (role+name+size+sha256).
+     * **Never** pair `SessionCreateResponse.uploads` with the files by list index:
+     * they come back in Firestore document-id order (`{sid}_{role}_{name}`), so
+     * `bundle/Session.zip` sorts before `metadata/metadata.json` and an index pairing
+     * PUT the JSON onto the zip's URI (Drive 400). Always resolve via [resumeSession]
+     * (role+name+size+sha256).
      */
     private suspend fun createSession(
         record: SessionRecord,
@@ -279,8 +274,7 @@ internal class UploadSessionPlanner(
     private suspend fun nextStep(cloudSessionId: String, artifacts: List<UploadArtifact>): SessionStep {
         val first = resumeSession(cloudSessionId, artifacts)
         val resumed = if (first is Resume.Wait) {
-            // Do NOT Result.retry() immediately — that burned WorkManager
-            // attempts in ~2s with no progress. Poll in-process first.
+            // Poll in-process first: an immediate Result.retry() burns WorkManager attempts in ~2 s.
             Timber.w("Session still provisioning — polling for upload targets")
             awaitProvisioned(cloudSessionId, artifacts)
         } else {
@@ -317,12 +311,9 @@ internal class UploadSessionPlanner(
     }
 
     /**
-     * Poll until the backend has opened this session's upload targets.
-     *
-     * Provisioning runs as a Cloud Task, so a freshly created session reports
-     * PROVISIONING with an empty upload list for a moment. Bounded: if it has
-     * not finished within [UploadTuning.PROVISION_POLL_ATTEMPTS], hand back to
-     * WorkManager rather than holding a foreground worker open indefinitely.
+     * Poll until the backend has opened this session's upload targets ([Resume.Wait]).
+     * Bounded: past [UploadTuning.PROVISION_POLL_ATTEMPTS], hand back to WorkManager
+     * rather than hold a foreground worker open indefinitely.
      */
     private suspend fun awaitProvisioned(cloudSessionId: String, artifacts: List<UploadArtifact>): Resume {
         var delayMs = UploadTuning.PROVISION_POLL_INITIAL_MS

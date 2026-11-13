@@ -24,11 +24,10 @@ import kotlin.math.roundToInt
  * in data points; this object derives the rest:
  *
  *  - subset sizes are the odd values across the requested range;
- *  - step size is an integer between 1/6 and 1/3 of each subset, the usual
- *    overlap band — below 1/6 neighbouring subsets are so redundant that the
- *    extra runtime buys nothing, above 1/3 the field is under-sampled.
- *    The sweep asks for that fraction as `subset ÷ N`; single analysis asks
- *    for a pixel step plus the linked overlap `1 − step/subset`;
+ *  - step size is `round(subset ÷ N)` for N from [STEP_DENOM_MIN] to
+ *    [STEP_DENOM_MAX], i.e. 1/9 to 1/2 of each subset (overlap at least
+ *    [MIN_OVERLAP]); single analysis asks for a pixel step plus the linked
+ *    overlap `1 − step/subset`;
  *  - each window's VSG in pixels then follows from its step,
  *    `(window - 1) * step + 1` ([vsgFor]), so one window gives a larger VSG
  *    at a larger subset.
@@ -52,18 +51,11 @@ object SweepStudy {
      * `(points - 1) / 2` steps plus half a pixel, so the circle takes in every
      * grid point within that many steps and no more, whatever the step.
      *
-     * Two device runs confirmed that the footprint is the diameter itself
-     * rather than a count of points. Solving `L = sqrt(2) * sigma_u / sigma_e`
-     * from each run's own displacement jitter and strain scatter, on a static
-     * specimen over 60 frames, both at a 15 px diameter:
-     *
-     * | device | step | measured `L` | diameter |
-     * |--------|------|--------------|----------|
-     * | Samsung SM-G996U1 | 3 | 13.4 px | 15 px |
-     * | Pixel 6 | 5 | 10.6 px | 15 px |
-     *
-     * Both land just under the diameter, which is what the engine's 90%
-     * support rule predicts: the outer ring is not always filled.
+     * Device runs confirmed the footprint is the diameter, not a count of
+     * points: `L = sqrt(2) * sigma_u / sigma_e` on a static specimen (60 frames,
+     * 15 px diameter) came out 13.4 px on a Samsung SM-G996U1 at step 3 and
+     * 10.6 px on a Pixel 6 at step 5. Just under the diameter, as the engine's
+     * 90% support rule predicts: the outer ring is not always filled.
      */
     fun vsgFor(points: Int, step: Int): Int = (points - 1) * step + 1
 
@@ -95,9 +87,6 @@ object SweepStudy {
         return odd.coerceIn(MIN_WINDOW_POINTS, MAX_WINDOW_POINTS)
     }
 
-    /** The wizard's strain window on first open and on Reset: a 21 px VSG at step 5. */
-    const val DEFAULT_WINDOW_POINTS = 5
-
     /**
      * The strain window's range, in data points, matching the settings
      * slider. Odd, so the circle is centred on its point: 3 is the smallest
@@ -121,7 +110,7 @@ object SweepStudy {
      * Defensive ceiling on how wide a subset range the planner will enumerate.
      * The per-axis sample counts bound the real cost of a sweep, so this only
      * guards against a pathological range; the UI never offers subsets outside
-     * 15..101 anyway.
+     * 15..121 anyway.
      */
     const val MAX_SUBSET_SPAN = 200
 
@@ -154,15 +143,6 @@ object SweepStudy {
 
     /** Strain components a sweep reports, as indices into a `.dat` point. */
     val STRAIN_COMPONENTS = listOf(DicResult.IDX_EXX, DicResult.IDX_EYY, DicResult.IDX_EXY)
-
-    // ------------------------------------------------------------------
-    // Sweep planning
-    //
-    // The sweep is a grid: the user picks how many subset sizes (x) and VSG
-    // sizes (y) to sample, plus one step fraction shared by the whole sweep.
-    // The number of analyses is x · y — one full solve per grid cell — set
-    // explicitly rather than through a single opaque "runs" budget.
-    // ------------------------------------------------------------------
 
     /** One analysis of the sweep: a full set of engine parameters. */
     data class Point(
@@ -248,7 +228,8 @@ object SweepStudy {
     /**
      * The sweep grid: for each sampled subset (x) and each of [strainWinSamples]
      * strain windows (y) sampled across `[strainWinMin, strainWinMax]`, one
-     * analysis at the fixed step size `subset/[stepDenominator]`. Deduplicated,
+     * full solve at the fixed step size `subset/[stepDenominator]`, so x · y
+     * analyses in all. Deduplicated,
      * ordered by subset then VSG — the order the frames are solved and scrubbed
      * through in.
      */
@@ -300,10 +281,6 @@ object SweepStudy {
         count == 1 -> listOf(items[items.size / 2])
         else -> (0 until count).map { items[it * (items.size - 1) / (count - 1)] }.distinct()
     }
-
-    // ------------------------------------------------------------------
-    // Line cut
-    // ------------------------------------------------------------------
 
     /**
      * The line strain is read along: a cut through the centre of the region of
@@ -371,11 +348,9 @@ object SweepStudy {
     }
 
     /**
-     * Profiles several strain [components] along [line] in a single pass, instead of
-     * one full array walk per component. The accept test and the along/across geometry
-     * are computed once per point and shared, so this is N× less work for N components.
-     * Each returned list is identical (same points, same ascending-distance order) to
-     * the single-component [profileAlong] for that component.
+     * Profiles several strain [components] along [line] in one pass over the
+     * array, the accept test and geometry shared per point. Each list is
+     * identical to the single-component [profileAlong] for that component.
      */
     fun profileAlong(
         data: FloatArray,
@@ -425,12 +400,5 @@ object SweepStudy {
         if (abs(across - line.position) > tolerance) return null
         val along = if (line.horizontal) x else y
         return along to data[i + component] * DicResult.STRAIN_TO_MILLISTRAIN
-    }
-
-    /** Max |strain| along [line]; falls back to the field peak on an empty cut. */
-    fun linePeak(data: FloatArray, component: Int, line: StudyLine, tolerance: Float): Float {
-        val profile = profileAlong(data, component, line, tolerance)
-        if (profile.isEmpty()) return fieldPeak(data, component)
-        return profile.maxOf { abs(it.second) }
     }
 }

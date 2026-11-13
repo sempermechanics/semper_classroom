@@ -1,7 +1,5 @@
-// Result viewer Activity: frame scrubbing, overlays, tap-to-probe and export
-// live on one screen; the screen's parts are its controllers. onCreate wires
-// them all, which is long by nature. Each controller declares the small host
-// interface it reads the screen through, and this Activity implements them.
+// onCreate wires every controller of the screen (see the class KDoc), and this
+// Activity implements each one's host interface: long by nature.
 @file:Suppress("LongMethod", "TooManyFunctions")
 @file:SuppressLint("SetTextI18n")
 
@@ -244,12 +242,9 @@ class ResultViewerActivity :
 
         summary.wire()
 
-        // Past 300 ms, "Opening … · N frames" until the first frame draws.
         captions.showOpening()
-        // The directory listings, and a stat per frame, used to run here on the
-        // main thread on every open. The view model reads them once, off the
-        // main thread, and keeps them across a rotation; the first frame (and,
-        // with it, everything the batch drives) starts once they are there.
+        // Listed once, off the main thread, and kept across a rotation ([ResultViewerViewModel.listFrames]);
+        // the first frame, and everything the batch drives, starts once the listing is there.
         val knownSize = args.imageSize
         val viewerArgs = args
         val recordDir = args.batchDirPath?.let(::File)
@@ -392,9 +387,7 @@ class ResultViewerActivity :
         shownFrameIndex = index
         // A sweep's frames each have their own grid pitch.
         step = frameParams.at(index).step
-        // Invalidate rather than rebuild: the O(n) bucket map is only needed for
-        // probe nearest-point taps, and findNearestDataPoint builds it lazily
-        // for the new frame. Scrubbing large frames no longer pays for an unused index.
+        // Invalidate, not rebuild: the first probe tap builds it ([ViewerInspectController.clearSpatialIndex]).
         inspect.clearSpatialIndex()
         images.updateHeatmapFitBounds(data)
         images.showFrameBase(index)
@@ -449,13 +442,7 @@ class ResultViewerActivity :
         return ReportImageNames.frameName(args.frameNames, planned) ?: "Frame ${planned + 1}"
     }
 
-    /**
-     * The deformed image solved at [position], or null when it is not on disk.
-     * Every node of a sweep solves the one deformed image. A batch looks its
-     * frame up by the name the run persisted it under, since `raw_deformed/`
-     * keeps the user's own file names and sorts them alphabetically, not in
-     * frame order.
-     */
+    /** The deformed image solved at [position], or null; see [ViewerReportFactory.deformedImagePath]. */
     override fun deformedImagePathAt(position: Int): String? =
         ViewerReportFactory.deformedImagePath(
             args,

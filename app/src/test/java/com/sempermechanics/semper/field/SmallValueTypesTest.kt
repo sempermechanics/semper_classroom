@@ -60,7 +60,6 @@ class SmallValueTypesTest {
         assertEquals(-0.5f, min, 0f)
         assertEquals(0.75f, max, 0f)
         assertEquals(ValueRange(-0.5f, 0.75f), baked.range)
-        assertEquals(triple, baked.toTriple())
     }
 
     @Test

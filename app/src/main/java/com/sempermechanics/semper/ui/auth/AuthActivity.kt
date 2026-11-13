@@ -281,7 +281,7 @@ class AuthActivity : AppCompatActivity() {
             is AuthViewModel.Outcome.SignedIn -> {
                 // Awaited, not fired and forgotten: the save prompt is hosted by
                 // this Activity, so navigating away first cancels it out from
-                // under the user — which is exactly what it reported.
+                // under the user.
                 outcome.credential?.let { (email, password) -> offerToSavePassword(email, password) }
                 // Through the router so the Terms gate runs before Pending/Home
                 // for every provider: password, Google, email link alike.

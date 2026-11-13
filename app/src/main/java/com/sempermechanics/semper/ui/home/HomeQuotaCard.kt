@@ -138,13 +138,11 @@ class HomeQuotaCard(
      * Its own view rather than [quotaView]: a licensed account always has a
      * known quota, so it never reaches that view's unknown-quota hint branch.
      *
-     * Advisory only. Entitlement is decided by the backend and arrives as
-     * `mode`; this notice is suppressed entirely when the cached config is too
-     * old to trust, so a renewal that landed while the device was offline
-     * cannot show up here as a false alarm.
-     *
-     * Informational only ([HomeLicenseNotice]): what the licence does and
-     * until when, never a call to renew or buy.
+     * Advisory only: entitlement is decided by the backend and arrives as `mode`.
+     * Suppressed when the cached config is too old to trust, so a renewal that
+     * landed while offline cannot show as a false alarm. Its text
+     * ([HomeLicenseNotice]) says what the licence does and until when, never
+     * a call to renew or buy.
      */
     private fun updateLicenseNotice(lines: Lines) {
         val days = lines.expiryNoticeDays

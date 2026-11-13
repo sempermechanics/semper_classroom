@@ -59,12 +59,7 @@ internal class SettingsAnalysesSection(
 
     private val transferBanner: TransferBannerController get() = activity.transferBanner
 
-    /**
-     * The per-analysis list load, one at a time: it lists the cloud over the
-     * network and is asked for from nine places (restore, delete, backup,
-     * storage cleanup, finished work…). Overlapping loads used to land out of
-     * order; now a burst runs at most one more load, after the current one.
-     */
+    /** The per-analysis list load, which lists the cloud over the network: one at a time ([ConflatedRefresh]). */
     private val analysesRefresh by lazy {
         ConflatedRefresh<Unit>(activity.lifecycleScope, merge = { _, _ -> }) { loadAnalysesData() }
     }

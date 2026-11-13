@@ -62,10 +62,6 @@ class RestoreDownloadOutcomesTest {
         assertEquals(1_048_575L, range.end)
         assertEquals(84_158_403L, range.total)
         assertEquals(
-            84_158_403L,
-            RestoreDownloadOutcomes.parseContentRangeTotal("bytes 0-1048575/84158403"),
-        )
-        assertEquals(
             100L,
             RestoreDownloadOutcomes.parseContentRange("bytes 50-99/100")!!.total,
         )

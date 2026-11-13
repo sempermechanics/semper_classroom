@@ -28,12 +28,9 @@ import timber.log.Timber
 /**
  * The seat request of [SeatRequiredActivity], kept across a rotation (ADR-016).
  *
- * It used to run on the screen's own scope: a rotation while the backend
- * answered cancelled the checkout's follow-up (the config applied, the
- * entitlement fetched, the licence refresh queued), or dropped the answer, so
- * a seat could be taken with the screen still asking for one. Here it runs on
- * [viewModelScope], and its outcome is handed out once ([outcomes]) to
- * whichever screen is current.
+ * It runs on [viewModelScope], so the checkout's follow-up (the config applied,
+ * the entitlement fetched, the licence refresh queued) always completes, and
+ * its outcome is handed out once ([outcomes]) to whichever screen is current.
  */
 @MainThread
 class SeatRequiredViewModel(app: Application) : AndroidViewModel(app) {

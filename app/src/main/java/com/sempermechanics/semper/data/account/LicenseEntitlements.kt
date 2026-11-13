@@ -90,12 +90,8 @@ object LicenseEntitlements {
         EntitlementPolicy.bound(EntitlementStore.status(context), DEMO_MAX_ANALYSES)
 
     /**
-     * `""`, `"individual"`, or `"institution"`. Display/support metadata — an
-     * individual and an institution seat resolve to identical entitlements
-     * once [isLicensed], so nothing gates on *this* value.
-     *
-     * What can differ on an institution license is [needsSeat]: a floating one
-     * entitles only the members currently holding a seat.
+     * Display/support metadata only, never a gate
+     * ([com.sempermechanics.semper.data.net.AppConfigDto.licenseKind]); seating is [needsSeat]'s.
      */
     fun licenseKind(context: Context): String = AppRemoteConfig.licenseKind(context)
 
@@ -107,11 +103,9 @@ object LicenseEntitlements {
     fun licensePrefix(context: Context): String = AppRemoteConfig.licensePrefix(context)
 
     /**
-     * Whether this account has to hold a floating seat to work.
-     *
-     * True only for a floating institution license. On an assigned license,
-     * and against any backend that predates floating seats, this is false and
-     * nothing changes.
+     * Whether this account has to hold a floating seat to work: only on a floating
+     * institution license, never on an assigned one or against a backend that
+     * predates floating seats.
      */
     fun needsSeat(context: Context): Boolean =
         AppRemoteConfig.licenseSeating(context) == AppRemoteConfig.SEATING_FLOATING
@@ -124,31 +118,23 @@ object LicenseEntitlements {
      * `analysisCap` only fire for them at the licensed ceiling. Without this
      * a member with no seat would sail past every existing check.
      *
-     * Reads [serverSaysLicensed] as the answer rather than the cached lease
-     * date, and not [isLicensed]. The backend already folds the lease into
-     * `mode` — it resolves demo the moment a seat lapses — so trusting a
-     * local timestamp instead would just be a second, staler opinion of the
-     * same thing. One exception: a floating seat's token ends with the lease
-     * it was issued under, so a token past its `graceUntil` or `exp` means
-     * the lease ran out unrenewed, and this screen (which checks out a seat
-     * and fetches a fresh token) is the way back, not demo's limits
-     * ([EntitlementPolicy.seatRequired]). A token lapsed for another reason,
-     * or no token, leaves the server's answer alone.
+     * Reads [serverSaysLicensed], not [isLicensed] or a cached lease date: the
+     * backend folds the lease into `mode`
+     * ([com.sempermechanics.semper.data.net.AppConfigDto.leaseExpiresAt]). The one
+     * token rule is [EntitlementPolicy.seatRequired]'s: a floating seat's token past
+     * `graceUntil` or `exp` means the lease ran out, and taking a seat is the way back.
      */
     fun isSeatRequiredToStart(context: Context): Boolean =
         needsSeat(context) &&
             EntitlementPolicy.seatRequired(serverSaysLicensed(context), EntitlementStore.status(context))
 
-    /** How often to renew a held seat while work is in progress, in minutes. */
     fun seatHeartbeatMinutes(context: Context): Int =
         AppRemoteConfig.leaseHeartbeatMinutes(context)
 
     /**
      * Licensed with no ceiling on file yet. Once `/v1/config` reports one, a
-     * licensed account is held to it like demo is: the server refuses the
-     * upload past it, so letting the run start only to bounce at 409 — and
-     * then telling the user on "Re-check" that the limit had cleared — was
-     * the app contradicting itself.
+     * licensed account is held to it like demo is, since the server refuses the
+     * upload past it (409).
      */
     fun hasUnlimitedAnalysis(context: Context): Boolean =
         isLicensed(context) && !AppRemoteConfig.isKnown(context)
@@ -171,8 +157,8 @@ object LicenseEntitlements {
      * what the app will do.
      *
      * Counted in UTC days because a licence ends at 23:59:59Z on its chosen
-     * day, the day the consoles show. Rounding the hours up made three hours
-     * left read "expires tomorrow" and 25 hours "in 2 days".
+     * day, the day the consoles show; rounding hours up would read three hours
+     * left as "expires tomorrow".
      */
     fun daysUntilExpiry(context: Context, now: Long = System.currentTimeMillis()): Long? {
         val expiresAt = AppRemoteConfig.licenseExpiresAtMs(context)

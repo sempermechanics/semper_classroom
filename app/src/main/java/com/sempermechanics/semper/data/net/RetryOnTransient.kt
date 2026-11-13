@@ -42,8 +42,8 @@ private const val PAUSED_PEEK_BYTES = 512L
  * Bounded on purpose. Where a call is worker-mediated, `Result.retry()` and
  * WorkManager's own [androidx.work.BackoffPolicy] own the long game; this layer
  * exists for the interactive calls that have no second chance — taking a seat,
- * a settings action, an admin screen — which until now surfaced a one-second
- * throttle to the user as a flat failure.
+ * a settings action, an admin screen — where a one-second throttle would
+ * otherwise reach the user as a flat failure.
  *
  * Mirrors `backend/app/drive.py`, which honours `Retry-After` the same way for
  * the backend's own egress.

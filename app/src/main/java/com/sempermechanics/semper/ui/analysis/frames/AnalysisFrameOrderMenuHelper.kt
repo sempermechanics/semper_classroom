@@ -7,7 +7,7 @@ import com.sempermechanics.semper.R
 import com.sempermechanics.semper.ui.analysis.StaticAnalysisActivity
 
 /**
- * Frame-order popup menu extracted from [StaticAnalysisActivity].
+ * The frame-order popup menu on [StaticAnalysisActivity]'s deformed card.
  */
 object AnalysisFrameOrderMenuHelper {
 

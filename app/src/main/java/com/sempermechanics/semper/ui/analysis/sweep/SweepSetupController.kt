@@ -60,7 +60,7 @@ class SweepSetupController(
     }
 
     companion object {
-        /** Width of the subset window a fresh sweep suggests, centred on the recommendation. */
+        /** Width of the subset window a fresh sweep suggests ([SweepRangeFields.seed]). */
         const val SUGGESTED_SUBSET_SPAN = 20
 
         /** Hard bounds on strain window input, in data points — the guardrail against a mistyped huge number. */
@@ -207,11 +207,7 @@ class SweepSetupController(
         applyAnalysisModeUi()
     }
 
-    /**
-     * Seeds the sweep inputs with the app's suggestions — a subset window
-     * centred on the SSSIG recommendation and a strain window of 3 to 11 points.
-     * Runs until the user edits a sweep control; after that their values stand.
-     */
+    /** Seeds the sweep inputs with the app's suggestions ([SweepRangeFields.seed]), then refreshes the plan. */
     fun seedSweepSuggestions() {
         val fields = rangeFields ?: return
         fields.seed()

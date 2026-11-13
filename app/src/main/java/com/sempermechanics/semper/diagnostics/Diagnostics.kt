@@ -10,10 +10,8 @@ import timber.log.Timber
 /**
  * Applies the user's diagnostics choice to the Firebase SDKs.
  *
- * Crashlytics and Analytics used to collect from first launch with no notice and
- * no way to decline. Collection is now disabled in the manifest, so the default
- * for a fresh install is *off*; this turns it on only after an explicit opt-in
- * and turns it back off the moment the user withdraws consent.
+ * Collection is disabled in the manifest, so a fresh install is *off*; this turns
+ * it on only after an explicit opt-in and off again the moment consent is withdrawn.
  *
  * Crashlytics keeps unsent reports on disk, so withdrawing consent also deletes
  * anything still queued — otherwise a "no" would still ship the last crash.

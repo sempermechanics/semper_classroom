@@ -22,13 +22,9 @@ import timber.log.Timber
  * run to completion outside any screen.
  *
  * Sign-out first releases a floating seat over the network, then signs out of
- * Firebase and clears the session. Run on the screen's `lifecycleScope`, a
- * rotation during the seat release cancelled it: the Firebase sign-out and
- * the token clear never ran, while the destroyed screen still routed to
- * sign-in — and the next launch, still holding a session, went back to Terms
- * or Pending. Here the whole sequence runs on an application-lifetime scope,
- * and whichever of those screens is started routes once it is done
- * ([observe]).
+ * Firebase and clears the session, all on an application-lifetime scope so a
+ * rotation mid-release cannot skip the sign-out (ADR-016). Whichever of those
+ * screens is started routes once it is done ([observe]).
  *
  * If the screen that asked is closed before its outcome is read (backed out
  * of while the seat release was still waiting on the network, or stopped

@@ -7,7 +7,7 @@ import kotlinx.serialization.json.Json
 /**
  * One unsolved sweep combination: subset, step, strain window, and engine code.
  *
- * [code] is null when the node was saved before codes were kept (5a1e5fcb..1eb3fa2d):
+ * [code] is null when the node was saved before codes were kept:
  * such a node says only that it was skipped. It is not the engine's 0, which
  * is the strain-window (VSG) skip. A null code is left out of the JSON.
  */
@@ -52,7 +52,7 @@ data class SkippedNode(
         /**
          * The four parallel lists from before FI-3. The combinations must agree
          * in length. [codes] may be shorter or empty: sweeps saved or backed up
-         * before codes were kept (5a1e5fcb..1eb3fa2d) have none, and those nodes
+         * before codes were kept have none, and those nodes
          * get a null [code].
          */
         fun fromLegacyArrays(

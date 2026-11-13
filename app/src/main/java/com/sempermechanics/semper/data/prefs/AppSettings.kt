@@ -53,10 +53,8 @@ object AppSettings {
      * Whether the user has agreed to send crash reports and diagnostics.
      *
      * Defaults to **off**, and stays off until [setDiagnosticsEnabled] is called
-     * — Crashlytics and Analytics used to collect from first launch with no
-     * notice and no way to decline, which is not a defensible position for EU
-     * users. [wasDiagnosticsAsked] records that the first-run notice was shown, so
-     * it is not shown again after a considered "no".
+     * (see [com.sempermechanics.semper.diagnostics.Diagnostics]). [wasDiagnosticsAsked]
+     * records that the first-run notice was shown, so it is not shown again after a "no".
      */
     fun diagnosticsEnabled(context: Context): Boolean =
         prefs(context)[Settings.DIAGNOSTICS_ENABLED]

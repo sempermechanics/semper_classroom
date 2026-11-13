@@ -51,14 +51,9 @@ object CloudSync {
     private val reconcileLock = Mutex()
 
     /**
-     * What a reconcile pass concluded.
-     *
-     * The distinction that matters: **[Offline] is normal, [Failed] is not.**
-     * Collapsing them (as an earlier version did, by returning null for both)
-     * meant a broken backend — a stale API Gateway config, a bad deploy — looked
-     * exactly like "no signal", and the app silently kept showing a stale
-     * "Synced" badge. Anything the server actually answered with an error must
-     * reach the user.
+     * What a reconcile pass concluded. **[Offline] is normal, [Failed] is not**:
+     * an error the server answered with (a stale API Gateway config, a bad deploy)
+     * must reach the user, or a stale "Synced" badge hides it.
      */
     sealed interface Outcome {
         /** Reconciled successfully. [repaired] sessions were found missing and re-queued. */
@@ -93,7 +88,7 @@ object CloudSync {
      *
      * With [reupload], a row still waiting to upload is queued again: an upload
      * deferred while the quota was unknown ([enqueueUpload]) has nothing else
-     * to start it, and used to read "upload pending" for good.
+     * to start it.
      */
     suspend fun reconcile(
         context: Context,
@@ -329,16 +324,14 @@ object CloudSync {
      * Whether a finished analysis is uploaded.
      *
      * A licensed account chooses through the Settings "Save to cloud" toggle.
-     * A demo account has no such toggle — demo analyses are always recorded
-     * (images and results), which is the one cloud feature demo has; what it
-     * lacks is the licensed retrieval half (restore, bundle download). The
-     * pref is ignored rather than read so a toggle turned off under an earlier
-     * licence cannot silently stop demo recording.
+     * Demo always records (images and results): it lacks only the licensed
+     * retrieval half (restore, bundle download), and the pref is ignored so a
+     * toggle turned off under an earlier licence cannot stop demo recording.
      *
-     * A build with no backend (a lab build, or the emulator sign-in bypass)
-     * records nothing: its analyses are saved as not backed up, rather than as
-     * waiting for an upload that can never run. Neither does a phone whose
-     * device management turned cloud backup off ([AppPolicy.recordsToCloud]).
+     * With the cloud off ([CloudApi.enabled]: no backend, the emulator sign-in
+     * bypass, the guest) nothing is recorded: analyses are saved as not backed up,
+     * not as waiting for an upload that can never run. Nor when device management
+     * turned cloud backup off ([AppPolicy.recordsToCloud]).
      */
     fun uploadsEnabled(context: Context, api: CloudApi = SemperApi.get(context)): Boolean =
         api.enabled &&
@@ -367,13 +360,14 @@ object CloudSync {
      * [SessionStore], so only the id travels in the input Data.
      *
      * Uses [ExistingWorkPolicy.KEEP] so a reconcile pass cannot cancel an
-     * in-flight upload. Network constraint follows [AppSettings.wifiOnlyUploadEnabled].
+     * in-flight upload. Network constraint follows [AppSettings.wifiOnlyUploadEnabled]
+     * and device management.
      *
      * No-op until the server quota is known ([AccountCache.isQuotaKnown]): the
      * analysis is already saved locally and its [SessionRecord] stays PENDING, so
      * the next reconcile, which fetches config first, queues it again once the
-     * ceiling arrives. This is the single point that gates
-     * upload on an unknown quota — analysis itself never blocks.
+     * ceiling arrives. This is the single point that gates upload on an unknown
+     * quota — analysis itself never blocks.
      */
     fun enqueueUpload(
         context: Context,

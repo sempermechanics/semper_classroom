@@ -33,10 +33,8 @@ internal object HeatmapColorScale {
     private fun clamp(v: Float) = v.coerceIn(0f, 1f)
 
     /**
-     * Robust percentile clamping, aligned with the Max/Min button: sorts and clamps
-     * the first [count] entries of [values] in place. `FloatArray.sort` uses the same
-     * total order as `List<Float>.sort()`, so the p02/p98 picks are identical to the
-     * boxed collector this replaced.
+     * Robust percentile clamping, aligned with the Max/Min button: the p02/p98 of the
+     * first [count] entries of [values], which it reorders in place ([quickSelect]).
      */
     internal fun computeSigmaClampedRange(values: FloatArray, count: Int, valIndex: Int): ValueRange {
         if (count == 0) return ValueRange(0f, 1f)
@@ -104,11 +102,10 @@ internal object HeatmapColorScale {
 
     /**
      * Tukey's ninther: the median of three medians of three, spread over the range.
-     * Median-of-three at the ends and middle, which this replaced, went wrong on sorted
-     * and staircase fields (a V field in grid order is a staircase): after the first
-     * partition those three stop being representative, and the p98 pick touched about
-     * n^1.5 elements (~370n at 1.2 M points). The ninther stays near 4n on every shape
-     * tried. It only reads, so the partition sees the range as it is.
+     * Plain median-of-three goes wrong on sorted and staircase fields (a V field in grid
+     * order is a staircase): the p98 pick touched about n^1.5 elements (~370n at 1.2 M
+     * points), where the ninther stays near 4n on every shape tried. It only reads, so
+     * the partition sees the range as it is.
      */
     private fun ninther(values: FloatArray, lo: Int, hi: Int): Int {
         val mid = lo + (hi - lo) / 2

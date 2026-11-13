@@ -183,18 +183,15 @@ class SubsetRecommendationController(
      * Guide* band, so the user learns something about their specimen rather
      * than only about the slider.
      *
-     * Three surfaces, each placed where its fix is. The chip beside the
-     * subset size is shown whenever a measurement exists, good news included
-     * — it is the number the recommendation rests on, and a user who can see
-     * it can judge their own pattern before spending a run on it. The size
-     * chip sits on step 1 with the images, because a pattern outside the band
-     * is fixed by a different photograph and by nothing on step 2. The span
-     * chip sits on step 2 under the slider, because that slider is its fix and
-     * a warning the user cannot watch clear is a warning they will not trust.
+     * Three surfaces, each placed where its fix is. The readout chip beside the
+     * subset size shows whenever a measurement exists, good news included: it
+     * is the number the recommendation rests on. The size chip sits on step 1
+     * with the images, because a pattern outside the band is fixed by another
+     * photograph. The span chip sits under the slider, because that slider is
+     * its fix and a warning the user cannot watch clear is one they will not trust.
      *
-     * At most one chip shows: a pattern too fine or too coarse to resolve
-     * makes the subset-span question moot, so the size verdict is reported
-     * ahead of it and suppresses the span chip entirely.
+     * The size and span chips never show together: a pattern too fine or too
+     * coarse to resolve makes the span question moot, so the size verdict wins.
      */
     fun showSpeckleFeedback() {
         val diameter = showReadout()
@@ -208,11 +205,8 @@ class SubsetRecommendationController(
         }
 
         val sizeMessage = sizeMessage(diameter)
-        // Read off the slider, not off the recommendation: the user may have
-        // moved it since, and a chip naming a size they are no longer using is
-        // worse than no chip. Suppressed outright while the size chip is up —
-        // spanning three speckles is not the problem on a pattern that cannot
-        // be resolved at all.
+        // Read off the slider, not the recommendation: the user may have moved
+        // it since. Suppressed while the size chip is up (see the KDoc).
         val spanMessage = if (sizeMessage != null) null else spanMessage()
 
         val faqUrl = activity.getString(R.string.url_faq_speckle)

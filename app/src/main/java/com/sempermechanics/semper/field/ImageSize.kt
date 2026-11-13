@@ -7,13 +7,8 @@ import org.json.JSONObject
 /**
  * Pixel size of a reference image (or of a deformed frame, which must match it).
  *
- * Today the same pair travels as `realRefWidth` / `realRefHeight` on the wizard's
- * view model, `imgW` / `imgH` on the session record and viewer, the
- * `IMG_W` / `IMG_H` and `IMAGE_WIDTH` / `IMAGE_HEIGHT` Intent extras, the
- * `imageWidth` / `imageHeight` keys of `metadata.json`, and `Pair<Int, Int>`
- * from the decoders. This is a view over those fields: it never changes what
- * any of them store. A size of zero means "not measured yet", which is why the
- * constructor accepts it.
+ * A view over the fields that store the pair; it never changes what they store.
+ * A size of zero means "not measured yet", which is why the constructor accepts it.
  */
 data class ImageSize(val width: Int, val height: Int) {
 

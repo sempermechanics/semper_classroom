@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *   result: the share sheet, or the "Saved" toast for a save-as document, which
  *   this class writes itself so it never needs a live screen.
  * - **Leaving the viewer** (Back, Home): the ViewModel is cleared and the job
- *   cancelled, as before.
+ *   cancelled.
  * - **Process death:** running jobs are lost. A save-as picker that was open
  *   still returns to the restored viewer, which starts that export then.
  *

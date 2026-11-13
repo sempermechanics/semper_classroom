@@ -85,22 +85,16 @@ class RoiCodecsTest {
     fun `JSON is byte-identical to the roi object metadata json carries`() {
         val record = sessionRecord(imgW = 640, imgH = 480, roiX = 12, roiY = 34, roiW = 560, roiH = 400)
         val engine = SessionUploadMetadata.engineJson(record)
-        assertEquals(engine.getJSONObject(ROI_JSON_KEY).toString(), roi.toJson().toString())
-        assertEquals(roi, roiFromJson(engine.getJSONObject(ROI_JSON_KEY)))
+        assertEquals(engine.getJSONObject("roi").toString(), roi.toJson().toString())
     }
 
     @Test
-    fun `JSON reads like the restore does, including a missing object`() {
-        assertEquals(Roi(0, 0, 0, 0), roiFromJson(null))
-        assertEquals(Roi(5, 0, 0, 9), roiFromJson(JSONObject().put("x", 5).put("h", 9)))
-
+    fun `image size JSON reads like the restore does`() {
         val record = sessionRecord(imgW = 640, imgH = 480, roiX = 12, roiY = 34, roiW = 560, roiH = 400)
         val text = SessionUploadMetadata.buildMetadataJson(record, context)
         val meta = JSONObject(text)
         val restored = SessionMetadataDoc.decode(text).toRecord("s_r", "c1", File("r"), "", null)
         val engine = meta.getJSONObject("engine")
-        val read = roiFromJson(engine.optJSONObject("roi"))
-        assertEquals(Roi(restored.roiX, restored.roiY, restored.roiW, restored.roiH), read)
         assertEquals(ImageSize(restored.imgW, restored.imgH), ImageSize.fromEngineJson(engine))
     }
 

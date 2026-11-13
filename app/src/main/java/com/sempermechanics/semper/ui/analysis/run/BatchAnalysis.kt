@@ -41,14 +41,11 @@ import timber.log.Timber
 import java.io.File
 
 /**
- * The batch DIC run loop, moved as one unit from [AnalysisViewModel].
- * JNI [SemperNativeLib.computeFullFieldDirect] (or, for an incremental run,
- * [SemperNativeLib.computeIncrementalFrame]) stays in this loop — do not
- * fragment it. Buffer allocate / overrun / `.dat` write are [DicFieldIo].
+ * The batch DIC run: one loop over the deformed frames that calls JNI
+ * [SemperNativeLib.computeFullFieldDirect] (incremental: [SemperNativeLib.computeIncrementalFrame])
+ * and writes each frame's `.dat` through [DicFieldIo]. The JNI call stays in this one loop and the
+ * loop stays whole: its size, jumps, per-frame catch and the cancel's early return are inherent.
  */
-// One JNI loop over the deformed frames, writing `.dat` results: its size,
-// branching, jumps, per-frame catch and the cancel's early return are
-// inherent, and it stays whole.
 @Suppress(
     "CyclomaticComplexMethod",
     "LongMethod",
@@ -147,12 +144,9 @@ internal fun AnalysisViewModel.runBatchAnalysisBody(
     // Where each frame's image ended up, so the view model can follow the move.
     val resolvedDefPaths = frames.paths.toMutableList()
 
-    // Every field's sigma-clamped (p02, p98) for this frame, computed once here
-    // while the frame's data is already decoded in outputBuffer — persisted so
-    // SummaryAnimation.globalRanges (viewer summary open, and every backup) never
-    // has to re-decode and re-sort every frame in the batch just to rebuild the
-    // same numbers. One entry per frame actually written below (validPointsCount
-    // == 0 frames are skipped and get no .dat file, so they get no entry either).
+    // Each written frame's sigma-clamped (p02, p98) per field, taken while outputBuffer holds it, so
+    // SummaryAnimation.globalRanges (viewer open, every backup) never re-decodes the batch. A frame
+    // with no points gets no .dat and no entry.
     val summaryFieldIndices = intArrayOf(
         DicResult.IDX_U,
         DicResult.IDX_V,
@@ -179,11 +173,8 @@ internal fun AnalysisViewModel.runBatchAnalysisBody(
         0
     }
 
-    // A run that throws before its results are committed (a full disk under
-    // DicFieldIo.write, say) keeps nothing either: it is undone as a cancel is
-    // (undoFailedBatch), so the frames it moved are back where the wizard
-    // reads them, rather than skipped by the next Compute and pruned. One that
-    // throws after its commit is undone the same way below (undoCommittedBatch).
+    // A throw before the commit (a full disk under DicFieldIo.write, say) is undone as a cancel
+    // is (undoFailedBatch); one after it, below (undoCommittedBatch).
     try {
         for ((frameIndex, defPath) in frames.paths.withIndex()) {
             // A job cancelled with its view model is a cancel too: it keeps nothing
@@ -281,14 +272,10 @@ internal fun AnalysisViewModel.runBatchAnalysisBody(
                 break
             }
 
-            // Defensive bound: the engine must never report more points than the ROI
-            // grid the direct buffer was sized for (maxPoints). Today it cannot: its
-            // grid is exactly (rect_w / step) x (rect_h / step), the size allocated
-            // above (engine/src/pipeline/full_field_solver.cpp, gridW / gridH), and
-            // it stops packing at the buffer's capacity rather than overrun it
-            // (full_field_solver_stats.cpp). Should either change, the get() below
-            // would read past the buffer and crash the run with
-            // BufferUnderflowException, so it is an init-class engine failure.
+            // Defensive bound: today the engine cannot report more than maxPoints. Its grid is
+            // (rect_w / step) x (rect_h / step) (engine/src/pipeline/full_field_solver.cpp, gridW /
+            // gridH) and it stops packing at the buffer's capacity (full_field_solver_stats.cpp).
+            // Should either change, get() below would throw BufferUnderflowException: an init failure.
             if (DicFieldIo.wouldOverrun(validPointsCount, outputBuffer)) {
                 Timber.e(
                     "Engine returned %d points but the buffer holds %d (frame %d) — failing frame",
@@ -313,9 +300,7 @@ internal fun AnalysisViewModel.runBatchAnalysisBody(
 
             DicFieldIo.write(outputBuffer, validPointsCount, SessionPaths.frameDat(resultsDir, frameIndex))
             run {
-                // Same bytes just written, reinterpreted as the point-record floats
-                // VisualizationEngine.valueRanges expects — no extra decode, this data
-                // is already in hand.
+                // The bytes just written, read as the floats VisualizationEngine.valueRanges takes.
                 val floatData = FloatArray(validPointsCount * DicResult.STRIDE)
                 outputBuffer.position(0)
                 outputBuffer.asFloatBuffer().get(floatData, 0, floatData.size)
@@ -357,14 +342,10 @@ internal fun AnalysisViewModel.runBatchAnalysisBody(
         // never a saved analysis (openRunSession): at most the folder of a run in
         // this wizard that saved nothing.
         if (stop != RunStop.Cancelled) {
-            // One entry per frame actually written above — matches what batchFiles
-            // will list on a later read, so SummaryAnimation.globalRanges's
-            // frame-count check accepts this cache. A partial or failed run's
-            // shorter list still writes correctly: it just describes fewer frames,
-            // consistent with fewer .dat files existing. Best-effort — a write
-            // failure here only costs the cache its speedup, never correctness
-            // (globalRanges falls back to decoding). Staged with the frames, so
-            // the record manifest the commit writes covers it (ADR-028).
+            // One entry per frame written, as batchFiles lists them, so globalRanges' frame-count
+            // check accepts the cache (a partial run's shorter list matches its fewer .dat files).
+            // Best-effort: a failed write costs only the speedup, as globalRanges falls back to
+            // decoding. Staged with the frames, so the commit's record manifest covers it (ADR-028).
             FieldRangesStore.writeBestEffort(resultsDir, summaryFieldIndices, perFrameSummaryRanges)
             session.commitRecord(appContext, spec.recordSettings())
         }
@@ -379,11 +360,8 @@ internal fun AnalysisViewModel.runBatchAnalysisBody(
         return cancelledOutcome((System.currentTimeMillis() - run.startedAtMs).toInt())
     }
 
-    // The frames are in the session now, and the wizard still names where they
-    // came from until it follows them below. A throw before then (the
-    // "Saving…" post, the prune, or Re-run's keep past its own IOException
-    // catch) is undone like one before the commit, its committed results
-    // included (undoCommittedBatch), so the wizard never names a moved frame.
+    // The frames are in the session, but the wizard names their old paths until it follows them
+    // below; a throw before then is undone with its committed results (undoCommittedBatch).
     try {
         // Every frame solved: the overlay says so while the run saves.
         if (stop == RunStop.Finished) {
@@ -399,9 +377,8 @@ internal fun AnalysisViewModel.runBatchAnalysisBody(
             )
         }
 
-        // Images an earlier run left behind that this one no longer has. This is
-        // the wipe that used to run before the loop; done here it can never delete
-        // the run's own inputs.
+        // Images an earlier run left behind that this one no longer has; pruned after the loop,
+        // so it never deletes the run's own inputs.
         val keptRawNames = persistedRawNames.filterTo(HashSet()) { it.isNotBlank() }
         rawDeformedDir.listFiles()?.forEach { if (it.name !in keptRawNames) it.delete() }
 

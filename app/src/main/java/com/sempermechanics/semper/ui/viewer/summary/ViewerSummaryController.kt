@@ -151,15 +151,11 @@ internal class ViewerSummaryController(
     }
 
     /**
-     * Kicks off the one pass that fixes every field's colour scale.
-     *
-     * `ResultViewerActivity` starts it on every open of a multi-frame, non-sweep session,
-     * since single frames also take their colour scale from the sequence range;
-     * [show] calls it too. It is idempotent, so repeated calls do
-     * not re-scan. A batch run writes the [FieldRangesStore] sidecar, and then the pass
-     * decodes nothing. Without it (older or restored sessions) the pass decodes and
-     * range-scans **every frame**, about 1 MB of garbage per frame at 19 200 points,
-     * which set the 150-frame heap (TD-107).
+     * Kicks off the one pass that fixes every field's colour scale; idempotent, so
+     * repeated calls do not re-scan. It runs on every multi-frame, non-sweep open,
+     * since single frames also take their colour scale from the sequence range. What
+     * it reads (the [FieldRangesStore] sidecar, else every frame) is
+     * [SummaryAnimation.globalRanges]'.
      */
     fun start() {
         if (host.batchFiles.isEmpty()) return
@@ -299,8 +295,7 @@ internal class ViewerSummaryController(
     private fun renderWithoutRange() {
         // "—", not a "0.0" that reads as a measurement, nor the last frame's ends.
         showScalePending()
-        // Do not steal the determinate "Reading frames" status that [start]
-        // already pushes — a static "Preparing files…" looked hung on PLC.
+        // Keep the determinate "Reading frames" status [start] pushes; a static note looks hung.
         if (rangesJob.isActive) {
             if (!statusPanel.isVisible) {
                 showProgress(R.string.summary_scanning_fmt, 0, host.batchFiles.size)
@@ -358,7 +353,7 @@ internal class ViewerSummaryController(
         cancelButton.isVisible = true
     }
 
-    /** The pill as a plain note (failed, nothing to animate, needs Android 9): nothing to cancel. */
+    /** The pill as a plain note (the build failed, or nothing to animate): nothing to cancel. */
     private fun showMessage(@StringRes message: Int) {
         if (!isShowing) return
         statusPanel.isVisible = true

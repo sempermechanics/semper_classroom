@@ -36,8 +36,7 @@ object Dialogs {
 
     /**
      * Title, body, [confirmLabel] running [onConfirm], and Cancel that only
-     * closes. Cancel is always `R.string.action_cancel`; screens that used
-     * `R.string.cancel` (the same "Cancel" text) move to it.
+     * closes. Cancel is always `R.string.action_cancel`.
      */
     fun confirm(
         activity: Activity,
@@ -66,7 +65,7 @@ object Dialogs {
  * Makes this view (an "i" button) open [Dialogs.info] with [titleRes] and
  * [bodyRes] on [activity]. The Activity is passed rather than taken from the
  * view, so a button inside a bottom sheet still themes the dialog as the
- * Activity's, as every site did. The button is named "About <title>" for
+ * Activity's. The button is named "About <title>" for
  * TalkBack, so a screen of "i" buttons does not read as a row of "Info".
  */
 fun View.bindInfo(activity: Activity, @StringRes titleRes: Int, @StringRes bodyRes: Int) {

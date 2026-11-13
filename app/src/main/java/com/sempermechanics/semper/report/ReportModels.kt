@@ -137,10 +137,8 @@ data class EngineStats(
 
     /**
      * Total wall time (ms) spent in the simplex rescue path across every point
-     * that needed one, and in the main ICGN solve, for the whole frame. Answers
-     * the "is the simplex rescue plausibly comparable to the main solve" question
-     * from the perf plan — 0f on data from an app build older than this field
-     * (see [SLOT_SIMPLEX_MS]'s doc).
+     * that needed one, and in the main ICGN solve, for the whole frame; 0f on data
+     * from an engine older than these slots (see [SLOT_SIMPLEX_MS]).
      */
     val simplexMs: Float = 0f,
     val icgnMs: Float = 0f,

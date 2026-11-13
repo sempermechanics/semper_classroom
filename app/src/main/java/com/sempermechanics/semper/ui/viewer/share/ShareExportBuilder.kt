@@ -99,9 +99,8 @@ internal class ShareExportBuilder(
          * sweep in [CacheJanitor] removes whole entries, directories included, once
          * they are a day old. Disk I/O: call it off the main thread.
          *
-         * `File.mkdir` rather than `Files.createTempDirectory` (API 26, written
-         * when minSdk was 24); a directory another job made first is skipped, as
-         * `mkdir` fails on one that exists.
+         * A directory another job made first is skipped, as `mkdir` fails on one
+         * that exists.
          */
         fun newJobDir(cacheDir: File): File {
             val shareDir = CacheJanitor.shareDir(cacheDir)

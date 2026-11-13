@@ -32,15 +32,12 @@ import java.util.Locale
 import java.util.TimeZone
 
 /**
- * A backup's `metadata.json`, as a model.
- *
- * Two hands wrote this file's shape: [SessionUploadMetadata] builds it with
- * `JSONObject.put`, and the restore's org.json reader (removed in wave 4) read
- * it back with `opt…` getters. This holds both halves: [fromRecord] / [forUpload] + [encode]
- * write what the uploader writes, and [decode] + [toRecord] read what the
- * restore reads, defaults and leniency included (every field goes through
- * the [com.sempermechanics.semper.util.OrgJson] rules, so an old file, or one
- * with a value of the wrong kind, reads exactly as `opt…` read it).
+ * A backup's `metadata.json`, as a model. [fromRecord] / [forUpload] + [encode]
+ * write what the uploader writes ([SessionUploadMetadata.buildMetadataJson] is
+ * `forUpload(…).encode()`), and [decode] + [toRecord] read what the restore
+ * reads, with the removed org.json reader's defaults and leniency: every field
+ * goes through the [com.sempermechanics.semper.util.OrgJson] rules, so an old
+ * file, or one with a value of the wrong kind, reads exactly as `opt…` read it.
  *
  * Every field is nullable and null means absent: the defaults are the
  * reader's, applied in [toRecord], because the same absent field can default
@@ -49,18 +46,16 @@ import java.util.TimeZone
  * schema, a field from a later build) are ignored on read and not written
  * back; the restore keeps the downloaded bytes as they came.
  *
- * Key order follows the writer's, so an encoded file reads like an uploaded one.
- * [encode] is semantically equal to `SessionUploadMetadata.buildMetadataJson`
- * (the same keys, values and two-space indent) but not byte-identical: Android's
- * org.json writes an integral float as `50` where this writes `50.0`, and it
- * escapes `/` as `\/` (the `schema` string contains one) where this does not.
- * Compare the two as JSON, never as text or by digest.
+ * A file uploaded by a build before this model (Android's org.json writer) is
+ * semantically equal to what [encode] writes but not byte-identical: org.json
+ * wrote an integral float as `50` where this writes `50.0`, and escaped `/` as
+ * `\/` (the `schema` string has one). Compare such files as JSON, never as text
+ * or by digest.
  *
  * [decode] throws [kotlinx.serialization.SerializationException] (an
  * [IllegalArgumentException]) for text that is not a JSON object or whose
- * `frames` holds a non-object, where org.json threw `JSONException`. An adopter
- * in the restore maps it to `CorruptTransferException("metadata_json_invalid")`
- * as it maps `JSONException` today.
+ * `frames` holds a non-object; the restore maps it to
+ * `CorruptTransferException("metadata_json_invalid")`.
  */
 @Serializable
 data class SessionMetadataDoc(
@@ -123,7 +118,7 @@ data class SessionMetadataDoc(
         @Serializable(with = OptIntSerializer::class) val sdkInt: Int? = null,
     )
 
-    /** Signed-out uploads leave both absent (`JSONObject.put` drops a null). */
+    /** Signed-out uploads leave both absent (a null field is not written). */
     @Serializable
     data class User(
         @Serializable(with = OptStringSerializer::class) val uid: String? = null,

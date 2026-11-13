@@ -1,28 +1,14 @@
 package com.sempermechanics.semper.ui.home
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.os.Looper
-import androidx.lifecycle.ViewModelProvider
-import androidx.test.core.app.ApplicationProvider
-import androidx.work.impl.WorkManagerImpl
-import androidx.work.testing.WorkManagerTestInitHelper
 import com.sempermechanics.semper.R
 import com.sempermechanics.semper.data.cloud.CloudSync
-import com.sempermechanics.semper.data.net.AccountCache
-import com.sempermechanics.semper.data.prefs.AppSettings
 import com.sempermechanics.semper.fixtures.sessionRecord
 import kotlinx.coroutines.CompletableDeferred
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Shadows.shadowOf
-import org.robolectric.android.controller.ActivityController
 import org.robolectric.shadows.ShadowToast
 
 /**
@@ -31,38 +17,9 @@ import org.robolectric.shadows.ShadowToast
  * toast, and what it came to is said once, on the screen that is there.
  */
 @RunWith(RobolectricTestRunner::class)
-class HomeEraseRotationTest {
+class HomeEraseRotationTest : HomeRotationFixture() {
 
-    private val context: Context = ApplicationProvider.getApplicationContext()
-    private val screens = mutableListOf<ActivityController<HomeActivity>>()
     private val rows = listOf(sessionRecord(id = "s1", name = "Beam test"), sessionRecord(id = "s2", name = "Coupon"))
-
-    @Before
-    fun setUp() {
-        // Home observes transfer work in onCreate; the app starts WorkManager itself.
-        WorkManagerTestInitHelper.initializeTestWorkManager(context)
-        // No first-run prompt over the screen.
-        AccountCache.setBetaNoticeAcked(context)
-        AppSettings.setDiagnosticsEnabled(context, false)
-    }
-
-    @SuppressLint("RestrictedApi")
-    @After
-    fun tearDown() {
-        screens.forEach { it.close() }
-        WorkManagerTestInitHelper.closeWorkDatabase()
-        WorkManagerImpl.setDelegate(null)
-    }
-
-    private fun idle() = shadowOf(Looper.getMainLooper()).idle()
-
-    private fun home(): ActivityController<HomeActivity> =
-        Robolectric.buildActivity(HomeActivity::class.java).setup().also {
-            screens += it
-            idle()
-        }
-
-    private fun viewModelOf(activity: HomeActivity) = ViewModelProvider(activity)[HomeViewModel::class.java]
 
     /** The first row's erase waits on [gate]; the rest answer at once with [outcomes]. */
     private fun HomeViewModel.holdFirstErase(

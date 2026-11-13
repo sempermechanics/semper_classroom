@@ -90,11 +90,8 @@ internal class BundleExport(
         if (refFile != null) {
             entries += "$dir/reference_${refFile.name}" to refFile
         } else {
-            // No persisted reference file (shouldn't happen) — fall back to the
-            // in-memory base image so the folder is never empty.
-            // No persisted reference path here, so the display base is the only image
-            // available — write it as-is (this is the raw-photos folder, not a capped
-            // composite).
+            // No persisted reference file (shouldn't happen): write the display base as-is
+            // (the raw-photos folder, not a capped composite) so the folder is never empty.
             s.baseImage?.let { base ->
                 zip.putNextEntry(ZipEntry("$dir/reference.png"))
                 base.compress(Bitmap.CompressFormat.PNG, ImageEncoder.PNG_QUALITY_MAX, zip)
@@ -102,8 +99,8 @@ internal class BundleExport(
             }
         }
 
-        // Deformed originals persisted in the session dir; names already carry a
-        // sortable NNNN_ prefix. Guarded so a missing file can't abort the export.
+        // Deformed originals persisted in the session dir, under the names the run kept
+        // (a photo batch's are the user's own, not frame-ordered). A missing one is skipped.
         for (path in s.defImagePaths) {
             val df = File(path)
             if (df.exists()) entries += "$dir/${df.name}" to df

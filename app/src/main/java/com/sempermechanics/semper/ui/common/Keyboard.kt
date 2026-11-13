@@ -18,7 +18,7 @@ fun View.hideKeyboard() {
  *
  * Fields that commit on focus loss pass nothing: dropping focus commits.
  * The settings fields also commit first, and then their focus listener
- * commits again, as before.
+ * commits again.
  */
 fun EditText.commitOnDone(imeAction: Int = EditorInfo.IME_ACTION_DONE, onDone: () -> Unit = {}) {
     setOnEditorActionListener { _, actionId, _ ->

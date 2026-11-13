@@ -33,10 +33,15 @@ object ApiErrors {
     /** The app tried to accept a Terms version the server no longer serves (409). */
     const val TERMS_VERSION_MISMATCH = "terms_version_mismatch"
 
-    /** This account is already bound to a different device (409). */
+    /**
+     * `POST /v1/devices/register` refused this phone (409). Since ADR-033 a real
+     * account holds several phones and retires its oldest unlicensed one to make
+     * room, so this is no longer "bound to another phone": it is a full QC test
+     * account (ADR-027), or a phone a device-lock clear released and still holds off.
+     */
     const val DEVICE_CONFLICT = "device_conflict"
 
-    /** This device is already bound to a different account (409). */
+    /** This phone is already another account's (409 from `POST /v1/devices/register` and `GET /v1/me`). */
     const val DEVICE_IN_USE = "device_in_use"
 
     /**
@@ -103,11 +108,9 @@ object ApiErrors {
     const val DEVICE_QUOTA_EXCEEDED = "device_quota_exceeded"
 
     /**
-     * Every seat on the institution's floating licence is in use (409).
-     *
-     * Not a fault in the account: the caller stays on the roster and gets a
-     * seat as soon as a colleague finishes, so this is rendered as "try again",
-     * never as an error.
+     * Every seat on the institution's floating licence is in use (409). Not a
+     * fault in the account: the caller stays on the roster and gets a seat once
+     * a colleague finishes, so this is rendered as "try again", never as an error.
      */
     const val NO_FLOATING_SEAT = "no_floating_seat"
 

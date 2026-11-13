@@ -7,9 +7,8 @@ import androidx.annotation.StringRes
 /**
  * One entry point for a plain system toast.
  *
- * Every screen built `Toast.makeText(context, …, Toast.LENGTH_SHORT / LONG).show()`
- * by hand (66 sites). The text is resolved against the caller's [Context], so
- * it is read in that screen's configuration exactly as before; the toast itself
+ * The text is resolved against the caller's [Context], so it is read in that
+ * screen's configuration; the toast itself
  * is built on the application context, so a toast raised from a lambda that
  * outlives its Activity (a coroutine finishing after `finish()`) neither leaks
  * the Activity nor depends on its window.

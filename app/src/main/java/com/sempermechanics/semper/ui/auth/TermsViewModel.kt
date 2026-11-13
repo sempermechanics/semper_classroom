@@ -20,11 +20,8 @@ import kotlinx.coroutines.launch
 /**
  * The Terms acceptance of [TermsActivity], kept across a rotation (ADR-016).
  *
- * It used to run on the gate's own scope: a rotation while the backend
- * recorded the acceptance cancelled it, or dropped its answer, and left the
- * user on a gate they had already agreed to. Here it runs on
- * [viewModelScope], and its outcome is handed out once ([outcomes]) to
- * whichever gate is current.
+ * It runs on [viewModelScope], and its outcome is handed out once
+ * ([outcomes]) to whichever gate is current.
  */
 @MainThread
 class TermsViewModel(app: Application) : AndroidViewModel(app) {

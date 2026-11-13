@@ -39,12 +39,8 @@ data class ViewerSweepArgs(
  * Every opened result is a saved row (ADR-022), so one builder writes it:
  * [of] a [SessionRecord], whether Home opens the row or the run that just
  * saved it does. The one result with no row, a sweep that solved nothing,
- * opens its lattice through [forFailedSweep]. Four places read it:
- * `ResultViewerActivity`, `VsgLatticeActivity`, `SettingsUsedSheet` and
- * `ViewerReportFactory`. All of them go through this type: writers through
- * [toIntent], readers through [from]. A missing extra used to read as whatever
- * default each reader picked (subset 41 in one place, 0 in another); now it is
- * filled from the session record, else from one default below, and logged.
+ * opens its lattice through [forFailedSweep]. Writers go through [toIntent],
+ * readers through [from], so every reader fills a missing extra the same way.
  *
  * Deliberately **not** a `Parcelable` under a single extra: an Intent already
  * in the back stack across an update must keep opening, so the wire format is
@@ -179,11 +175,7 @@ data class ViewerArgs(
         /** Subset when neither the Intent nor a record says; the engine's default. */
         const val DEFAULT_SUBSET = DicParams.DEFAULT_SUBSET
 
-        /**
-         * Strain window when neither the Intent nor a record says. The wizard now
-         * defaults to a 21 px VSG; readers keep 15 so a key-less Intent still opens
-         * as it always did ([DicParams.DEFAULT_STRAIN_WINDOW]).
-         */
+        /** Strain window when neither the Intent nor a record says; why 15: [DicParams.DEFAULT_STRAIN_WINDOW]. */
         const val DEFAULT_STRAIN_WINDOW = DicParams.DEFAULT_STRAIN_WINDOW
 
         /** The only strain method the engine has. */

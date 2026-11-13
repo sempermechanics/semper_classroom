@@ -12,27 +12,19 @@ import com.sempermechanics.semper.data.net.drive.MIN_CHUNK_BYTES
 private const val CHUNK_MEMORY_BUDGET_FRACTION = 0.10
 
 /**
- * The server declares [serverChunkSize] (currently a flat 32 MiB —
- * `backend/app/repo/sessions.py`) without knowing what device will receive it.
- * `isLowRamDevice` alone is a blunt signal: it is a fixed, device-class boolean,
- * unaware of what else is resident right now (a memory-heavy DIC batch still in
- * the session directory, another foreground app) — where [concurrency] may
- * already be reduced to 1 but each of those single chunks could still be the
- * full 32 MiB the server offered.
+ * The chunk size to upload with: the server's [serverChunkSize] (a flat 32 MiB,
+ * `backend/app/repo/sessions.py`, chosen without knowing the device), shrunk so
+ * [concurrency] chunk buffers stay within [CHUNK_MEMORY_BUDGET_FRACTION] of live
+ * `ActivityManager.MemoryInfo.availMem`. `isLowRamDevice` is too blunt: it knows
+ * nothing of what is resident now.
  *
- * Reading live `ActivityManager.MemoryInfo.availMem` instead budgets against
- * *actual* headroom at upload time: [concurrency] chunk buffers must together
- * stay within [CHUNK_MEMORY_BUDGET_FRACTION] of what's available right now.
- * Drive's resumable PUT declares its own Content-Range per request, so nothing
- * about the protocol requires a fixed chunk size across a transfer — shrinking
- * it here is always safe, and
- * [com.sempermechanics.semper.data.net.drive.DriveTransfer.uploadResumable] re-clamps to
- * [MIN_CHUNK_BYTES]/[MAX_CHUNK_BYTES] regardless, so a missing/zero `availMem`
- * reading (some OEM ROMs) falls back to exactly the old behavior — the server's
- * own value, clamped.
+ * Shrinking is always safe: Drive's resumable PUT declares its Content-Range per
+ * request, and [com.sempermechanics.semper.data.net.drive.DriveTransfer.uploadResumable]
+ * re-clamps to [MIN_CHUNK_BYTES]/[MAX_CHUNK_BYTES]. A missing or zero `availMem`
+ * (some OEM ROMs) gives the server's value, clamped.
  *
- * Top-level so it is directly unit-testable — mirrors
- * [com.sempermechanics.semper.data.net.drive.nextWindowBytes] in `DriveDownloader.kt`.
+ * Top-level so it is directly unit-testable, like
+ * [com.sempermechanics.semper.data.net.drive.nextWindowBytes].
  */
 internal fun uploadChunkBytes(context: Context, serverChunkSize: Int, concurrency: Int): Int {
     val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager

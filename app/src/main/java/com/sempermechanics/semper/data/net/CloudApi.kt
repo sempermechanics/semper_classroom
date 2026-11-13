@@ -6,20 +6,16 @@ import java.io.File
  * What the app asks of the Semper backend: the public surface of [SemperApi]
  * (ADR-002).
  *
- * It exists so the classes with decisions to test — [com.sempermechanics.semper.data.account.AuthRepository],
- * [com.sempermechanics.semper.data.account.SeatLease], [com.sempermechanics.semper.data.cloud.CloudSync]
- * and the cloud export — can take a fake in a JVM test. Each takes it as a
- * defaulted parameter, `api: CloudApi = SemperApi.get(context)`, so production
- * call sites do not change. The failures stay nested in [SemperApi]
- * ([ApiException], [NotApprovedException], …), so no `catch`
- * moves.
+ * It exists so a class with decisions to test can take a fake in a JVM test, as a
+ * defaulted parameter `api: CloudApi = SemperApi.get(context)`. The failures are the
+ * top-level ones in ApiExceptions.kt ([ApiException], [NotApprovedException], …).
  *
  * Every call runs off the main thread on its own; the defaults below are the
  * only place they are declared, because an override may not restate them.
  */
 @Suppress("TooManyFunctions") // one member per backend route, as in SemperApi
 interface CloudApi {
-    /** A backend is configured and the debug sign-in bypass is off. */
+    /** A backend is configured, and neither the debug sign-in bypass nor guest mode (ADR-036) is on. */
     val enabled: Boolean
 
     suspend fun getMe(idToken: String): MeResponse

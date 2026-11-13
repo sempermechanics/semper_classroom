@@ -133,6 +133,10 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
 
 ## Current state (2026-11-12)
 
+- **Trim and comment pass** (#174, `claude/trim-and-comment-pass`, not merged): about 1,040 lines
+  out with no behaviour change. Test-only helpers are deleted, copied test setup is shared, and
+  the CI checkers share `scripts/kotlin_lex.py`. A comments-only pass fixes about 30 wrong comments
+  and adds CONTRIBUTING rules 26–29. It found TD-283 to TD-285, which are left for a decision.
 - **Continue as guest** (`claude/continue-as-guest`, not merged; [ADR-036](docs/adr/ADR-036-continue-as-guest.md)):
   the sign-in screen opens the app with Demo's limits and no account (`data/account/GuestMode`);
   the cloud is off, the Terms gate still runs (a returning guest is not asked again), the
@@ -192,7 +196,7 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   wizard state is `WizardInputs.lab`, changed through `edit {}`, and a run's result reads
   the lab test from its saved row (`ViewerArgs.of`). Metadata schema `/7` here (ours past
   `/3` are not the parent's numbers). Lab inputs ride its seams: `RunSpec.mechanical` (ADR-004), `ViewerArgs` (ADR-003),
-  `WizardDraft` (ADR-005). ADR numbers are shared; TD numbers are this repo's own since 2026-10-27 (ADR-032: restarted at TD-1, old numbers in `docs/ops/td-renumber-2026-10-27.csv`, upstream diffs through `scripts/td_numbers.py translate`). TD-56 is the rename, TD-57 and TD-58 the examples', TD-59 and TD-60 the Play listing's; next free TD-283.
+  `WizardDraft` (ADR-005). ADR numbers are shared; TD numbers are this repo's own since 2026-10-27 (ADR-032: restarted at TD-1, old numbers in `docs/ops/td-renumber-2026-10-27.csv`, upstream diffs through `scripts/td_numbers.py translate`). TD-56 is the rename, TD-57 and TD-58 the examples', TD-59 and TD-60 the Play listing's; next free TD-286.
 - **#140 merged 2026-10-20** (`a66606d9`, the 2026-10-19 review; not released): load logs
   in kgf/tf, decimal commas and the delimiter read after a long preamble, logged time units;
   photo times matched within 1 s when any lacks EXIF sub-seconds; E refitted over 10–40 % of

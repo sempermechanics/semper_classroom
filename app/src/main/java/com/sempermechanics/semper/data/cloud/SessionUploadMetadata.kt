@@ -9,9 +9,8 @@ import org.json.JSONObject
  * Session-level metadata JSON for cloud upload: device, time, engine params,
  * and the frame list (`metadata.json`), written through [SessionMetadataDoc].
  *
- * The text is semantically what the org.json writer before it produced, not
- * byte for byte (`50.0` for `50`, `/` for `\/`): the upload declares the sha of
- * the staged bytes, and the backend re-dumps the file.
+ * Not byte-identical to older builds' files ([SessionMetadataDoc]): the upload
+ * declares the sha of the staged bytes, and the backend re-dumps the file.
  */
 object SessionUploadMetadata {
 

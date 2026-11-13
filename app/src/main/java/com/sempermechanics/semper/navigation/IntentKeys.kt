@@ -71,7 +71,7 @@ object IntentKeys {
     const val RERUN_REFERENCE_PATH = "RERUN_REFERENCE_PATH"
     const val RERUN_REFERENCE_NAME = "RERUN_REFERENCE_NAME"
 
-    // ── StaticAnalysisActivity  RoiDrawActivity
+    // ── StaticAnalysisActivity ⇄ RoiDrawActivity
     const val IMAGE_FILE_PATH = "IMAGE_FILE_PATH"
     const val MASK_FILE_PATH = "MASK_FILE_PATH"
     const val IMAGE_WIDTH = "IMAGE_WIDTH"

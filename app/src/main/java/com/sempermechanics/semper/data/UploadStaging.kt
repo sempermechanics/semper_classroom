@@ -46,11 +46,8 @@ internal sealed interface StagingOutcome {
  * the completeFile size check would never reconcile. Generating once and reusing
  * also skips the expensive report/zip work on every retry.
  *
- * Archives are split by what a restore actually needs: `Session.zip` holds only
- * ref/, raw/ and dat/ (the `.dat` frames and the record manifest) — everything
- * needed to rebuild a working session — while the
- * derived deliverables (csv/, reports/, processed/) go to `Extras.zip`. Nothing
- * reads those back after a restore; they are regenerated on export.
+ * Archives are split by what a restore needs ([SessionZip.isRestoreEssential]):
+ * `Session.zip` and `Extras.zip`.
  */
 internal class UploadStaging(private val context: Context, private val record: SessionRecord) {
 
@@ -69,9 +66,9 @@ internal class UploadStaging(private val context: Context, private val record: S
     /**
      * Ready the staging dir for this run, and decide [reuse].
      *
-     * Only incomplete staging is wiped. A blank cloudSessionId after Rebuild /
-     * provision failure must NOT destroy a finished Session.zip — that was
-     * forcing a full prepare loop on every WorkManager retry.
+     * Only incomplete staging is wiped: a blank cloudSessionId after Rebuild /
+     * provision failure must NOT destroy a finished Session.zip, or every
+     * WorkManager retry prepares from scratch.
      *
      * Under a pointer, a finished staging is reused only when its binding
      * ([StagingLayout.declared]) names that session and the bytes it declared
@@ -269,11 +266,9 @@ internal class UploadStaging(private val context: Context, private val record: S
      * packed from the rest ([SessionZip.isRestoreEssential] splits them). With no
      * payload at all, [artifacts] as they are.
      *
-     * Firestore prices the whole flow per file (a doc, a signed complete call, a
-     * challenge/nonce cycle each), so 3F+4 files per analysis was burning the
-     * daily read quota in a single upload. Two zips + the metadata blueprint keeps
-     * that at 3 files, and Drive resumable uploads resume a single large file
-     * mid-byte, so recovery still works.
+     * Firestore prices the flow per file (a doc, a signed complete call, a
+     * challenge/nonce cycle each), so 3 files instead of 3F+4 keeps one upload off
+     * the daily read quota; Drive still resumes a large file mid-byte.
      */
     private fun archive(
         artifacts: List<UploadArtifact>,
@@ -301,20 +296,15 @@ internal class UploadStaging(private val context: Context, private val record: S
     /**
      * Build (or reuse) one archive named [zipName] from [members], entries named
      * `role/name` (`ref/Reference.png`, `dat/frame_0000.dat`, …) so restore can
-     * rebuild the exact per-role layout. Built once into the persistent staging
-     * dir and reused byte-identically on retries — zip entry timestamps differ
-     * across rebuilds, which would break the declared sha256/size of a resumed
-     * upload. The SHA-256 comes from [SessionZip], which tees a digest while
+     * rebuild the exact per-role layout. Built once and reused byte-identically on
+     * retries (see the class comment). [SessionZip.build] tees the SHA-256 while
      * writing and round-trip-verifies every entry before promote.
      *
-     * Returns null when [members] is empty — a session with no derived artifacts
-     * must not declare an empty Extras.zip, both because [SessionZip.build] rejects
-     * an empty payload and because an empty object would cost a Firestore doc and a
-     * signed upload for nothing.
+     * Null when [members] is empty: [SessionZip.build] rejects an empty payload, and
+     * an empty Extras.zip would cost a Firestore doc and a signed upload for nothing.
      *
-     * Reuses only a sidecar-verified archive (see `UploadWorkOutcomes.isStagingReusable`).
-     * A sidecar is never invented from a leftover truncated zip — doing so uploaded
-     * bit-identical corrupt Drive objects.
+     * Reuses only a sidecar-verified archive (`UploadWorkOutcomes.isStagingReusable`);
+     * a sidecar is never invented from a leftover zip, which may be truncated.
      */
     private fun stageArchive(
         zipName: String,
@@ -332,9 +322,7 @@ internal class UploadStaging(private val context: Context, private val record: S
                     members.map { SessionZip.Member(it.role, it.name, it.file) },
                     zip,
                     onBytes = onBytes,
-                    // Cloud-controlled version gate (Phase 1.3's .dat codec) — see
-                    // AppRemoteConfig.datCodecEncodingEnabled's doc and SessionZip's
-                    // isDatEntry doc for why this cannot just default to on.
+                    // Backend-gated .dat codec: see `SessionZip.isDatEntry`.
                     encodeDatEntries = AppRemoteConfig.datCodecEncodingEnabled(context),
                 )
                 sidecar.writeText(hex)

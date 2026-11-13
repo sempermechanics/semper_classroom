@@ -1,7 +1,6 @@
 package com.sempermechanics.semper.ui.viewer.share
 
 import android.app.Application
-import android.graphics.Color
 import com.sempermechanics.semper.field.DicResult
 import com.sempermechanics.semper.fixtures.DeformedFrameFixture
 import com.sempermechanics.semper.fixtures.DeformedFrameFixture.ONLY_DEFORMED
@@ -55,23 +54,6 @@ class FieldImageExportTest {
         return FieldImageExport(snapshot, tmp.newFolder())
     }
 
-    /** The viewer's map of the frame ([com.sempermechanics.semper.ui.viewer.ViewerScaleController]), uncapped here. */
-    private fun viewerMapPixel(displaced: Boolean, at: Pair<Int, Int>): Int {
-        val map = VisualizationEngine.generateFrameHeatmap(
-            displaced,
-            data,
-            DeformedFrameFixture.W,
-            DeformedFrameFixture.H,
-            DicResult.IDX_EXX,
-            DeformedFrameFixture.STEP,
-            maxLongEdge = VisualizationEngine.REPORT_MAX_EDGE,
-        ).bitmap
-        val pixel = map.getPixel(at.first, at.second)
-        map.recycle()
-        assertEquals("the viewer's map covers $at", 0xFF, Color.alpha(pixel))
-        return pixel
-    }
-
     @Test
     fun `a frame with its own photo is exported on it with the displaced map`() {
         val photo = DeformedFrameFixture.writePhoto(File(tmp.root, "f0.png"), PHOTO_COLOR)
@@ -80,7 +62,7 @@ class FieldImageExportTest {
         val (ax, ay) = ONLY_DEFORMED
         assertColor(
             "under the displaced map",
-            blend(viewerMapPixel(displaced = true, ONLY_DEFORMED), PHOTO_COLOR, HEATMAP_ALPHA),
+            blend(viewerMapPixel(data, displaced = true, ONLY_DEFORMED), PHOTO_COLOR, HEATMAP_ALPHA),
             out.getPixel(ax, ay),
         )
         val (bx, by) = ONLY_REFERENCE
@@ -95,7 +77,7 @@ class FieldImageExportTest {
         val (bx, by) = ONLY_REFERENCE
         assertColor(
             "under the reference-position map",
-            blend(viewerMapPixel(displaced = false, ONLY_REFERENCE), REFERENCE_COLOR, HEATMAP_ALPHA),
+            blend(viewerMapPixel(data, displaced = false, ONLY_REFERENCE), REFERENCE_COLOR, HEATMAP_ALPHA),
             out.getPixel(bx, by),
         )
         val (ax, ay) = ONLY_DEFORMED

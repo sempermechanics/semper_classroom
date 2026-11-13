@@ -9,16 +9,14 @@ import java.util.concurrent.Executor
 /**
  * Loads list thumbnails off the main thread into recycled [ImageView]s.
  *
- * Shared shape of Home's session list, the media picker grid and the wizard's
- * frame strip: a small LRU of decoded bitmaps keyed by [K], a decode on
- * [executor], and the result posted back only while the view still wants it.
+ * A small LRU of decoded bitmaps keyed by [K], a decode on [executor], and the
+ * result posted back only while the view still wants it.
  *
  * **The tag check.** The view's tag names the key it is showing (or waiting
  * for), and *every* bind sets it — cached, missing and loading alike. A decode
  * lands only while the tag still matches, so a recycled view rebound to a
- * cached row is never painted over by the older row's late decode (the bug
- * wave 1 fixed in `SessionListAdapter`). A decode that lands too late is
- * recycled.
+ * cached row is never painted over by the older row's late decode. A decode
+ * that lands too late is recycled.
  *
  * **Eviction does not recycle.** An evicted bitmap may still be on screen: a
  * grid can hold more live views than [maxCached], and RecyclerView reattaches
@@ -28,14 +26,12 @@ import java.util.concurrent.Executor
  *
  * Main thread only for [bind] and [clear].
  *
- * @param maxCached LRU size; an evicted bitmap is dropped, not recycled. Home uses 24.
+ * @param maxCached LRU size.
  * @param decode runs on [executor]: a [Decoded.Loaded] bitmap, or why there is none.
  *   The bitmap must be a fresh one the loader then owns — not shared, not
  *   cached elsewhere — because a result that lands for a view that has moved
- *   on is recycled. It is not wrapped: a decode that can throw catches for
- *   itself (the media grid's `loadThumbnail` does), as each adapter's did.
- * @param placeholder what a view shows while it waits and when nothing loads
- *   (null drawable for Home and the media grid).
+ *   on is recycled. It is not wrapped: a decode that can throw catches for itself.
+ * @param placeholder what a view shows while it waits and when nothing loads.
  * @param onFailed what a view shows when [decode] gave no bitmap; defaults to [placeholder].
  */
 class ThumbnailLoader<K : Any>(
@@ -62,10 +58,7 @@ class ThumbnailLoader<K : Any>(
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, Bitmap>?): Boolean = size > maxCached
     }
 
-    /**
-     * Keys [decode] called [Decoded.Undecodable]. Recorded when the result
-     * lands for a view still showing that key, as Home did.
-     */
+    /** Keys [decode] called [Decoded.Undecodable], recorded when the result lands for a view still showing that key. */
     private val misses = HashSet<K>()
 
     /** The cached bitmap for [key], if it is still usable. */

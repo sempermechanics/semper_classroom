@@ -38,9 +38,10 @@ class CloudNotConfiguredException : IOException("Cloud backend is not configured
 class TermsVersionMismatchException(val requestId: String? = null) : IOException(ApiErrors.TERMS_VERSION_MISMATCH)
 
 /**
- * This account is bound to a *different* device (registration refused).
+ * This phone's registration was refused: any 409 from [SemperApi.registerDevice], or a
+ * `device_conflict` elsewhere ([ApiErrors.DEVICE_CONFLICT] says when the backend sends it).
  * [requestId] is the backend's `X-Request-Id` when it answered — a device
- * rebind is a support conversation, so the log line has to be findable.
+ * conflict is a support conversation, so the log line has to be findable.
  * [released]: staff released this phone from the account ([ApiErrors.DEVICE_RELEASED]),
  * which is handled as a conflict everywhere but in what the user is told.
  */
@@ -53,11 +54,8 @@ class DeviceConflictException(
 class DeviceInUseException(val requestId: String? = null) : IOException(ApiErrors.DEVICE_IN_USE)
 
 /**
- * Every floating seat on the institution's license is in use right now.
- *
- * Not an account problem: the caller is still on the roster and still
- * entitled to a seat as soon as one frees. Distinct from [ApiException] so
- * callers cannot render it as a generic failure.
+ * Every floating seat is in use right now ([ApiErrors.NO_FLOATING_SEAT]). Distinct from
+ * [ApiException] so callers cannot render it as a generic failure.
  */
 class NoSeatAvailableException : IOException(ApiErrors.NO_FLOATING_SEAT)
 

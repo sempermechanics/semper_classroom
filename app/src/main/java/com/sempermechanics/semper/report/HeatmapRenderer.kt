@@ -48,13 +48,9 @@ internal object HeatmapRenderer {
     }
 
     /**
-     * The same render as [VisualizationEngine.render], stopping one step earlier: one byte
-     * per pixel, holding an index into [JET_LUT] — or [TRANSPARENT_INDEX] where
-     * no correlated data covers the pixel.
-     *
-     * The GIF summary animation consumes this directly, so its colours are the
-     * viewer's colours by construction rather than by quantisation. Both callers
-     * share this one implementation of the interpolation.
+     * The reference-position index plane behind [VisualizationEngine.indices] (see there):
+     * one [JET_LUT] index per pixel, or [TRANSPARENT_INDEX] where no correlated data
+     * covers it. The one implementation of the interpolation.
      */
     fun generateHeatmapIndices(
         data: FloatArray,

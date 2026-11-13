@@ -288,7 +288,9 @@ class ConvergenceBinsView @JvmOverloads constructor(
         /**
          * A frame is finished once the run is past it or it has a value. Values
          * under 0 or NaN (a frame that kept no points) count as finished but
-         * set no height, as [ConvergenceGate] neither counts nor breaks on them.
+         * set no height: [ConvergenceGate.record] ignores a negative value, and
+         * the batch loop skips a zero-point frame before calling it (NaN would
+         * reset the gate's streak).
          */
         private fun binOf(frames: IntRange, frameIndex: Int, framePercent: Float, convergence: FloatArray?): Bin {
             var done = 0

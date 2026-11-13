@@ -309,6 +309,20 @@ Kotlin rename may keep the value. The six Workers, `SemperNativeLib`,
 ([ADR-015](docs/adr/ADR-015-package-layout.md)). A rename of a shared API gets a
 row in [FORK_SYNC](docs/ops/FORK_SYNC.md).
 
+**Comments**
+
+26. A comment says why: the reason, invariant, unit, contract or guardrail the
+    code cannot show. It does not restate the code or the name, and a one-line
+    delegate gets no KDoc.
+27. Each reason is stated once, where it is owned (the type, constant or DTO
+    field it belongs to); other sites link to it with `[Name]` rather than
+    repeating it. No lists of the call sites a value travels through.
+28. History is one clause plus its TD-/ADR- reference ("a screen scope skipped
+    the sign-out on rotation (ADR-016)"), never a narrative of earlier versions,
+    dates or commit hashes: those live in git, the TD row or the ADR. File
+    headers and section banners do not repeat the per-function KDocs.
+29. A change that makes a comment untrue fixes the comment in the same commit.
+
 ## Pull requests
 
 - Target **`main`**. Keep PRs focused (one concern: dead-code cleanup, one helper

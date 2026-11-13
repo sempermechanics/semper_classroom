@@ -389,29 +389,6 @@ class SweepStudyTest {
     }
 
     @Test
-    fun `line peak reads the peak on its own row only`() {
-        val step = 5
-        // Row y=10 holds a modest peak; row y=25 holds a much larger one that
-        // the cut must not see.
-        val data = field(9, step) { _, y ->
-            when (y) {
-                10f -> 0.002f
-                25f -> 0.009f
-                else -> 0.0005f
-            }
-        }
-        val line = SweepStudy.StudyLine(horizontal = true, position = 10f)
-        assertEquals(2f, SweepStudy.linePeak(data, exx, line, step / 2f), 1e-3f)
-    }
-
-    @Test
-    fun `line peak falls back to the field peak when the cut misses the grid`() {
-        val data = field(5, 5) { _, _ -> 0.003f }
-        val offGrid = SweepStudy.StudyLine(horizontal = true, position = 999f)
-        assertEquals(3f, SweepStudy.linePeak(data, exx, offGrid, 2f), 1e-3f)
-    }
-
-    @Test
     fun `multi-component profile equals the single-component profile for every component`() {
         val step = 5
         val size = 9

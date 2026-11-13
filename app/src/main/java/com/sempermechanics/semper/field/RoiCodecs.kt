@@ -6,9 +6,8 @@ import android.os.Bundle
 import com.sempermechanics.semper.navigation.IntentKeys
 import org.json.JSONObject
 
-// Wire forms of a [Roi]. Each reads and writes exactly what the call sites do
-// today, under the same key strings, so an Intent in a back stack, a saved
-// Bundle or a cloud `metadata.json` written by an older build reads the same.
+// Wire forms of a [Roi], under the established key strings, so an Intent in a back
+// stack or a saved Bundle written by an older build reads the same.
 
 /**
  * Puts [roi] as the four `Int` extras [IntentKeys.ROI_X], [IntentKeys.ROI_Y],
@@ -63,14 +62,5 @@ fun Bundle.getRoiEdges(): RectF? {
 
 private const val NO_EDGE = -1f
 
-/** Key of the ROI object inside `metadata.json`'s `engine` object. */
-const val ROI_JSON_KEY = "roi"
-
 /** `{"x":…, "y":…, "w":…, "h":…}`, in that key order, as `SessionUploadMetadata.engineJson` writes it. */
 fun Roi.toJson(): JSONObject = JSONObject().put("x", x).put("y", y).put("w", w).put("h", h)
-
-/** Reads [Roi.toJson]'s form; a missing object or key reads 0, as `SessionMetadataDoc.toRecord` does. */
-fun roiFromJson(json: JSONObject?): Roi {
-    val o = json ?: JSONObject()
-    return Roi(o.optInt("x", 0), o.optInt("y", 0), o.optInt("w", 0), o.optInt("h", 0))
-}

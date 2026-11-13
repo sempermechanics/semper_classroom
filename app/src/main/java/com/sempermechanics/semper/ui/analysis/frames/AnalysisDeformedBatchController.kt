@@ -23,9 +23,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * Deformed-frame batch import extracted from [StaticAnalysisActivity].
- * Caps to [AppSettings.maxFrames], caches via [FrameImportHelper] on [io],
- * then applies ViewModel state on the main thread.
+ * Deformed-frame batch import for [StaticAnalysisActivity]: caps to [AppSettings.maxFrames], caches
+ * via [FrameImportHelper] on [io], then applies ViewModel state on the main thread.
  */
 class AnalysisDeformedBatchController(
     private val activity: AppCompatActivity,
@@ -52,10 +51,10 @@ class AnalysisDeformedBatchController(
             try {
                 withContext(Dispatchers.Main) { showImporting(uris.size) }
 
-                // Import starts in name order — skip EXIF/MediaStore date probes
-                // here (they opened every URI before any copy and left the overlay
-                // stuck at 0% on large PLC picks). Dates resolve when the user
-                // sorts by date.
+                // Import starts in name order with no sort-date probes of the URIs
+                // (they opened every URI before any copy and left the overlay stuck
+                // at 0%); each copy's EXIF capture time is still read. Sort dates
+                // resolve when the user sorts by date.
                 val batch = FrameImportHelper.importDeformedUris(
                     context = activity,
                     uris = uris,

@@ -36,9 +36,10 @@ import java.util.Locale
 /**
  * The Results share sheet (wireframe 08). One scope rule: photos share the
  * current frame; the PDF and CSV cover the whole analysis; the ZIP bundles
- * everything. Fast single-photo export still generates into `cacheDir/share`
- * then offers Save/Share. Slow exports (PDF, ZIP, all-fields, field GIFs, CSV)
- * pick a Save-to-Files destination first, then write there. Field GIFs are
+ * everything. The single photo generates into `cacheDir/share` first, then
+ * offers Save/Share. Slow exports (all fields, field GIFs, lab report, PDF, CSV,
+ * ZIP) ask Save or Share first: Save picks a Save-to-Files destination and writes
+ * there; Share generates, then opens the system share sheet. Field GIFs are
  * single-setting only; a parameter sweep hides that row.
  */
 internal class ShareCenter(private val activity: AppCompatActivity, private val source: ShareSource) {

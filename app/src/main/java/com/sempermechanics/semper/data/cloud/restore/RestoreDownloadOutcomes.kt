@@ -7,18 +7,12 @@ import java.util.zip.ZipException
 /**
  * Classify proxied restore download failures for Range-resume vs terminal fail.
  *
- * Session.zip streams through API Gateway → Cloud Run → Drive. A gateway /
- * Cloud Run deadline kill often surfaces as HTTP 5xx with an **empty** body
- * (not FastAPI's `{"detail":…}`). Within one download call those are retried
- * with `Range` from the bytes already on disk — same as a mid-stream
- * `IOException`. After an attempt that succeeded or gave up, the next one
- * starts the file over: CloudRestore deletes its temps and their `.part`
- * sidecars on the way out. After a failure the worker retries (TD-243) or a stop
- * WorkManager runs again (connectivity, quota, the system: `DicRestoreWorker`,
- * TD-223) the bundle's `.part` is kept, and after process death that cleanup
- * never ran, so the next attempt's download resumes from it; the bundle's sha256
- * (and a legacy prefix's per-entry CRCs) catch a bad resume, and `metadata.json`
- * is always fetched fresh.
+ * Session.zip streams through API Gateway → Cloud Run → Drive, and a deadline
+ * kill often surfaces as a 5xx with an **empty** body (not FastAPI's
+ * `{"detail":…}`). Within one download call those are retried with `Range` from
+ * the bytes already on disk, like a mid-stream `IOException`. Whether the next
+ * attempt resumes from the bundle's `.part` is [RestoreBundleFetcher]'s rule;
+ * `metadata.json` is always fetched fresh.
  */
 object RestoreDownloadOutcomes {
 
@@ -59,9 +53,6 @@ object RestoreDownloadOutcomes {
             else -> ContentRange(start, end, total)
         }
     }
-
-    /** `Content-Range: bytes a-b/total` → total length, or null if absent/unparsed. */
-    fun parseContentRangeTotal(header: String?): Long? = parseContentRange(header)?.total
 
     /**
      * Whether [haveBytes] is a complete object of [expectedBytes] / [reportedTotal].

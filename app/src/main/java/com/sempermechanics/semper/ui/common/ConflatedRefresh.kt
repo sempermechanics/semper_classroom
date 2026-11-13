@@ -9,10 +9,8 @@ import kotlinx.coroutines.launch
  * Runs a refresh one at a time, however often it is asked for.
  *
  * Home and Settings refresh on resume, on every finished transfer, after a
- * delete, rename or restore — often several times within a second. Each
- * call used to launch its own coroutine, so two could run at once and the
- * older one's result could land last. Here a request made while one runs is
- * remembered (several merge into one through [merge]) and runs once the
+ * delete, rename or restore — often several times within a second. A request
+ * made while one runs is remembered (several merge into one through [merge]) and runs once the
  * current one ends, so results land in request order and a burst costs at
  * most one extra run. The running one is never cancelled: it may be part-way
  * through a network call.

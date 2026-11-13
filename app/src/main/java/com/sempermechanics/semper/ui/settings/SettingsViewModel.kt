@@ -31,14 +31,10 @@ import java.io.File
  * restore, the product-improvement consent, the two "export my data" exports
  * and a phone-only erase.
  *
- * They used to run on [SettingsActivity]'s own scope, so a rotation while one
- * was in flight cancelled it, or let it land unseen: the row stayed busy with
- * nothing queued, the switch showed an answer the server never confirmed, an
- * export vanished with its banner and nothing to share, an erase was never
- * confirmed. Here they run on [viewModelScope], and what each came to is
- * handed out once ([restoreOutcomes], [consentOutcomes], [exportOutcomes],
- * [localErasures]) to whichever Settings is current. Leaving Settings for
- * good still cancels an export, as the banner's Cancel does.
+ * They run on [viewModelScope], and what each came to is handed out once
+ * ([restoreOutcomes], [consentOutcomes], [exportOutcomes], [localErasures]) to
+ * whichever Settings is current. Leaving Settings for good still cancels an
+ * export, as the banner's Cancel does.
  */
 @MainThread
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {

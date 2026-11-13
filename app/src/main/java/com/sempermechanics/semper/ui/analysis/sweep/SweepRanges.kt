@@ -6,10 +6,8 @@ package com.sempermechanics.semper.ui.analysis.sweep
  * data points, not px) and how many windows to sample, and the step-depth
  * denominator (`step = round(subset / N)`).
  *
- * Today these are seven `var`s on `AnalysisViewModel` (`subsetMin` … `stepDenominator`),
- * the seven-int `"sweepRanges"` array of the wizard's saved state, and the
- * seven parameters of [SweepStudy.plan]. The ranges are 0 until a recommendation
- * or default seeds them ([UNSEEDED]).
+ * Held as `WizardInputs.sweepRanges` and saved as seven ints ([toIntArray]).
+ * The ranges are 0 until a suggestion or default seeds them ([UNSEEDED]).
  */
 data class SweepRanges(
     val subsetMin: Int,
@@ -24,8 +22,7 @@ data class SweepRanges(
     /**
      * The combinations this sweep solves when the ROI holds subsets up to
      * [subsetCeiling] (`RoiResolveHelper.maxSubsetForRoi`): none when even
-     * [subsetMin] is over it, else [SweepStudy.plan] with [subsetMax] capped at
-     * it. The rule `SweepSetupController.currentPlan` applies.
+     * [subsetMin] is over it, else [SweepStudy.plan] with [subsetMax] capped at it.
      */
     fun plan(subsetCeiling: Int): List<SweepStudy.Point> = if (subsetMin > subsetCeiling) {
         emptyList()
@@ -83,8 +80,8 @@ data class SweepRanges(
 /**
  * The deformed frame a sweep is solved against, as the wizard edits it: the
  * middle of the sequence until one is picked ([Middle]), or a picked one
- * ([At]). It used to be an `Int` with -1 for the middle, which is still how
- * the saved state holds it ([savedIndex], [fromSaved]).
+ * ([At]). The saved state holds it as an `Int`, -1 for the middle
+ * ([savedIndex], [fromSaved]).
  */
 sealed interface SweepFrame {
 

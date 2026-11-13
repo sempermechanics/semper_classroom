@@ -1,5 +1,4 @@
-// Overlay helper binds a fixed set of named views; the constructor list and the
-// small progress/animation constants read clearest passed and inlined directly.
+// The overlay binds a fixed set of named views, one constructor parameter each.
 @file:Suppress("LongParameterList")
 
 package com.sempermechanics.semper.ui.analysis.run
@@ -21,14 +20,10 @@ import com.sempermechanics.semper.ui.common.Insets
 import kotlin.math.roundToInt
 
 /**
- * Owns the compute / import progress sheet, docked at the bottom of the
- * wizard over a light scrim that still takes every touch: visibility, the
- * header (what is running, with its percent), the line under it (the run's
- * reference and the time left), and below it, for a batch run, the
- * convergence-per-frame bins with their caption and one-strike warning; for a
- * sweep, the lattice filling in as combinations end, the combination being
- * solved and how the last one went; for an import or a video extraction, a
- * progress bar and its status line. Cancel sits at the end of the sheet.
+ * Owns the compute / import progress sheet, docked at the bottom of the wizard
+ * over a light scrim that still takes every touch: the header (what is running,
+ * with its percent), the line under it (reference and time left), then the
+ * run's detail ([show]), and Cancel at the end.
  *
  * Once a single run has solved, [showDone] holds the sheet for a moment with
  * a check, the frame count, the time and the lowest convergence.
@@ -219,10 +214,8 @@ class ComputeOverlayController(
         flushScheduled = true
         val now = SystemClock.uptimeMillis()
         val elapsedSince = now - lastFlushUptimeMs
-        // Post through mainHandler, not overlay.post: show()/hide()/release() cancel
-        // the flush via mainHandler.removeCallbacks, and a View's post() enqueues on
-        // a different Handler instance, so those cancels would silently miss it and
-        // a queued flush could still fire into a torn-down view hierarchy.
+        // Post through mainHandler, not overlay.post: show()/hide()/release() cancel via
+        // mainHandler.removeCallbacks, which would miss a View's post() (another Handler).
         if (elapsedSince >= THROTTLE_MS) {
             mainHandler.post(flushRunnable)
         } else {

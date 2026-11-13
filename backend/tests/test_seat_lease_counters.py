@@ -19,28 +19,8 @@ from license_helpers import (  # noqa: F401
     _recording_stubs,
     _signed_in,
 )
+from _helpers_floating import _mint_floating, _roster, _user
 from refusals import attempt
-
-
-def _mint_floating(max_seats=2):
-    return repo.create_institution_license(
-        domain_lock="university.edu",
-        admin_emails=["it@university.edu"],
-        created_by_uid="admin",
-        max_seats=max_seats,
-        seating="floating",
-    )
-
-
-def _roster(store, *uids):
-    store._data["users"] = {
-        uid: {"email": f"{uid}@university.edu", "access_status": "APPROVED", "emailVerified": True, "mode": "demo"}
-        for uid in uids
-    }
-
-
-def _user(store, uid):
-    return {**store._data["users"][uid], "uid": uid}
 
 
 def _leased_pool(store, max_seats=1):

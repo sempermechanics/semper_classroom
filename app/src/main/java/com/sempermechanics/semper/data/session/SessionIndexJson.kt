@@ -18,7 +18,7 @@ import kotlinx.serialization.json.jsonArray
  * top-level keys its older builds wrote ([legacyKeys][com.sempermechanics.semper.ext.SessionExtension.legacyKeys]);
  * those move into [SessionRecord.extras] before decoding, so the next write
  * keeps them, under `extras` (ADR-025). With none named, as in Semper, the
- * text is decoded straight, exactly as before.
+ * text is decoded straight.
  */
 internal object SessionIndexJson {
 

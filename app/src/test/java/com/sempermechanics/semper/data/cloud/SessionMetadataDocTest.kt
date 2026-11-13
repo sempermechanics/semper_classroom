@@ -8,7 +8,6 @@ import com.sempermechanics.semper.data.net.AccountCache
 import com.sempermechanics.semper.data.session.CloudNaming
 import com.sempermechanics.semper.data.session.SessionRecord
 import com.sempermechanics.semper.data.session.SkippedNode
-import com.sempermechanics.semper.fixtures.sessionRecord
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -59,59 +58,15 @@ class SessionMetadataDocTest {
 
     // ── Records the writer is fed ──────────────────────────────────────────
 
-    private val batch = sessionRecord(
-        id = "b1",
-        name = "Tensile A · Sep 30",
-        frameCount = 3,
-        defNames = listOf("def_001.tif", "def_002.tif", "def_003.tif"),
-        imgW = 4000,
-        imgH = 3000,
-        roiX = 10,
-        roiY = 20,
-        roiW = 300,
-        roiH = 400,
-        refName = "ref.tif",
-    ).copy(
-        engineStats = listOf(
-            1200f, 1180f, 20f, 900f, 280f, 3f, 2f, 1f, 2.3f, 812.5f,
-            0.1f, 50f, 7.25f, 33f, 1.4777f, 97.5f, 2f, 0.003f, 410f,
-        ),
-        strainMethod = "VSG",
-        use6x6 = true,
-        pointsConverged = 1180,
-        avgIterations = 2.3f,
-        executionTimeMs = 812,
-        stopCode = -7,
-        plannedFrameCount = 5,
-    )
+    // [UploadMetadataFixtures]' records with the two fields the pinned records were taken with.
+    private val batch = UploadMetadataFixtures.batch.copy(avgIterations = 2.3f)
 
-    private val sweep = sessionRecord(
-        id = "s1",
-        name = "Sweep",
-        frameCount = 2,
-        defNames = listOf("def.png", "def.png"),
-        refName = "ref.png",
-    ).copy(
-        engineStats = listOf(10f, 9f, 1f),
-        sweepSubsets = listOf(21, 31),
-        sweepSteps = listOf(5, 7),
-        sweepStrainWindows = listOf(41, 85),
-        sweepLabels = listOf("S21/st5/w41", "S31/st7/w85"),
-        lineCutHorizontal = false,
-        sweepSkippedNodes = listOf(SkippedNode(41, 9, 121, -12), SkippedNode(51, 9, 121, -3)),
-    )
+    private val sweep = UploadMetadataFixtures.sweep.copy(defNames = listOf("def.png", "def.png"))
 
     /** A sweep stored before typed skips: only the four parallel lists. */
-    private val legacySkipSweep = sweep.copy(
-        id = "s2",
-        sweepSkippedNodes = emptyList(),
-        sweepSkipSubsets = listOf(41),
-        sweepSkipSteps = listOf(9),
-        sweepSkipStrainWindows = listOf(121),
-        sweepSkipCodes = listOf(-12),
-    )
+    private val legacySkipSweep = UploadMetadataFixtures.legacySkipSweep.copy(defNames = sweep.defNames)
 
-    private val bare = sessionRecord(id = "e1", name = "", refName = "")
+    private val bare = UploadMetadataFixtures.bare
 
     private val written = listOf(batch, sweep, legacySkipSweep, bare)
 
@@ -119,7 +74,7 @@ class SessionMetadataDocTest {
 
     @Test
     fun `the uploader's file decodes and re-encodes to the same JSON`() {
-        AccountCache.saveIdentity(context, "uid-1", "a@b.c")
+        AccountCache.saveIdentity(context, UploadMetadataFixtures.UID, UploadMetadataFixtures.EMAIL)
         for (record in written) {
             val original = SessionUploadMetadata.buildMetadataJson(record, context)
 
@@ -132,7 +87,11 @@ class SessionMetadataDocTest {
     @Test
     fun `forUpload builds the uploader's document, signed in or out`() {
         for (signedIn in listOf(true, false)) {
-            if (signedIn) AccountCache.saveIdentity(context, "uid-1", "a@b.c") else AccountCache.clear(context)
+            if (signedIn) {
+                AccountCache.saveIdentity(context, UploadMetadataFixtures.UID, UploadMetadataFixtures.EMAIL)
+            } else {
+                AccountCache.clear(context)
+            }
             for (record in written) {
                 val original = SessionUploadMetadata.buildMetadataJson(record, context)
                 val decoded = SessionMetadataDoc.decode(original)
@@ -186,7 +145,7 @@ class SessionMetadataDocTest {
 
     @Test
     fun `today's files restore to the record the reader built`() {
-        AccountCache.saveIdentity(context, "uid-1", "a@b.c")
+        AccountCache.saveIdentity(context, UploadMetadataFixtures.UID, UploadMetadataFixtures.EMAIL)
         for (record in written) {
             assertPinnedRecord(record.id, SessionUploadMetadata.buildMetadataJson(record, context))
         }

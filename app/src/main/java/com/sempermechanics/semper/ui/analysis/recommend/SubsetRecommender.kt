@@ -51,25 +51,15 @@ object SubsetRecommender {
      * lab camera.
      *
      * **A measurement can only ever raise the threshold, never lower it.** The
-     * model behind it assumes the image noise is independent pixel to pixel,
-     * and a phone that is quietly smoothing its frames breaks that assumption
-     * in the one direction that matters: `D(η)` comes back far below the error
-     * the correlator will actually see, which would recommend a subset smaller
-     * than the paper's own default on evidence that is not real. Clamping at
-     * [NOISE_VARIANCE] makes the measurement able to fix the failure it was
-     * brought in for — a phone whose noise is *worse* than the lab camera's,
-     * where the recommended subset is too small — while being unable to cause
-     * the opposite one.
+     * model assumes pixel-independent image noise; a phone that quietly smooths
+     * its frames reports a `D(η)` far below the error the correlator will see,
+     * and would get a subset smaller than the paper's default on evidence that
+     * is not real. Clamped at [NOISE_VARIANCE], a measurement can still fix a
+     * phone noisier than the lab camera.
      *
-     * **Nothing calls this with a real measurement today.** The in-app camera
-     * that produced one was removed, so every caller takes the default and the
-     * threshold is the paper's constant. The parameter and the clamp stay
-     * because the reasoning above is what any future measurement — from an
-     * import-side probe, say — would have to satisfy; see
-     * [NoiseFloorPixels.noiseCorrelationOf], which measures the smoothing but
-     * currently has no threshold and no caller either.
-     *
-     * A non-finite or non-positive value means no measurement, and falls back.
+     * No caller passes a measurement today (see [NoiseFloorStats]), so the
+     * threshold is the paper's constant; the clamp is what a future one must
+     * satisfy. A non-finite or non-positive value means none, and falls back.
      */
     fun thresholdFor(noiseVariance: Double): Double {
         val usable = if (noiseVariance.isFinite() && noiseVariance > 0.0) noiseVariance else NOISE_VARIANCE
@@ -111,18 +101,13 @@ object SubsetRecommender {
         x0 >= 0 && y0 >= 0 && x0 + side <= w && y0 + side <= h
 
     /**
-     * What a recommendation is solved for, as opposed to what it is solved on.
-     *
-     * The two travel together because they answer the same question — how
-     * accurate the result has to be, and at what sizes that is allowed to be
-     * bought — and a caller that sets one without thinking about the other
-     * usually meant to set both.
+     * What a recommendation is solved for, as opposed to what it is solved on:
+     * how accurate the result has to be, and at what sizes that may be bought.
      *
      * @param sizes the allowed subset sizes, i.e. the slider's own range.
-     * @param noiseVariance `D(η)` measured on this device's own frames, when
-     *   the run captured them. See [thresholdFor] for why a measurement can
-     *   only ever make the subset larger. The default is the paper's constant,
-     *   which is what an imported analysis gets — it has no burst behind it.
+     * @param noiseVariance `D(η)` of the frames, when one was measured; the
+     *   default, the paper's constant, is what every caller passes today. See
+     *   [thresholdFor] for why a measurement can only make the subset larger.
      */
     data class Tuning(
         val sizes: IntRange = MIN_SUBSET..MAX_SUBSET,
@@ -159,7 +144,8 @@ object SubsetRecommender {
         /**
          * The subset size the measured speckle asks for — enough to span
          * [DicGoodPractice.MIN_SPECKLES_PER_SUBSET] dots — or null when the
-         * speckle was not measurable.
+         * speckle was not measurable or is too coarse for any allowed subset
+         * ([DicGoodPractice.subsetForSpeckle]).
          *
          * Deliberately *not* compared against [subsetSize] here. This is a
          * requirement, and whether it is met depends on the size the user has
@@ -224,12 +210,11 @@ object SubsetRecommender {
 
     /**
      * Recommends a subset size for [refBytes] (the encoded reference image, or
-     * a raw RGBA buffer of `imgW * imgH * 4` bytes) sampled inside [roi], with
-     * [sizes] giving the allowed subset sizes (the slider's range).
+     * a raw RGBA buffer of `imgW * imgH * 4` bytes) sampled inside [roi].
      * Returns null when the image cannot be sampled or the ROI is too small.
      *
      * @param tuning what the recommendation is solved for — the sizes on offer
-     *   and the noise it has to beat.
+     *   ([Tuning.sizes]) and the noise it has to beat.
      */
     @Suppress("ReturnCount", "NestedBlockDepth")
     fun recommend(

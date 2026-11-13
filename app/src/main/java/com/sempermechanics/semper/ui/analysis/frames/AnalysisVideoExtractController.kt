@@ -23,8 +23,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * Video frame extraction orchestration extracted from [StaticAnalysisActivity].
- * The first sample becomes the reference; the rest feed defFilePaths.
+ * Video frame extraction for [StaticAnalysisActivity]: the first sample becomes
+ * the reference; the rest feed defFilePaths.
  * The extraction runs on [io].
  */
 class AnalysisVideoExtractController(

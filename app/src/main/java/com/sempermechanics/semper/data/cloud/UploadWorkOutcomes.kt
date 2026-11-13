@@ -1,6 +1,5 @@
 package com.sempermechanics.semper.data.cloud
 
-import androidx.work.ListenableWorker.Result
 import com.sempermechanics.semper.data.DicUploadWorker
 import com.sempermechanics.semper.data.session.SessionPaths
 import com.sempermechanics.semper.data.session.StagingLayout
@@ -14,28 +13,14 @@ import java.util.zip.ZipException
 import java.util.zip.ZipFile
 
 /**
- * Pure decision helpers for [DicUploadWorker] HTTP outcomes and staging reuse
- * (a resumed session's are `Resume.of`). Kept free of Android Context so unit
- * tests can pin quota / fail / retry seams without spinning WorkManager.
+ * Pure decision helpers for [DicUploadWorker] staging reuse (a resumed
+ * session's are `Resume.of`). Kept free of Android Context so unit tests can
+ * pin them without spinning WorkManager.
  */
 internal object UploadWorkOutcomes {
 
     /** Hex length of a SHA-256 digest (Session.zip.sha256 sidecar). */
     const val SHA256_HEX_LEN = 64
-
-    /** Map a backend [SemperApi]-style HTTP status to a WorkManager result ([UploadErrors]). */
-    fun fromHttpCode(code: Int, body: String = ""): Result = when (UploadErrors.classify(code, body)) {
-        // Quota full / payload too large / refused — retrying will not help.
-        UploadErrors.Kind.QUOTA, UploadErrors.Kind.TOO_LARGE, UploadErrors.Kind.REJECTED -> Result.failure()
-        // Stale session or bad bytes — rebuild on the next attempt.
-        UploadErrors.Kind.STALE_SESSION, UploadErrors.Kind.INTEGRITY -> Result.retry()
-        // Paused by a kill switch, transient or unknown — keep staging and retry.
-        UploadErrors.Kind.PAUSED, UploadErrors.Kind.TRANSIENT -> Result.retry()
-    }
-
-    /** Whether HTTP [code] and [body] mean the account analysis quota is full. */
-    fun isQuotaExhausted(code: Int, body: String? = null): Boolean =
-        body != null && UploadErrors.classify(code, body) == UploadErrors.Kind.QUOTA
 
     /**
      * Stage `metadata.json` once and reuse it, like the rest of the staging (a
@@ -161,9 +146,8 @@ internal object UploadWorkOutcomes {
      *
      * Also requires a **verified** Session.zip: matching `.sha256` sidecar and a
      * readable central directory. A kill mid-build ([com.sempermechanics.semper.data.UploadStaging])
-     * leaves a truncated file that still starts with `PK` and has length > 0 —
-     * hashing that truncate and uploading it produced Drive objects that restore
-     * as `ZipException: invalid distance too far back` while size/sha256 "matched".
+     * leaves a truncated file that still starts with `PK`; uploaded, it matched its
+     * own size/sha256 and restored as `ZipException: invalid distance too far back`.
      */
     fun isStagingReusable(stagingDir: File): Boolean {
         val layout = StagingLayout(stagingDir)
@@ -172,10 +156,7 @@ internal object UploadWorkOutcomes {
             verifiedBundleSha256(layout.sessionZip, layout.sha256Sidecar(StagingLayout.SESSION_ZIP)) != null
     }
 
-    /**
-     * Return the sidecar hex when [zip] matches it and [ZipFile] can open the
-     * archive; otherwise null (caller must rebuild).
-     */
+    /** The sidecar hex when [zip] matches it and [ZipFile] can open the archive; else null (rebuild). */
     fun verifiedBundleSha256(zip: File, sidecar: File): String? {
         val expected = sidecar.takeIf { it.isFile }?.readText()?.trim()?.lowercase()
             ?.takeIf { it.length == SHA256_HEX_LEN }

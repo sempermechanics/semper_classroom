@@ -47,11 +47,11 @@ class ViewerFieldPillsTest {
 
     @Test
     fun `every field maps to its own pill`() {
-        assertEquals(R.id.rbFieldU, ViewerFieldPills.idFor(FieldKind.U))
-        assertEquals(R.id.rbFieldV, ViewerFieldPills.idFor(FieldKind.V))
-        assertEquals(R.id.rbFieldExx, ViewerFieldPills.idFor(FieldKind.EXX))
-        assertEquals(R.id.rbFieldEyy, ViewerFieldPills.idFor(FieldKind.EYY))
-        assertEquals(R.id.rbFieldExy, ViewerFieldPills.idFor(FieldKind.EXY))
+        assertEquals(FieldKind.U, ViewerFieldPills.BY_ID[R.id.rbFieldU])
+        assertEquals(FieldKind.V, ViewerFieldPills.BY_ID[R.id.rbFieldV])
+        assertEquals(FieldKind.EXX, ViewerFieldPills.BY_ID[R.id.rbFieldExx])
+        assertEquals(FieldKind.EYY, ViewerFieldPills.BY_ID[R.id.rbFieldEyy])
+        assertEquals(FieldKind.EXY, ViewerFieldPills.BY_ID[R.id.rbFieldExy])
         assertEquals("one pill per field", FieldKind.entries.toSet(), ViewerFieldPills.BY_ID.values.toSet())
     }
 

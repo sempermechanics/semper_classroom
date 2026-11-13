@@ -103,16 +103,14 @@ class WizardRunLauncher(
             }
             checkReady()
 
-            // Handed to the view model rather than run here: a sweep is one
-            // solve per combination, long enough that a rotation mid-run used to
-            // cancel it and leave the half-written session behind.
+            // On the view model (ADR-016), so a rotation mid-sweep does not cancel it.
             // BatchRunController tears the chrome down when it ends.
             viewModel.launchSweep(activity.applicationContext, spec)
         }
     }
 
     /**
-     * The rectangle the engine solves over, as `[x, y, w, h]`: the drawn ROI,
+     * The rectangle the engine solves over ([Roi.forSolve]): the drawn ROI,
      * or the whole frame inset by half a subset (plus slack) so no subset hangs
      * off the edge. Null — with the user told why — when it cannot hold one
      * subset.

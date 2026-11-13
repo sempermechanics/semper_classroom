@@ -19,10 +19,9 @@ import timber.log.Timber
  * The account's finished backups as the last successful reconcile listed them,
  * so Home can say which are not on this phone without asking the backend again.
  *
- * Home lists only rows the phone has (or once had). A backup made on another
- * phone, or before a reinstall, used to show up only under Settings, so a
- * new phone opened on "No analyses yet" while the account had backups. Home now
- * offers those backups from this saved listing.
+ * Home lists only rows the phone has (or once had); from this listing it also
+ * offers backups made on another phone or before a reinstall, so a new phone
+ * does not open on "No analyses yet" while the account has backups.
  *
  * Kept honest between reconciles: a cloud delete forgets its backup here, and
  * sign-out or account deletion clears the lot. Anything else that changes the

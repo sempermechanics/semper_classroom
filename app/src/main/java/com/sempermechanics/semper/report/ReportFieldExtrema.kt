@@ -26,11 +26,8 @@ internal object ReportFieldExtrema {
 
     /**
      * As [computeFieldExtrema], but collects accepted values into the caller-supplied
-     * [scratch] (must hold at least the accepted-point count) instead of a boxed
-     * `List<Float>`, so a report build can reuse a single primitive buffer across
-     * fields. Sorting a primitive `FloatArray` uses the same total order as
-     * `List<Float>.sort()` (`-0.0 < 0.0`, NaN greatest), so the p02/p98 picks — and
-     * therefore the returned indices — are identical to the boxed path.
+     * [scratch] (at least the accepted-point count), so a report build reuses one
+     * primitive buffer across fields. The p02/p98 order is [HeatmapColorScale.quickSelect]'s.
      */
     fun computeFieldExtrema(
         data: FloatArray,
@@ -55,8 +52,8 @@ internal object ReportFieldExtrema {
     /**
      * The sort + percentile + index passes of [computeFieldExtrema], given a [scratch]
      * already filled with the first [count] accepted field values (in the same
-     * `absoluteStrainValues` convention). Split out so [buildReport] can fill the buffer
-     * once — for both mean/std and extrema — instead of walking `data` twice per field.
+     * `absoluteStrainValues` convention). Split out so [ReportBuilder.buildReport] fills
+     * the buffer once for both mean/std and extrema.
      */
     internal fun extremaFromScratch(
         data: FloatArray,

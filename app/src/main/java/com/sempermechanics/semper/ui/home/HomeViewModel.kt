@@ -36,17 +36,12 @@ import kotlinx.coroutines.withContext
  * as last read, the rows a queued delete hides, the backups on offer, and the
  * restores, phone erases and renames Home asks for.
  *
- * A restore used to run on the Activity's scope: a rotation during its cloud
- * lookup cancelled it after the selection had already been cleared, so the
- * tap did nothing. A multi-row erase did the same part-way through, with no
- * toast. Both run on [viewModelScope] here, and what each came to is handed
- * out once ([restoreOutcomes], [eraseOutcomes]) to whichever Home is current.
- * A rename ([rename], [renameOutcomes]) followed them (readiness AE1-111).
+ * Restores, erases and renames run on [viewModelScope], and what each came to
+ * is handed out once ([restoreOutcomes], [eraseOutcomes], [renameOutcomes]) to
+ * whichever Home is current.
  *
  * The licence state Home shows ([HomeEntitlements]) is read with the list, on
- * [io]: it reaches EntitlementStore, whose first read opens the Keystore and
- * verifies the token and whose clock re-seal is a Keystore HMAC, so it never
- * runs on the main thread (readiness TE1-006).
+ * [io]: it reaches the Keystore ([HomeQuotaCard] says why that is never on Main).
  */
 @MainThread
 class HomeViewModel(app: Application) : AndroidViewModel(app) {
