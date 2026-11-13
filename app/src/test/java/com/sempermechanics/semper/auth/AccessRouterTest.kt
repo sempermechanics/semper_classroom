@@ -6,25 +6,10 @@ import com.sempermechanics.semper.ui.auth.AuthActivity
 import com.sempermechanics.semper.ui.auth.PendingApprovalActivity
 import com.sempermechanics.semper.ui.home.HomeActivity
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AccessRouterTest {
-
-    @Test
-    fun `isHomeStatus returns true for APPROVED and OFFLINE_CACHE_APPROVED`() {
-        assertTrue(AccessRouter.isHomeStatus(AccessStatus.APPROVED))
-        assertTrue(AccessRouter.isHomeStatus(AccessStatus.OFFLINE_CACHE_APPROVED))
-    }
-
-    @Test
-    fun `isHomeStatus returns false for PENDING and unknown strings`() {
-        assertFalse(AccessRouter.isHomeStatus(AccessStatus.PENDING))
-        assertFalse(AccessRouter.isHomeStatus("UNKNOWN"))
-        assertFalse(AccessRouter.isHomeStatus(""))
-    }
 
     @Test
     fun `afterSignIn returns PendingApprovalActivity for PENDING`() {

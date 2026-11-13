@@ -25,11 +25,10 @@ class StudioOverlayView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
 
-    // Store the actual image dimensions for perfect coordinate scaling
+    // The reference's true size in px, which the view rects map to.
     var realImageWidth: Int = 0
     var realImageHeight: Int = 0
 
-    // --- 1. IMAGE BOUNDARY TRACKING ---
     private var imageBounds = RectF()
 
     /** Pinch / pan / double-tap state; [imageBounds] is derived from it. */
@@ -119,7 +118,6 @@ class StudioOverlayView @JvmOverloads constructor(
         updateImageBounds()
     }
 
-    // --- 2. LIFECYCLE RESTORE ---
     fun restoreRelativeRoi(savedRoi: RectF) {
         pendingRestoreRoi = savedRoi
         if (!imageBounds.isEmpty) {
@@ -195,7 +193,6 @@ class StudioOverlayView @JvmOverloads constructor(
 
     private fun applyPendingRestore() {
         pendingRestoreRoi?.let { saved ->
-            // Map the physical image coordinates back to the scaled screen view
             roiRect.set(imageRectToView(saved))
             hasValidRoi = true
             invalidate()
@@ -209,7 +206,6 @@ class StudioOverlayView @JvmOverloads constructor(
         pendingRestoreHoles = null
     }
 
-    // --- 3. RESET ---
     fun reset() {
         hasValidRoi = false
         roiRect.setEmpty()
@@ -224,7 +220,6 @@ class StudioOverlayView @JvmOverloads constructor(
     enum class RoiMode { RECTANGLE, SQUARE }
     var currentMode = RoiMode.RECTANGLE
 
-    // Hole Tracking Variables
     var isSubtractMode = false
     data class Hole(val mode: RoiMode, val rect: RectF)
     val holes = mutableListOf<Hole>()
@@ -253,15 +248,13 @@ class StudioOverlayView @JvmOverloads constructor(
     /** True while a finger holds a rect: its body or one of its corners. */
     private val isGrabbing: Boolean get() = touchState != TouchState.NONE && !isDrawing
 
-    private var activeHoleIndex = -1 // Tracks which hole you grabbed
+    private var activeHoleIndex = -1
 
     /** The rect the grab moves: the grabbed hole, or the main ROI. */
     private val grabTarget: RectF get() = if (activeHoleIndex >= 0) holes[activeHoleIndex].rect else roiRect
 
-    // --- 4. ZOOM AND PAN ---
-    // Two fingers pinch and pan; double-tap toggles 2x and fit. One finger
-    // always edits, so drawing never fights the zoom. Handles and the minimum
-    // size stay in view px: zoomed in, they are finer in image px.
+    // Zoom and pan are [StudioOverlayViewport]'s; one finger always edits, so drawing never
+    // fights the zoom. Handles and the minimum size stay in view px: finer in image px when zoomed.
 
     /** The grabbed rect as it was at ACTION_DOWN, put back if the touch turns into a pinch. */
     private val editStart = RectF()
@@ -272,12 +265,6 @@ class StudioOverlayView @JvmOverloads constructor(
         cancelEdit = ::cancelEdit,
         onMoved = ::applyViewport,
     )
-
-    /** Back to fit (zoom 1). */
-    fun resetZoom() {
-        viewport.reset()
-        applyViewport()
-    }
 
     private fun applyViewport() {
         updateImageBounds()
@@ -473,7 +460,7 @@ class StudioOverlayView @JvmOverloads constructor(
         /** A drawn rect is kept once it is longer than this either way, view px. */
         const val MIN_KEPT = 50f
 
-        /** Massive hitboxes for precision resizing: a corner grabs within this, view px. */
+        /** A corner grabs within this, view px: generous, so a finger can resize precisely. */
         const val HANDLE_SLOP = 45f
         const val CROP_HANDLE_RADIUS = 20f
         const val HOLE_HANDLE_RADIUS = 15f

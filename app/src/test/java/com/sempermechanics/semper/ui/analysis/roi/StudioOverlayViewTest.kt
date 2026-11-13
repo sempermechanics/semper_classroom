@@ -427,16 +427,6 @@ class StudioOverlayViewTest {
         assertRect(RectF(101f, 203f, 600f, 500f), overlay.getRelativeRoi())
     }
 
-    @Test
-    fun `resetZoom goes back to the fit view`() {
-        zoomTwiceAtCentre()
-        overlay.resetZoom()
-
-        assertEquals(1f, overlay.zoom, EPS)
-        drag(50f, 150f, 250f, 250f)
-        assertRect(RectF(250f, 250f, 1250f, 750f), overlay.getRelativeRoi())
-    }
-
     // ── Mask ─────────────────────────────────────────────────────────────────
 
     /** Mask at preview resolution (200×100, half a view px per image px) so every byte is checkable. */

@@ -20,7 +20,4 @@ object ViewerFieldPills {
         R.id.rbFieldEyy to FieldKind.EYY,
         R.id.rbFieldExy to FieldKind.EXY,
     )
-
-    /** The pill showing [field]. */
-    fun idFor(field: FieldKind): Int = BY_ID.entries.first { it.value == field }.key
 }

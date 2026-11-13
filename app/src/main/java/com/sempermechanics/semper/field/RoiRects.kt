@@ -10,9 +10,6 @@ import kotlin.math.roundToInt
 /** `Rect(x, y, x + w, y + h)`. */
 fun Roi.toRect(): Rect = Rect(x, y, right, bottom)
 
-/** From a [Rect]'s edges. */
-fun Roi.Companion.fromRect(rect: Rect): Roi = fromLtrb(rect.left, rect.top, rect.right, rect.bottom)
-
 /**
  * From the ROI editor's float selection in image pixels, each edge rounded
  * to the nearest pixel, then clamped: the left/top edges at 0, the

@@ -125,14 +125,16 @@ class RoiTest {
             val (lt, r) = ltr
             val rect = RectF(lt.first, lt.second, r, b)
             val expected = legacyRoiPixels(rect, size.width, size.height)
-            assertEquals("$rect", Roi.fromRect(expected), Roi.fromImageRect(rect, size))
+            val want = Roi.fromLtrb(expected.left, expected.top, expected.right, expected.bottom)
+            assertEquals("$rect", want, Roi.fromImageRect(rect, size))
         }
     }
 
     @Test
     fun `Rect and edge conversions round-trip`() {
         for (roi in rois().take(500)) {
-            assertEquals(roi, Roi.fromRect(roi.toRect()))
+            val rect = roi.toRect()
+            assertEquals(roi, Roi.fromLtrb(rect.left, rect.top, rect.right, rect.bottom))
             assertEquals(roi, Roi.fromLtrb(roi.x, roi.y, roi.right, roi.bottom))
             assertEquals(roi, Roi.fromXywh(roi.toXywh()))
         }

@@ -192,21 +192,16 @@ fun LabWizardState.mechanicalInputs(forSweep: Boolean): MechanicalTestInputs = i
 internal val RunSpec.testTypeWire: String
     get() = (TestType.fromWire(mechanical.testType) ?: TestType.DIC_2D).wireName
 
-// The view model's side: reads of its inputs, and changes made in one edit.
+// The view model's side: reads of its inputs as they are now, and changes made in one edit.
 
-/** [WizardInputs.defTimesAfterRefMs] of the inputs as they are now. */
 val AnalysisViewModel.defTimesAfterRefMs: List<Long> get() = inputs.value.defTimesAfterRefMs
 
-/** [WizardInputs.defCaptureStamps] of the inputs as they are now. */
 val AnalysisViewModel.defCaptureStamps: List<CaptureStamp?> get() = inputs.value.defCaptureStamps
 
-/** [WizardInputs.typedLoadsKg] of the inputs as they are now. */
 val AnalysisViewModel.typedLoadsKg: List<Float?> get() = inputs.value.typedLoadsKg
 
-/** How the logged loads will become stress, given what is entered so far. */
 fun AnalysisViewModel.stressModel(): StressStrain.Model = lab.stressModel()
 
-/** Re-matches the load log (or the typed loads) to the frames as they are now; see [withMachineLoadsMatched]. */
 fun AnalysisViewModel.refreshMachineLoads() = edit { it.withMachineLoadsMatched() }
 
 /** Typed loads replace an imported log: one source at a time. */
@@ -215,7 +210,6 @@ fun AnalysisViewModel.setTypedLoads(kg: List<Float?>) {
     edit { it.withTypedLoadsKg(kg).withMachineLoadsMatched() }
 }
 
-/** [WizardInputs.hasTypedLoads] of the inputs as they are now. */
 fun AnalysisViewModel.hasTypedLoads(): Boolean = inputs.value.hasTypedLoads()
 
 fun AnalysisViewModel.clearTypedLoads() = edit { it.withTypedLoadsKg(emptyList()).withMachineLoadsMatched() }
@@ -231,23 +225,10 @@ fun AnalysisViewModel.clearMachineLoads() {
     drafts.stage { it.writeLoadLog(null) }
 }
 
-/** [WizardInputs.mechanicalInputsReady] of the inputs as they are now. */
 fun AnalysisViewModel.mechanicalInputsReady(): Boolean = inputs.value.mechanicalInputsReady()
 
-/** [WizardInputs.typedLoadsMissing] of the inputs as they are now. */
 fun AnalysisViewModel.typedLoadsMissing(): Int = inputs.value.typedLoadsMissing()
 
-/** [LabWizardState.loadPointMissing] of the inputs as they are now. */
 fun AnalysisViewModel.loadPointMissing(): Boolean = lab.loadPointMissing()
 
-/** A new reference: the beam's taps go ([LabWizardState.withoutBeamTaps]). */
-fun AnalysisViewModel.onReferenceReplaced() = editLab { it.withoutBeamTaps() }
-
-/** [LabWizardState.mechanicalInputs] of the inputs as they are now. */
 fun AnalysisViewModel.mechanicalInputs(forSweep: Boolean): MechanicalTestInputs = lab.mechanicalInputs(forSweep)
-
-/** Back to no lab inputs ([LabWizardState.cleared]), the load log dropped from the draft too. */
-fun AnalysisViewModel.clearLabInputs() {
-    editLab { it.cleared() }
-    drafts.stage { it.writeLoadLog(null) }
-}

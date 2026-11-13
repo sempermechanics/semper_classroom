@@ -71,7 +71,7 @@ class LabInputsTest {
         bendingReadyButTaps()
         vm.editLab { it.copy(geometry = it.geometry.copy(loadPoint = BeamEdgeTaps(10f, 20f, 10f, 148f))) }
 
-        vm.onReferenceReplaced()
+        vm.editLab { it.withoutBeamTaps() }
 
         assertEquals(BeamEdgeTaps.NONE, vm.lab.geometry.loadPoint)
         assertEquals(935f, vm.lab.geometry.spanMm)
@@ -206,7 +206,7 @@ class LabInputsTest {
     @Test
     fun `clearing the lab inputs forgets the video's clip time`() {
         vm.editLab { it.copy(refVideoTimeMs = 4_000L) }
-        vm.clearLabInputs()
+        vm.editLab { it.cleared() }
 
         assertNull(vm.lab.refVideoTimeMs)
     }

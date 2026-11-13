@@ -35,10 +35,6 @@ object AccessRouter {
     fun isGated(target: Class<out Activity>): Boolean =
         target == HomeActivity::class.java || target == PendingApprovalActivity::class.java
 
-    /** True when the user may enter the main app (online or offline-approved). */
-    fun isHomeStatus(status: String): Boolean =
-        status == AccessStatus.APPROVED || status == AccessStatus.OFFLINE_CACHE_APPROVED
-
     /**
      * After a successful sign-in: pending accounts wait; everything else goes Home
      * (including offline-approved).

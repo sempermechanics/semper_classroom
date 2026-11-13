@@ -1,6 +1,5 @@
 package com.sempermechanics.semper.data.cloud
 
-import androidx.work.ListenableWorker
 import com.sempermechanics.semper.data.cloud.UploadErrors.Kind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -60,8 +59,6 @@ class UploadErrorsTest {
         // POST /v1/sessions and :complete answer 503 feature_paused while the
         // upload or backup kill switch is on.
         assertEquals(Kind.PAUSED, UploadErrors.classify(503, body("feature_paused")))
-        assertEquals(ListenableWorker.Result.retry(), UploadWorkOutcomes.fromHttpCode(503, body("feature_paused")))
-        assertFalse(UploadWorkOutcomes.isQuotaExhausted(503, body("feature_paused")))
     }
 
     @Test

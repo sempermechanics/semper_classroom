@@ -1,6 +1,5 @@
 package com.sempermechanics.semper.cloud
 
-import androidx.work.ListenableWorker
 import com.sempermechanics.semper.data.Resume
 import com.sempermechanics.semper.data.UploadJob
 import com.sempermechanics.semper.data.cloud.UploadWorkOutcomes
@@ -16,38 +15,10 @@ import java.io.File
 import kotlin.io.path.createTempDirectory
 
 /**
- * Pins [DicUploadWorker] quota / fail / retry seams without WorkManager.
+ * Pins [DicUploadWorker] resume and staging seams without WorkManager.
  */
 @RunWith(RobolectricTestRunner::class)
 class DicUploadWorkerOutcomesTest {
-
-    @Test
-    fun `quota exhausted fails permanently`() {
-        val quotaBody = """{"detail":"session_quota_exceeded: 5/5 analyses stored."}"""
-        assertEquals(ListenableWorker.Result.failure(), UploadWorkOutcomes.fromHttpCode(409))
-        assertTrue(UploadWorkOutcomes.isQuotaExhausted(409, quotaBody))
-        assertFalse(UploadWorkOutcomes.isQuotaExhausted(409))
-        assertFalse(
-            UploadWorkOutcomes.isQuotaExhausted(
-                409,
-                """{"detail":"device_not_active"}""",
-            ),
-        )
-        assertFalse(UploadWorkOutcomes.isQuotaExhausted(413))
-        assertEquals(ListenableWorker.Result.failure(), UploadWorkOutcomes.fromHttpCode(413))
-    }
-
-    @Test
-    fun `stale session retries so the next run rebuilds`() {
-        assertEquals(ListenableWorker.Result.retry(), UploadWorkOutcomes.fromHttpCode(400))
-    }
-
-    @Test
-    fun `transient HTTP codes retry`() {
-        assertEquals(ListenableWorker.Result.retry(), UploadWorkOutcomes.fromHttpCode(500))
-        assertEquals(ListenableWorker.Result.retry(), UploadWorkOutcomes.fromHttpCode(503))
-        assertEquals(ListenableWorker.Result.retry(), UploadWorkOutcomes.fromHttpCode(429))
-    }
 
     /** A pending upload matched to a staged file, as `matchPending` pairs them. */
     private val job = UploadJob("f_meta", "u_meta", chunkSize = 1, name = "metadata.json", file = File("metadata.json"))
