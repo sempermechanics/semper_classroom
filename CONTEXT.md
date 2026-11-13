@@ -133,11 +133,15 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
 
 ## Current state (2026-11-12)
 
-- **Trim and comment pass** (#174, `claude/trim-and-comment-pass`, not merged): about 1,040 lines
+- **Docs and screenshots refresh** (`claude/docs-screenshots-refresh`, not merged): every
+  screenshot in `docs/images/` retaken on 2026-11-13 from `main` with the app's examples
+  (closes TD-279; four lost images back); the manual, README and lab workflow now cover
+  Continue as guest, Share's licence lock, typed bending loads and the subset range.
+- **Trim and comment pass** (#174, merged 2026-11-13): about 1,040 lines
   out with no behaviour change. Test-only helpers are deleted, copied test setup is shared, and
   the CI checkers share `scripts/kotlin_lex.py`. A comments-only pass fixes about 30 wrong comments
   and adds CONTRIBUTING rules 26–29. It found TD-283 to TD-285, which are left for a decision.
-- **Continue as guest** (`claude/continue-as-guest`, not merged; [ADR-036](docs/adr/ADR-036-continue-as-guest.md)):
+- **Continue as guest** (#172, merged 2026-11-12; [ADR-036](docs/adr/ADR-036-continue-as-guest.md)):
   the sign-in screen opens the app with Demo's limits and no account (`data/account/GuestMode`);
   the cloud is off, the Terms gate still runs (a returning guest is not asked again), the
   guest's analyses are its own; Settings' footer reads Sign in. Kill switches and the version
@@ -219,7 +223,7 @@ Keep `-O3 -ffast-math` / OpenMP / LTO on release.
   curve**, a lab report. Bending: beam-edge taps, δ, E = WL³/(48δI), loads in kg, a deflection
   correction (ADR-013), a lab report. Checked against published steel and PMMA data
   ([REAL_WORLD_VALIDATION.md](docs/app/REAL_WORLD_VALIDATION.md)); steel re-run under the mean
-  on 2026-11-11, PMMA's strain comparison owed (TD-53); two tensile screenshots stale (TD-279).
+  on 2026-11-11, PMMA's strain comparison owed (TD-53).
 - **Releases.** Semper Classroom, `com.sempermechanics.semperclassroom` (ADR-009, ADR-030),
   beside Semper, on its backend; last **`v2.0-beta.1`**, the first as Semper Classroom
   (`2b3f8ef4`, 2026-11-12, versionCode 1007, GitHub pre-release; smoked on the S22, see
