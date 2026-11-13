@@ -371,7 +371,7 @@ turns); the overlap is a typed field, and it follows the step.
 
 | Parameter | Range | Reset to |
 |---|---|---|
-| Subset size | 15–121, odd | Recommended |
+| Subset size | SSSIG size to +50 (15–121 before a measurement), odd | Three-speckle size in that range |
 | Step size | 1–`min(30, subset/2)` | 5 |
 | Subset overlap | 0.50–0.99 (`1 − step / subset`) | Follows step |
 | Strain window | 3–31 points, odd | 5 |
@@ -386,8 +386,17 @@ of Pan et al. (Opt. Express 16(10), 2008): displacement error scales as
 1/√SSSIG, so it grows the subset until the gradient content clears the threshold
 for 0.007 px accuracy, sampled on a 4×4 grid and taken as the median.
 
+That size is the least the accuracy target allows, so once the speckle is
+measured it becomes the slider's **left end**, and the right end is 50 px above
+it (never past 121). Before a measurement the slider spans 15–121. The slider
+**starts** at the size that spans three measured speckles, inside that range:
+at the left end when three speckles fit in less, at the right end when they
+need more, and at the left end when the speckle could not be measured.
+
 It is a starting point. Touch the slider and it stops tracking the image.
-**Reset** brings it back.
+**Reset** brings it back. The range holds for every size: a typed, pasted or
+Re-run's subset outside it moves to the nearer end, and so does a size of your
+own when a new reference or ROI moves the range.
 
 While the speckle is measured (past about a third of a second) the chip beside
 **Subset size** reads **Measuring speckle…**. When it lands:
@@ -395,7 +404,8 @@ While the speckle is measured (past about a third of a second) the chip beside
 - A chip beside **Subset size** reads **Speckle 4.3 px** — the same measurement
   as the step 1 chip, in amber when it is outside the 3–9 px good-practice band.
   TalkBack reads the band out with it.
-- The slider slides to the recommended size (it jumps when animations are off).
+- The slider's ends move to the measured range, and it slides to the
+  three-speckle size (it jumps when animations are off).
 - A blue band is shaded behind the slider track from the smallest size that both
   clears the SSSIG threshold and spans three speckles, up to the slider's end.
   Larger subsets still correlate; they only blur the field more. The subset's ⓘ
@@ -991,7 +1001,7 @@ The analysis is saved as a plain DIC analysis: no **Results** page, no lab repor
 
 | Parameter | Range | Default | Raise when | Lower when |
 |---|---|---|---|---|
-| Subset | 15–121, odd | Recommended | Speckle is weak; correlation fails | You need resolution across a sharp gradient |
+| Subset | SSSIG size to +50 (15–121 before a measurement), odd | Three-speckle size in that range | Speckle is weak; correlation fails | You need resolution across a sharp gradient |
 | Step | 1–30 | 5 | Runtime matters | You need a denser field |
 | Strain window | 3–31 points, odd | 5 | Strain is noisy | Detail is being smoothed away |
 | Interpolation | 4×4 / 6×6 | 4×4 bicubic | Studying interpolation bias | — |

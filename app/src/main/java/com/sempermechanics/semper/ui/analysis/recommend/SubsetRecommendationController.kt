@@ -25,10 +25,17 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * Initial subset size from the SSSIG criterion (Pan et al., Opt. Express 16,
- * 7037 (2008)) — see [SubsetRecommender]. The reference speckle decides it, so
- * it is measured whenever the reference image or the ROI changes, and stops
- * seeding the slider once the user sets a size of their own.
+ * The subset slider's range and starting size, from the reference speckle,
+ * measured whenever the reference image or the ROI changes.
+ *
+ * The SSSIG size (Pan et al., Opt. Express 16, 7037 (2008)) — see
+ * [SubsetRecommender] — is the least the accuracy target allows, so it is the
+ * slider's lower end, and the upper end is [SubsetRecommender.SLIDER_SPAN]
+ * above it. The slider starts at the size that spans three measured speckles
+ * ([SubsetRecommender.Recommendation.startingSubset]), and stops being seeded
+ * once the user sets a size of their own. The range holds for every size: a
+ * typed, pasted or Re-run's size outside it is moved to the nearer end, and so
+ * is the user's own when a new measurement moves the range.
  *
  * Owns the speckle feedback too: the low-texture and speckle-size chips on
  * page 1; on page 2 the speckle chip beside the subset size, the band of
@@ -66,7 +73,7 @@ class SubsetRecommendationController(
     fun request() {
         val asked = inputs
         val bytes = asked.refBytes
-        val roi = currentSamplingRoi()
+        val roi = samplingRoi
         if (bytes == null || roi == null) return
         val key = "${asked.refName}|${bytes.size}|${roi.toShortString()}"
         if (key == asked.subsetRecommendationKey) {
@@ -75,11 +82,9 @@ class SubsetRecommendationController(
         }
         viewModel.edit { it.copy(subsetRecommendationKey = key, subsetRecommendation = null) }
 
-        // Read off the slider here: the measurement runs on the native thread,
-        // which must not touch views.
-        val tuning = SubsetRecommender.Tuning(
-            sizes = settings.sliderSubsetSize.valueFrom.toInt()..settings.sliderSubsetSize.valueTo.toInt(),
-        )
+        // The full range, not the slider's: a measured slider is narrowed to
+        // the last measurement, and the next must be free to land outside it.
+        val tuning = SubsetRecommender.Tuning()
 
         val started = measuring.start { SubsetBand.showMeasuring(settings.chipSpeckle) }
         activity.lifecycleScope.launch(measureOn()) {
@@ -104,12 +109,29 @@ class SubsetRecommendationController(
     }
 
     /**
-     * The subset size an untouched form shows: the SSSIG recommendation for
-     * the loaded reference image, or the historical 41 px before one exists.
+     * The subset size an untouched form shows: the speckle-span start inside
+     * the SSSIG range for the loaded reference image, or the historical 41 px
+     * before one exists.
      */
     fun defaultSubsetSize(): Int {
         val rec = inputs.subsetRecommendation ?: return DicParams.DEFAULT_SUBSET
-        return snapToSlider(settings.sliderSubsetSize, rec.subsetSize)
+        return snapToSlider(settings.sliderSubsetSize, rec.startingSubset)
+    }
+
+    /**
+     * Sets the slider's ends: the measurement's [SubsetRecommender.Recommendation.sliderRange],
+     * or the full range without one. A size outside them — the user's own
+     * included — is moved to the nearer end at once: the slider will not draw
+     * a value outside its ends.
+     */
+    private fun fitRange() {
+        val slider = settings.sliderSubsetSize
+        val range = inputs.subsetRecommendation?.sliderRange ?: FULL_RANGE
+        if (slider.valueFrom.toInt() == range.first && slider.valueTo.toInt() == range.last) return
+        val held = slider.value.toInt()
+        slider.valueFrom = range.first.toFloat()
+        slider.valueTo = range.last.toFloat()
+        slider.value = snapToSlider(slider, held).toFloat()
     }
 
     /** Lands a glide still running, so whoever reads the slider next reads the recommendation. */
@@ -117,9 +139,10 @@ class SubsetRecommendationController(
         seeding?.takeIf { it.isStarted }?.end()
     }
 
-    /** Seeds the slider with the recommendation, until the user overrides it. */
+    /** Fits the slider to the recommendation, and seeds it until the user overrides it. */
     fun apply() {
         settle()
+        fitRange()
         val rec = inputs.subsetRecommendation ?: run {
             lowTextureChip.hide()
             speckleChip.hide()
@@ -131,7 +154,7 @@ class SubsetRecommendationController(
         // the largest allowed subset misses the accuracy target on this pattern.
         lowTextureChip.showOrHide(activity.getString(R.string.subset_low_texture).takeIf { rec.lowTexture })
         if (!inputs.subsetUserModified) {
-            val snapped = snapToSlider(settings.sliderSubsetSize, rec.subsetSize)
+            val snapped = snapToSlider(settings.sliderSubsetSize, rec.startingSubset)
             if (settings.sliderSubsetSize.value.toInt() != snapped) {
                 host.commitParamFields()
                 // The band and chip show now; the rest waits for the slider to get there.
@@ -236,10 +259,13 @@ class SubsetRecommendationController(
     }
 
     /** Region the recommendation samples: the ROI when set, else the frame. */
-    private fun currentSamplingRoi(): Rect? =
-        inputs.let { it.roi.orFullFrame(it.hasCustomRoi, it.refSize)?.toRect() }
+    private val samplingRoi: Rect?
+        get() = inputs.let { it.roi.orFullFrame(it.hasCustomRoi, it.refSize)?.toRect() }
 
     internal companion object {
+        /** The slider's ends before a measurement, as the layout sets them. */
+        private val FULL_RANGE = SubsetRecommender.MIN_SUBSET..SubsetRecommender.MAX_SUBSET
+
         /**
          * The engine's thread, for a controller the wizard builds itself. A
          * Robolectric test of the whole wizard, which has no native library,

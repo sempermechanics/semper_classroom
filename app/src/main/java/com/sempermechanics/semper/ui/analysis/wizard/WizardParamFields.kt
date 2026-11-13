@@ -160,6 +160,7 @@ class WizardParamFields(
 
     /** [subset] and [step] snapped onto their sliders, then the window in points at that step. */
     private fun setSliders(subset: Int, step: Int, vsg: Int) {
+        // Snapped into the measured range: a past run's subset below the SSSIG size moves up to it.
         settings.sliderSubsetSize.value = snapToSlider(settings.sliderSubsetSize, subset).toFloat()
         // The step slider's range follows the subset: widen it first, or a
         // larger step than the old subset allowed would be clamped.

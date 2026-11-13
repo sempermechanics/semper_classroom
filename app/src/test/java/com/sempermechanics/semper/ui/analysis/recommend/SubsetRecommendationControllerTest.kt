@@ -1,6 +1,8 @@
 package com.sempermechanics.semper.ui.analysis.recommend
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.drawable.LayerDrawable
 import android.os.Looper
 import android.provider.Settings
@@ -72,6 +74,98 @@ class SubsetRecommendationControllerTest {
         assertTrue(bed.settings.chipSpeckle.isVisible)
         assertFalse(bed.binding.speckleWarnRow.root.isVisible)
         assertFalse(bed.binding.lowTextureWarnRow.root.isVisible)
+    }
+
+    @Test
+    fun `the slider runs from the SSSIG size to 50 above it and starts at the three-speckle span`() {
+        // 9 px speckle: three of them need 27 px, above the 21 px SSSIG floor.
+        recommend(21, speckle = 9.0)
+        subsets.apply()
+
+        val slider = bed.settings.sliderSubsetSize
+        assertEquals(21f, slider.valueFrom)
+        assertEquals(71f, slider.valueTo)
+        assertEquals(27, slider.value.toInt())
+        assertEquals(27, subsets.defaultSubsetSize())
+        // The slider accepts its new ends: drawing validates them.
+        slider.layout(0, 0, SLIDER_WIDTH_PX, SLIDER_HEIGHT_PX)
+        slider.draw(Canvas(Bitmap.createBitmap(SLIDER_WIDTH_PX, SLIDER_HEIGHT_PX, Bitmap.Config.ARGB_8888)))
+    }
+
+    @Test
+    fun `a fine speckle starts the slider at the SSSIG floor, an unmeasured one too`() {
+        recommend(31, speckle = 4.0) // three 4 px speckles need 15 px, under the floor
+        subsets.apply()
+        assertEquals(31, bed.settings.sliderSubsetSize.value.toInt())
+
+        recommend(41)
+        subsets.apply()
+        assertEquals(41, bed.settings.sliderSubsetSize.value.toInt())
+        assertEquals(41f..91f, bed.settings.sliderSubsetSize.let { it.valueFrom..it.valueTo })
+    }
+
+    @Test
+    fun `a speckle coarser than the range starts the slider at its top`() {
+        recommend(21, speckle = 30.0) // three need 91 px, past 21 + 50
+        subsets.apply()
+        assertEquals(71, bed.settings.sliderSubsetSize.value.toInt())
+
+        recommend(25, speckle = 50.0) // no subset spans three
+        subsets.apply()
+        assertEquals(75, bed.settings.sliderSubsetSize.value.toInt())
+    }
+
+    @Test
+    fun `near the top of the full range the slider stops at 121 and keeps two ends`() {
+        recommend(101)
+        subsets.apply()
+        assertEquals(101f..121f, bed.settings.sliderSubsetSize.let { it.valueFrom..it.valueTo })
+
+        recommend(121, capped = 10)
+        subsets.apply()
+        assertEquals(119f..121f, bed.settings.sliderSubsetSize.let { it.valueFrom..it.valueTo })
+    }
+
+    @Test
+    fun `a new reference measured outside the old range moves the slider there`() {
+        recommend(21)
+        subsets.apply()
+        recommend(81)
+        subsets.apply()
+
+        assertEquals(81f..121f, bed.settings.sliderSubsetSize.let { it.valueFrom..it.valueTo })
+        assertEquals(81, bed.settings.sliderSubsetSize.value.toInt())
+    }
+
+    @Test
+    fun `a size the user set below a new floor moves up to it`() {
+        bed.viewModel.edit { it.copy(subsetUserModified = true) }
+        bed.settings.sliderSubsetSize.value = 15f
+        recommend(41)
+        subsets.apply()
+
+        assertEquals(41f..91f, bed.settings.sliderSubsetSize.let { it.valueFrom..it.valueTo })
+        assertEquals(41, bed.settings.sliderSubsetSize.value.toInt())
+    }
+
+    @Test
+    fun `a size the user set above a new top moves down to it`() {
+        bed.viewModel.edit { it.copy(subsetUserModified = true) }
+        bed.settings.sliderSubsetSize.value = 101f
+        recommend(21)
+        subsets.apply()
+
+        assertEquals(71, bed.settings.sliderSubsetSize.value.toInt())
+    }
+
+    @Test
+    fun `losing the measurement gives the slider its full range back`() {
+        recommend(41)
+        subsets.apply()
+        bed.viewModel.edit { it.copy(subsetRecommendation = null) }
+        subsets.apply()
+
+        assertEquals(15f..121f, bed.settings.sliderSubsetSize.let { it.valueFrom..it.valueTo })
     }
 
     @Test
@@ -234,5 +328,7 @@ class SubsetRecommendationControllerTest {
 
     private companion object {
         const val GLIDE_PAST_MS = 400L
+        const val SLIDER_WIDTH_PX = 600
+        const val SLIDER_HEIGHT_PX = 120
     }
 }

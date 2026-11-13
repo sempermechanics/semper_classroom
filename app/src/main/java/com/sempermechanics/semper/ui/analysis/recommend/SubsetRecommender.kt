@@ -76,9 +76,23 @@ object SubsetRecommender {
         return maxOf(usable, NOISE_VARIANCE) / (TARGET_SD_ERROR_PX * TARGET_SD_ERROR_PX)
     }
 
-    /** Matches the subset slider's range/step in activity_static_analysis.xml. */
+    /**
+     * The subset slider's full range, in wizard_step_settings_content.xml,
+     * which it spans before a measurement and the recommender searches.
+     */
     const val MIN_SUBSET = 15
     const val MAX_SUBSET = 121
+
+    /**
+     * How far past the SSSIG size a measured slider reaches. The SSSIG size is
+     * the least the target accuracy allows, so it is the slider's floor; this
+     * much above it leaves room for the speckle span and for smoothing, and
+     * keeps each step of the slider a small move.
+     */
+    const val SLIDER_SPAN = 50
+
+    /** The subset slider's step: sizes stay odd. */
+    private const val SLIDER_STEP = 2
 
     /** Sample points are laid out on a GRID x GRID lattice inside the ROI. */
     private const val GRID = 4
@@ -167,6 +181,34 @@ object SubsetRecommender {
          */
         val subsetSpanningSpeckles: Int?
             get() = speckleDiameterPx?.let { DicGoodPractice.subsetForSpeckle(it) }
+
+        /**
+         * The subset slider's ends once this is measured: from the SSSIG
+         * [subsetSize], the least the accuracy target allows, to
+         * [SLIDER_SPAN] above it, inside the full range. At the top of the
+         * range the floor gives way by a step, so the slider keeps two ends.
+         */
+        val sliderRange: IntRange
+            get() {
+                val floor = (subsetSize or 1).coerceIn(MIN_SUBSET, MAX_SUBSET - SLIDER_STEP)
+                return floor..minOf(floor + SLIDER_SPAN, MAX_SUBSET)
+            }
+
+        /**
+         * Where the slider starts: the size that spans three of the measured
+         * speckles ([subsetSpanningSpeckles]), inside [sliderRange]. A speckle
+         * too coarse for any subset to span starts it at the top; one not
+         * measured, at the SSSIG floor.
+         */
+        val startingSubset: Int
+            get() {
+                val range = sliderRange
+                val wanted = when {
+                    speckleDiameterPx == null -> range.first
+                    else -> subsetSpanningSpeckles ?: range.last
+                }
+                return wanted.coerceIn(range)
+            }
     }
 
     /**
