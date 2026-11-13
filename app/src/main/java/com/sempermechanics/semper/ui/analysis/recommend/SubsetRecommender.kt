@@ -76,7 +76,7 @@ object SubsetRecommender {
         return maxOf(usable, NOISE_VARIANCE) / (TARGET_SD_ERROR_PX * TARGET_SD_ERROR_PX)
     }
 
-    /** Matches the subset slider's range/step in activity_static_analysis.xml. */
+    /** The subset slider's full range (wizard_step_settings_content.xml), which the recommender searches. */
     const val MIN_SUBSET = 15
     const val MAX_SUBSET = 121
 

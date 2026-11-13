@@ -76,6 +76,7 @@ class WizardParamFieldsTest {
     fun `Reset goes back to the recommendation and the default step, window and interpolator`() {
         val rec = SubsetRecommender.Recommendation(subsetSize = 25, samples = 10, cappedSamples = 0)
         bed.viewModel.edit { it.copy(subsetRecommendation = rec, subsetUserModified = true) }
+        subsets.apply() // the slider takes the measured range, 25–75
         bed.settings.sliderSubsetSize.value = 61f
         bed.settings.sliderStepSize.value = 9f
         bed.settings.sliderStrainWindow.value = 11f
@@ -86,11 +87,33 @@ class WizardParamFieldsTest {
         fields.reset()
 
         assertEquals(25, bed.settings.sliderSubsetSize.value.toInt())
+        assertEquals(25f, bed.settings.sliderSubsetSize.valueFrom)
+        assertEquals(75f, bed.settings.sliderSubsetSize.valueTo)
         assertEquals(DicParams.DEFAULT_STEP, bed.settings.sliderStepSize.value.toInt())
         assertEquals(SweepStudy.DEFAULT_WINDOW_POINTS, bed.settings.sliderStrainWindow.value.toInt())
         assertFalse(fields.isKeysInterpolatorSelected())
         assertFalse(bed.viewModel.inputs.value.subsetUserModified)
         assertEquals(listOf("commitParamFields", "resetSweepInputs", "clearRunStatus"), bed.host.calls)
+    }
+
+    @Test
+    fun `a Re-run's, pasted or typed subset outside the measured range moves to its nearer end`() {
+        val rec = SubsetRecommender.Recommendation(subsetSize = 41, samples = 10, cappedSamples = 0)
+        bed.viewModel.edit { it.copy(subsetRecommendation = rec) }
+        subsets.apply()
+        assertEquals(41f..91f, bed.settings.sliderSubsetSize.let { it.valueFrom..it.valueTo })
+
+        fields.applyRerun(subset = 21, step = 5, vsg = 21, use6x6 = false)
+        assertEquals(41, fields.subsetSize())
+
+        ParamClipboard.copy(bed.activity, subset = 121, step = 5, vsg = 41)
+        fields.paste()
+        assertEquals(91, fields.subsetSize())
+
+        bed.settings.etSubsetValue.setText("15")
+        bed.settings.etSubsetValue.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_DONE)
+        assertEquals(41, fields.subsetSize())
+        assertEquals(41f..91f, bed.settings.sliderSubsetSize.let { it.valueFrom..it.valueTo })
     }
 
     @Test

@@ -1318,7 +1318,7 @@ A large region at a small step can exhaust memory — try a coarser step or a sm
         <item quantity="one">≈ %1$d frame: 1 reference + %2$d deformed%3$s</item>
         <item quantity="other">≈ %1$d frames: 1 reference + %2$d deformed%3$s</item>
     </plurals>
-    <string name="info_subset">Bigger is more robust on weak speckle but smooths sharp strain gradients. After the speckle check, the shaded band on the slider marks the sizes that hold enough speckle.</string>
+    <string name="info_subset">Bigger is more robust on weak speckle but smooths sharp strain gradients. After the speckle check, the slider starts at the smallest size the accuracy allows and ends 50 px above it; it starts at the size that spans three speckles, and the shaded band marks the sizes that hold enough speckle.</string>
     <string name="info_step">Pixels between tracked points. Smaller is denser but slower. Overlap = 1 − step / subset.</string>
     <string name="info_strain_window">Data points each strain value averages over. Its virtual strain gauge (VSG) is (window − 1) × step + 1 px, shown beside the value. Bigger is smoother but less local.</string>
     <string name="info_strain_window_bending">Bending starts at 9 points: deflection and E come from displacement, so strain only draws the maps, and a wider window makes them less noisy.</string>
